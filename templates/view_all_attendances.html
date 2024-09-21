@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+
+{% block title %}Visualizar Atendimentos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Atendimentos Registrados</h2>
+
+    <form method="post" class="mb-4">
+        <div class="form-group">
+            <label for="selected_date">Selecione a Data:</label>
+            <input type="date" class="form-control" id="selected_date" name="selected_date" required>
+        </div>
+        <div align="center">
+            <button type="submit" class="btn btn-primary" style="width: 80%;">Filtrar</button>
+        </div>
+    </form>
+
+    {% if selected_date %}
+    <div class="my-4" align="center">
+        <h5>Exibindo resultados para: {{ selected_date }}</h5>
+    </div>
+    {% for user_name, records in grouped_records.items() %}
+    <h3>{{ user_name }} - Total de Atendimentos: {{ records|length }}</h3>
+    <!-- Mostra o nome do usuário e o total de agendamentos -->
+    {% for record in records %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ record.get('name', 'N/A') }}</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Cidade: {{ record.city }}</li>
+                <li class="list-group-item">Data: {{ record.date }}</li>
+                <li class="list-group-item">Telefone: {{ record.get('phone', 'N/A') }}</li>
+                <li class="list-group-item">Serviço: {{ record.get('service', 'N/A') }}</li>
+                <li class="list-group-item">Valor: {{ record.get('price', 'N/A') }}</li>
+                <li class="list-group-item">Obs.: {{ record.get('details', 'N/A') }}</li>
+            </ul>
+            <div class="text-end">
+                <label style="font-size: small;"><b>Status</b>: {{ record.get('status', 'N/A') }}</label>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+    {% else %}
+    <p>Selecione uma data para visualizar os atendimentos.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const DateTime = luxon.DateTime;
+        const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
+        const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
+        const dateInput = document.getElementById('selected_date');
+        dateInput.value = formattedDate;
+    });
+</script>
+{% endblock %}

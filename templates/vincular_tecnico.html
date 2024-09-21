@@ -1,0 +1,32 @@
+<!-- templates/vincular_tecnico.html -->
+{% extends "layout.html" %}
+
+{% block title %}Vincular Técnico a Cidades{% endblock %}
+
+{% block content %}
+<h1>Vincular Técnico a Cidades</h1>
+
+<form method="post">
+    <div class="form-group">
+        <label for="tecnico">Selecione o Técnico</label>
+        <select class="form-control" id="tecnico" name="tecnico" required>
+            <option value="">Selecione um técnico</option>
+            {% for tecnico_id, tecnico in tecnicos.items() %}
+            <option value="{{ tecnico_id }}">{{ tecnico.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="cidades">Selecione as Cidades</label>
+        <select multiple class="form-control" id="cidades" name="cidades">
+            {% for city_id, city_name in all_cities.items() %}
+            <option value="{{ city_name }}">{{ city_name }}</option>
+            {% endfor %}
+        </select>
+        <small class="form-text text-muted">Segure Ctrl (ou Cmd) para selecionar múltiplas cidades.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Vincular</button>
+</form>
+{% endblock %}

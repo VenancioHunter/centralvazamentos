@@ -1,0 +1,45 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2>Bem-vindo ao Dashboard</h2>
+<p>Você está logado como: {{ user_email }}</p>
+<link href="../static/css/dashboard.css" rel="stylesheet">
+<div>
+    <div class="row text-center mt-4">
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('attendance_records') }}">
+                    <h5>Registrar Atendimento</h5>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('consulta_atendimentos') }}">
+                    <h5>Atendimentos</h5>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('consulta_os_atendente') }}">
+                    <h5>Ordens De Serviço</h5>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul class="flashes">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+
+{% block title %}Extrato Técnico{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>OS</h2>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ os.city }}</h5>
+                        <div class="my-3" align="end" style="font-weight: bold;">
+                            <div>
+                                <span>Início {{ os.start_datetime }} horas</span>
+                            </div>
+                            <div>
+                                <span>Término {{ os.end_datetime }} horas</span>
+                            </div>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Nome: {{ os.name }}</li>
+                            <li class="list-group-item">Telefone: {{ os.phone }}</li>
+                            <li class="list-group-item">Serviço: {{ os.service }}</li>
+                        </ul>
+                        <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
+                            <label>Endereço</label>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">Bairro/Setor {{ os.address.bairro }}</li>
+                                <li class="list-group-item">Rua {{ os.address.rua }}</li>
+                                <li class="list-group-item">Nº {{ os.address.numero }}</li>
+                                <li class="list-group-item">Complemento {{ os.address.complemento }}</li>
+                                <li class="list-group-item">Localização <a href="{{ os.address.localizacao }}">{{ os.address.localizacao
+                                        }}</a></li>
+                            </ul>
+                        </div>
+                        <div align="end">
+                            <h5>R$ {{ os.newprice }}</h5>
+                        </div>
+                
+                    </div>
+                
+                    <div class="card-footer" align="center">
+                        {% if os.status_paymment == "recebido"%}
+                        <div>
+                            <span>Recebido</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+</div>
+{% endblock %}

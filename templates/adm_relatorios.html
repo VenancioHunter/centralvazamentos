@@ -1,0 +1,29 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+
+<link href="../static/css/dashboard.css" rel="stylesheet">
+<div>
+    <div class="row text-center mt-4">
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('adm_consulta_extrato') }}">
+                    <h5>Extrato Por Técnico</h5>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row text-center mt-4">
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('adm_lista_paymments_pendentes') }}">
+                    <h5>Pagamentos Pendentes</h5>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

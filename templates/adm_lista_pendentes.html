@@ -1,0 +1,162 @@
+<!-- templates/listar_pendentes.html -->
+{% extends "layout.html" %}
+
+{% block title %}Listar Transações Pendentes{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Filtrar Transações Pendentes</h2>
+    <form method="POST" action="{{ url_for('adm_lista_paymments_pendentes') }}">
+        <div class="form-group">
+            <label for="ano">Ano</label>
+            <select class="form-control" id="ano" name="ano">
+                <option value="2023" {% if ano=='2023' %}selected{% endif %}>2023</option>
+                <option value="2024" {% if ano=='2024' %}selected{% endif %}>2024</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="mes">Mês</label>
+            <select class="form-control" id="mes" name="mes">
+                <option value="01" {% if mes=='01' %}selected{% endif %}>Janeiro</option>
+                <option value="02" {% if mes=='02' %}selected{% endif %}>Fevereiro</option>
+                <option value="03" {% if mes=='03' %}selected{% endif %}>Março</option>
+                <option value="04" {% if mes=='04' %}selected{% endif %}>Abril</option>
+                <option value="05" {% if mes=='05' %}selected{% endif %}>Maio</option>
+                <option value="06" {% if mes=='06' %}selected{% endif %}>Junho</option>
+                <option value="07" {% if mes=='07' %}selected{% endif %}>Julho</option>
+                <option value="08" {% if mes=='08' %}selected{% endif %}>Agosto</option>
+                <option value="09" {% if mes=='09' %}selected{% endif %}>Setembro</option>
+                <option value="10" {% if mes=='10' %}selected{% endif %}>Outubro</option>
+                <option value="11" {% if mes=='11' %}selected{% endif %}>Novembro</option>
+                <option value="12" {% if mes=='12' %}selected{% endif %}>Dezembro</option>
+            </select>
+        </div>
+        <div align="center">
+            <button type="submit" class="btn btn-primary mt-3" style="width: 80%;">Filtrar</button>
+        </div>
+    </form>
+
+    <h3 class="mt-5">Pagamento Pendente</h3>
+    {% if transactions %}
+    <ul class="list-group">
+        {% for  trans_data in transactions %}
+        <li class="list-group-item">
+            <strong>Transação ID:</strong> {{ trans_data.transaction_id }}<br>
+            <strong>Transação ID OS:</strong> {{ trans_data.os_id }}<br>
+            <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
+            <strong>Método:</strong> {{ trans_data.method }}<br>
+            <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
+            <strong>Técnico:</strong> {{ trans_data.name_tecnico }}<br>
+            <strong>Cidade:</strong> {{ trans_data.os_city }}<br>
+        </li>
+        <li class="list-group-item" align="center">
+            <div class="row">
+                <div class="col">
+                    {% set year, month, day = trans_data.os_date.split('-') %}
+                    <a class="btn btn-primary" href="/os/{{trans_data.os_city}}/{{year}}/{{month}}/{{day}}/{{trans_data.os_id}}"
+                        style="width: 80%;">Ver OS</a>
+                </div>
+                <div class="col">
+                    <div class="col">
+                        <button type="button" id="buttonconfirmarpaymment" class="btn btn-success float-end" data-toggle="modal" data-target="#confirmarpaymment" data-transactionid="{{ trans_data.transaction_id }}" data-osdate="{{ trans_data.os_date }}" data-vencimento="{{ trans_data.vencimento }}" data-idos="{{ trans_data.os_id }}" data-city="{{ trans_data.os_city }}">Confirmar Pagamento</button>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <!-- Modal para gerar OS -->
+    <div class="modal fade" id="confirmarpaymment" tabindex="-1" role="dialog" aria-labelledby="paymmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymmentModalLabel">Confirmar Pagamento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymmentPenddingForm" method="post" action="/update_pendding">
+                        <input id="paymmentIdOs" name="paymmentIdOs" hidden>
+                        <input id="paymmentCity" name="paymmentCity" hidden>
+                        <input id="osDate" name="osDate" hidden>
+                        <input id="transactionId" name="transactionId" hidden>
+                        <div class="form-group">
+                            <label for="paymentDate">Data</label>
+                            <input type="date" class="form-control" id="osDatePaymment" name="datePaymment" required>
+                        </div>
+                        <div align="center">
+                            <button type="submit" id="confirmaros" class="btn btn-primary" style="width: 80%;">Confirmar Pagamento</button>
+                        </div>
+    
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>Nenhuma transação pendente encontrada.</p>
+    {% endif %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Script -->
+    <script>
+        // Preencher os dados do modal quando o botão é clicado
+        $('#confirmarpaymment').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Botão que acionou o modal
+            var idOs = button.data('idos');
+            var city = button.data('city');
+            var osdate = button.data('osdate');
+            var vencimento = button.data('vencimento'); 
+            var transactionId = button.data('transactionid');
+
+            var modal = $(this);
+            modal.find('#paymmentIdOs').val(idOs);
+            modal.find('#paymmentCity').val(city);
+            modal.find('#paymmentVencimento').val(vencimento);
+            modal.find('#osDate').val(osdate);
+            modal.find('#transactionId').val(transactionId);
+        });
+    </script>
+    <script>
+        const inputValor = document.getElementById('valuePaymment');
+
+        inputValor.addEventListener('input', formatarValor);
+
+        function formatarValor() {
+            // Remove qualquer caracter que não seja um dígito numérico
+            let valor = inputValor.value.replace(/\D/g, '');
+
+            // Divide o valor em duas partes: a parte inteira e a parte decimal
+            const parteInteira = valor.slice(0, -2);
+            const parteDecimal = valor.slice(-2);
+
+            // Adiciona um ponto para separar os milhares
+            const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            // Atualiza o valor do input com a string formatada como um valor em reais (R$)
+            inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Usando Luxon para lidar com o fuso horário
+            const DateTime = luxon.DateTime;
+
+            // Obtenha a data atual no fuso horário de São Paulo
+            const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
+
+            // Formate a data para 'YYYY-MM-DD'
+            const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
+
+            // Obtenha o elemento de entrada da data
+            const dateInput = document.getElementById('osDatePaymment');
+
+            // Defina o valor do campo de data para a data atual em São Paulo
+            dateInput.value = formattedDate;
+        });
+    </script>
+</div>
+{% endblock %}

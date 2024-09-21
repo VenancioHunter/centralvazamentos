@@ -1,0 +1,35 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+<h2>Bem-vindo ao Dashboard</h2>
+<p>Você está logado como: {{ user_email }}</p>
+<link href="../static/css/dashboard.css" rel="stylesheet">
+<div>
+    <div class="row text-center mt-4">
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('attendance') }}">
+                    <h5>Painel Atendimentos</h5>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="">
+                    <h5>Painel OS</h5>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{url_for('adm_relatorios')}}">
+                    <h5>Relatórios</h5>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

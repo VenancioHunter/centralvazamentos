@@ -1,0 +1,154 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="my-4 text-center">
+        <div>
+            <h1>{{ city }}</h1>
+        </div>
+        <div>
+            <h3>{{ date }}</h3>
+        </div>
+    </div>
+    {% if records %}
+    
+        {% for record_id, record in records.items() %}
+        
+        <div class="card mb-3">
+            <div class="card-body">
+                
+                <h5 class="card-title">{{ record.name }}</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Telefone: {{ record.phone }}</li>
+                    <li class="list-group-item">Serviço: {{ record.service }}</li>
+                    <li class="list-group-item">Valor {{ record.price }}</li>
+                    <li class="list-group-item">{{ record.timestamp | datetimeformat }}</li>
+                    <li class="list-group-item">Status {{record.status}}</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <!-- Botão para abrir o modal -->
+                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#osModal" data-city="{{ city }}"
+                    data-name="{{ record.name }}" data-phone="{{ record.phone }}" data-service="{{ record.service }}"
+                    data-price="{{ record.price }}" data-idrecord="{{ record_id }}">
+                    Gerar OS
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    
+
+
+    <!-- Modal para gerar OS -->
+    <div class="modal fade" id="osModal" tabindex="-1" role="dialog" aria-labelledby="osModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="osModalLabel">Gerar Ordem de Serviço</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="osForm" method="post" action="/gerar_os">
+                        <input id="osIdRecord" name="idRecord" hidden>
+                         <div class="form-group">
+                            <label for="osCity">Cidade</label>
+                            <input type="text" class="form-control" id="osCity" name="city" readonly>
+                        </div>
+                        <!--<div class="form-group">
+                            <label for="osDate">Data</label>
+                            <input type="text" class="form-control" id="osDate" name="date" readonly>
+                        </div>-->
+                        <div class="form-group">
+                            <label for="osName">Cliente</label>
+                            <input type="text" class="form-control" id="osName" name="name" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="osPhone">Telefone</label>
+                            <input type="text" class="form-control" id="osPhone" name="phone" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="osServico">Serviço</label>
+                            <input type="text" class="form-control" id="osServico" name="service" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="osPrice">Valor</label>
+                            <input type="text" class="form-control" id="osPrice" name="price" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="osDate">Data</label>
+                            <input type="date" class="form-control" id="osDate" name="dateos" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="osStartTime">Hora de Início</label>
+                            <input type="time" class="form-control" id="osStartTime" name="start_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="osEndTime">Hora de Término</label>
+                            <input type="time" class="form-control" id="osEndTime" name="end_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="osTecnico">Técnico(s)</label>
+                            <div id="osTecnico">
+                                {% for tecnico_id, tecnico in tecnicos.items() %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="tecnico{{ tecnico_id }}" name="tecnico"
+                                        value="{{ tecnico_id }}">
+                                    <label class="form-check-label" for="tecnico{{ tecnico_id }}">
+                                        {{ tecnico.name }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <!--<div class="form-group">
+                            <label for="osDescricao">Descrição</label>
+                            <textarea class="form-control" id="osDescricao" name="descricao" readonly></textarea>
+                        </div>-->
+                        <input type="text" value="{{date}}" name="date" hidden>
+
+                        <button type="submit" class="btn btn-primary">Confirmar OS</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <p>Nenhum registro de atendimento encontrado para a data selecionada.</p>
+    {% endif %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Preencher os dados do modal quando o botão é clicado
+        $('#osModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Botão que acionou o modal
+            var city = button.data('city');
+           // var date = button.data('date');
+            var name = button.data('name');
+            var phone = button.data('phone');
+            var price = button.data('price');
+
+            var servico = button.data('service');
+            var idRecord = button.data('idrecord');
+           // var descricao = button.data('descricao');
+
+            var modal = $(this);
+            modal.find('#osIdRecord').val(idRecord);
+            modal.find('#osCity').val(city);
+            //modal.find('#osDate').val(date);
+            modal.find('#osName').val(name);
+            modal.find('#osPhone').val(phone);
+            modal.find('#osPrice').val(price);
+            modal.find('#osServico').val(servico);
+            //modal.find('#osDescricao').val(descricao);
+        });
+    </script>
+    
+
+{% endblock %}

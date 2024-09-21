@@ -1,0 +1,15 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+    <h1>Adicionar Serviço</h1>
+    <form method="POST" action="/add_service">
+        <div class="my-2">
+            <label for="service">Nome do Serviço:</label>
+            <input class="form-control" type="text" id="service" name="service" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Adicionar</button>
+    </form>
+{% endblock %}

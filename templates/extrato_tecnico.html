@@ -1,0 +1,105 @@
+<!-- templates/listar_pendentes.html -->
+{% extends "layout.html" %}
+
+{% block title %}Extrato{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Filtrar Transações</h2>
+    <form method="POST" action="{{ url_for('extrato_tecnico') }}">
+        <div class="form-group">
+            <label for="ano">Ano</label>
+            <select class="form-control" id="ano" name="ano">
+                <option value="2023" {% if ano=='2023' %}selected{% endif %}>2023</option>
+                <option value="2024" {% if ano=='2024' %}selected{% endif %}>2024</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="mes">Mês</label>
+            <select class="form-control" id="mes" name="mes">
+                <option value="01" {% if mes=='01' %}selected{% endif %}>Janeiro</option>
+                <option value="02" {% if mes=='02' %}selected{% endif %}>Fevereiro</option>
+                <option value="03" {% if mes=='03' %}selected{% endif %}>Março</option>
+                <option value="04" {% if mes=='04' %}selected{% endif %}>Abril</option>
+                <option value="05" {% if mes=='05' %}selected{% endif %}>Maio</option>
+                <option value="06" {% if mes=='06' %}selected{% endif %}>Junho</option>
+                <option value="07" {% if mes=='07' %}selected{% endif %}>Julho</option>
+                <option value="08" {% if mes=='08' %}selected{% endif %}>Agosto</option>
+                <option value="09" {% if mes=='09' %}selected{% endif %}>Setembro</option>
+                <option value="10" {% if mes=='10' %}selected{% endif %}>Outubro</option>
+                <option value="11" {% if mes=='11' %}selected{% endif %}>Novembro</option>
+                <option value="12" {% if mes=='12' %}selected{% endif %}>Dezembro</option>
+            </select>
+        </div>
+        <div align="center">
+            <button type="submit" class="btn btn-primary mt-3" style="width: 80%;">Filtrar</button>
+        </div>
+    </form>
+
+    <h3 class="mt-5">Extrato</h3>
+    {% if grouped_transactions %}
+    {% for day, day_data in grouped_transactions.items() %}
+    <div class="mb-4">
+        <h4>Dia: {{ day }}</h4>
+        <ul class="list-group">
+            {% for transaction in day_data.transactions %}
+            <li class="list-group-item">
+                <strong>ID da Transação:</strong> {{ transaction.trans_id }}<br>
+                <strong>Valor:</strong> R$ {{ transaction.data.amount }}<br>
+                <strong>Método:</strong> {{ transaction.data.method }}<br>
+                <strong>Método:</strong> {{ transaction.data.os_date }}
+            </li>
+            <li class="list-group-item" align="center">
+                {% set year, month, day = transaction.data.os_date.split('-') %}
+                <a class="btn btn-primary" href="/os/{{transaction.city}}/{{year}}/{{month}}/{{day}}/{{transaction.data.os_id}}"
+                    style="width: 80%;">Ver OS</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="my-2 rounded-3 p-2" style="background-color: burlywood;">
+            <div>
+                <span>Saldo Bruto: R$ {{ "%.2f" | format(day_data.total_amount or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;"> - Combustível: R$ {{ "%.2f" | format(day_data.combustivel or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Manutenção R$ {{ "%.2f" | format(day_data.manutencao or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Pedágio: R$ {{ "%.2f" | format(day_data.pedagio or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Reparo: R$ {{ "%.2f" | format(day_data.reparo or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Outros: R$ {{ "%.2f" | format(day_data.outros or 0.00) }}</span>
+            </div>
+            <div style="font-size: small; font-weight: bold;">
+                <span>Total Líquido: R$ {{ "%.2f" | format(day_data.balance or 0.00) }}</span>
+            </div>
+            
+        </div>
+        <div class="my-2 rounded-3 p-2" style="background-color: darkgray;">
+            <div>
+                <span style="font-weight: bold;">Empresa</span>
+            </div>
+            <div>
+                <span style="font-size: small; font-weight: bold;">Lucro R$ {{ "%.2f" | format(day_data.empresa or 0.00) }}</span>
+            </div>
+        </div>
+        <div class="my-2 rounded-3 p-2" style="background-color: cadetblue;">
+            <div>
+                <span style="font-weight: bold;">Técnico</span>
+            </div>
+            <div>
+                <span style="font-size: small; font-weight: bold;">Lucro R$ {{ "%.2f" | format(day_data.tecnico_total or 0.00) }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>Nenhuma transação encontrada.</p>
+    {% endif %}
+</div>
+{% endblock %}

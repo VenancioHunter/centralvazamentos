@@ -1,0 +1,75 @@
+{% extends 'layout.html' %}
+
+{% block title %}Extrato Técnico{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Extrato Técnico - {{ date }}</h2>
+
+    {% if tecnico_transactions %}
+    {% for name_tecnico, data in tecnico_transactions.items() %}
+    <div class="mb-4">
+        <h4>{{ name_tecnico }}</h4>
+        <h5>Transações: {{ data.transactions|length }}</h5>
+        <ul class="list-group mb-4">
+            {% for transaction in data.transactions %}
+            <li class="list-group-item">
+                <strong>Valor</strong> R$ {{ transaction.amount }}<br>
+                <strong>Método:</strong> {{ transaction.method }}<br>
+                <strong>Data da OS:</strong> {{ transaction.os_date }}<br>
+            </li>
+            <li class="list-group-item" align="center">
+                {% set year, month, day = transaction.os_date.split('-') %}
+                <a class="btn btn-primary" href="/os/{{transaction.city}}/{{year}}/{{month}}/{{day}}/{{transaction.os_id}}" style="width: 80%;">Ver OS</a>
+            </li>
+            {% endfor %}
+            
+        </ul>
+        <div class="my-2 rounded-3 p-2" style="background-color: burlywood;">
+            <div>
+                <span>Saldo Bruto: R$ {{ "%.2f" | format(data.total_amount or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;"> - Combustível: R$ {{ "%.2f" | format(data.costs.combustivel or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Manutenção R$ {{ "%.2f" | format(data.costs.manutencao or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Pedágio: R$ {{ "%.2f" | format(data.costs.pedagio or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Reparo: R$ {{ "%.2f" | format(data.costs.reparo or 0.00) }}</span>
+            </div>
+            <div>
+                <span style="font-size: small;">- Outros: R$ {{ "%.2f" | format(data.costs.outros or 0.00) }}</span>
+            </div>
+            <div style="font-size: small; font-weight: bold;">
+                <span>Total Líquido: R$ {{ "%.2f" | format(data.valor_final or 0.00) }}</span>
+            </div>
+        </div>
+        <div class="my-2 rounded-3 p-2" style="background-color: darkgray;">
+            <div>
+                <span style="font-weight: bold;">Empresa</span>
+            </div>
+            <div>
+                <span style="font-size: small; font-weight: bold;">Lucro R$ {{ "%.2f" | format(data.empresa or 0.00)
+                    }}</span>
+            </div>
+        </div>
+        <div class="my-2 rounded-3 p-2" style="background-color: cadetblue;">
+            <div>
+                <span style="font-weight: bold;">Técnico</span>
+            </div>
+            <div>
+                <span style="font-size: small; font-weight: bold;">Lucro R$ {{ "%.2f" | format(data.tecnico or 0.00)
+                    }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>Nenhuma transação encontrada para a data selecionada.</p>
+    {% endif %}
+</div>
+{% endblock %}

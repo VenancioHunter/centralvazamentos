@@ -1,0 +1,33 @@
+<!-- templates/login.html -->
+{% extends "layout.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<div class="py-4" align="center">
+    <img class="rounded-circle" src="../static/img/logo.webp" style="max-width: 200px;" />
+</div>
+<div class="card" style="border: none;">
+<div class="card-header ">
+    <h2 class="text-center" style="color: #124453; font-weight: bold;">LOGIN</h2>
+</div>
+<div class="card-body py-4">
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input class="form-control" type="email" id="email" name="email" required>
+        </div>
+       
+        <div class="form-group">
+            <label for="password">Senha:</label>
+            <input class="form-control" type="password" id="password" name="password" required>
+        </div>
+        <div>
+        <button class="btn btn-primary" type="submit" style="width: 100%;">Login</button>
+        </div>
+    </form>
+</div>
+</div>
+<p hidden>Não tem uma conta? <a href="{{ url_for('signup') }}">Cadastre-se aqui</a></p>
+{% endblock %}

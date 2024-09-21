@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Vincular Usuário a Cidade</h1>
+<form method="POST" action="/link_user_city">
+    <div class="mb-3">
+        <label for="user_id">Usuário:</label>
+        <select class="form-select" name="user_id" required>
+            {% for user_id, user in users.items() %}
+            <option value="{{ user_id }}">{{ user.name }} ({{ user.email }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="city">Cidade:</label>
+        <select class="form-select" name="city" required>
+            {% for city_id, city_name in cities.items() %}
+            <option value="{{ city_name }}">{{ city_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Vincular</button>
+</form>
+{% endblock %}

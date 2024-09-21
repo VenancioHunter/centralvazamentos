@@ -1,0 +1,114 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="my-4">
+    <h1 class="fs-1 text-center">Registrar Atendimento</h1>
+</div>
+<form method="POST" action="/attendance_records">
+    <div class="mb-3">
+    <select class="form-select" name="city" required>
+        {% for city in cities %}
+        <option value="{{ city }}">{{ city }}</option>
+        {% endfor %}
+    </select>
+    </div>
+    <div class="mb-3">
+        <label>Canal</label>
+        <select class="form-select" name="canal" required>
+            <option value="indicação">Indicação</option>
+            <option value="google">Google</option>
+            <option value="instagram">Instagram</option>
+            <option value="parceria">Parceria</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="FormControlInput1" class="form-label">Nome</label>
+        <input type="text" class="form-control" id="FormControlInput1" name="name" placeholder="Nome">
+    </div>
+    <div class="mb-3">
+        <label>Sexo</label>
+        <div class="form-check ">
+            <input class="form-check-input" type="radio" name="sexo" value="M" id="flexRadioDefault1" checked>
+            <label class="form-check-label" for="flexRadioDefault1">
+                M
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="sexo" value="F" id="flexRadioDefault2">
+            <label class="form-check-label" for="flexRadioDefault2">
+                F
+            </label>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="FormControlInput2" class="form-label">Telefone</label>
+        <input type="tel" class="form-control" id="FormControlInput2" name="phone" placeholder="Telefone" required>
+    </div>
+
+    <div class="mb-3">
+    <select class="form-select" name="service" required>
+        {% for service_id, service_name in services.items() %}
+        <option value="{{ service_name }}">{{ service_name }}</option>
+        {% endfor %}
+    </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="FormControlInput3" class="form-label">Valor</label>
+        <input type="tel" class="form-control" id="FormControlInput3" name="price" placeholder="Valor" value="0,00" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="FormControlTextarea1" class="form-label">Observação</label>
+        <textarea class="form-control" id="FormControlTextarea1" rows="3" name="details"></textarea>
+    </div>
+
+    <div align="center">
+    <button type="submit" class="btn btn-primary" style="width: 80%;">Registrar</button>
+    </div>
+</form>
+
+
+<script>
+    var phoneInput = document.getElementById('FormControlInput2');
+
+    phoneInput.addEventListener('input', function (e) {
+        var phone = e.target.value;
+
+        // Remove qualquer caracter que não seja número
+        phone = phone.replace(/\D/g, '');
+
+        // Verifica o tamanho do número de telefone e adiciona a máscara adequada
+        if (phone.length == 11) {
+            phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+        } else if
+            (phone.length == 10) { phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3"); }
+        //Atualiza o valor do campo de entrada de texto com o número de telefone formatado
+        e.target.value = phone;
+    }); </script>
+    <script>
+        const inputValor = document.getElementById('FormControlInput3');
+
+        inputValor.addEventListener('input', formatarValor);
+
+        function formatarValor() {
+            // Remove qualquer caracter que não seja um dígito numérico
+            let valor = inputValor.value.replace(/\D/g, '');
+
+            // Divide o valor em duas partes: a parte inteira e a parte decimal
+            const parteInteira = valor.slice(0, -2);
+            const parteDecimal = valor.slice(-2);
+
+            // Adiciona um ponto para separar os milhares
+            const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            // Atualiza o valor do input com a string formatada como um valor em reais (R$)
+            inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
+        }
+    </script>
+{% endblock %}

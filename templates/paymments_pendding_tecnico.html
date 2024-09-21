@@ -1,0 +1,61 @@
+<!-- templates/listar_pendentes.html -->
+{% extends "layout.html" %}
+
+{% block title %}Listar Transações Pendentes{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Filtrar Transações Pendentes</h2>
+    <form method="POST" action="{{ url_for('listar_pendentes_tecnico') }}">
+        <div class="form-group">
+            <label for="ano">Ano</label>
+            <select class="form-control" id="ano" name="ano">
+                <option value="2023" {% if ano=='2023' %}selected{% endif %}>2023</option>
+                <option value="2024" {% if ano=='2024' %}selected{% endif %}>2024</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="mes">Mês</label>
+            <select class="form-control" id="mes" name="mes">
+                <option value="01" {% if mes=='01' %}selected{% endif %}>Janeiro</option>
+                <option value="02" {% if mes=='02' %}selected{% endif %}>Fevereiro</option>
+                <option value="03" {% if mes=='03' %}selected{% endif %}>Março</option>
+                <option value="04" {% if mes=='04' %}selected{% endif %}>Abril</option>
+                <option value="05" {% if mes=='05' %}selected{% endif %}>Maio</option>
+                <option value="06" {% if mes=='06' %}selected{% endif %}>Junho</option>
+                <option value="07" {% if mes=='07' %}selected{% endif %}>Julho</option>
+                <option value="08" {% if mes=='08' %}selected{% endif %}>Agosto</option>
+                <option value="09" {% if mes=='09' %}selected{% endif %}>Setembro</option>
+                <option value="10" {% if mes=='10' %}selected{% endif %}>Outubro</option>
+                <option value="11" {% if mes=='11' %}selected{% endif %}>Novembro</option>
+                <option value="12" {% if mes=='12' %}selected{% endif %}>Dezembro</option>
+            </select>
+        </div>
+        <div align="center">
+            <button type="submit" class="btn btn-primary mt-3" style="width: 80%;">Filtrar</button>
+        </div>
+    </form>
+
+    <h3 class="mt-5">Pagamento Pendente</h3>
+    {% if transactions %}
+    <ul class="list-group">
+        {% for trans_id, trans_data in transactions.items() %}
+        <li class="list-group-item">
+            <strong>Transação ID:</strong> {{ trans_id }}<br>
+            <strong>Data do Serviço:</strong> {{ trans_data.os_date }}<br>
+            <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
+            <strong>Método:</strong> {{ trans_data.method }}<br>
+            <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
+        </li>
+        <li class="list-group-item" align="center">
+            {% set year, month, day = trans_data.os_date.split('-') %}
+            <a class="btn btn-primary" href="/os/{{trans_data.os_city}}/{{year}}/{{month}}/{{day}}/{{trans_data.os_id}}"
+                style="width: 80%;">Ver OS</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nenhuma transação pendente encontrada.</p>
+    {% endif %}
+</div>
+{% endblock %}
