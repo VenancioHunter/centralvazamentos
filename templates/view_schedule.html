@@ -4,6 +4,8 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<script src="../static/js/formatarValor.js"></script>
+
     <div class="my-4" align="center">
         <h1>Agenda</h1>
         <div>
@@ -50,7 +52,7 @@
                             <span>Recebido</span>
                         </div>
                     {% else %}
-                        <button class="btn btn-success" style="width: 80%;" data-bs-toggle="modal" data-bs-target="#paymentModal" onclick="setOsId('{{ os_id }}', '{{ os.city }}', '{{ date }}')">Finalizar Serviço</button>
+                        <button class="btn btn-success" style="width: 80%;" data-bs-toggle="modal" data-bs-target="#paymentModal" onclick="setOsId('{{ os_id }}', '{{ os.city }}', '{{ date }}', '{{ os.newprice }}', '{{ os.service }}')">Finalizar Serviço</button>
                     {% endif %}
                 </div>
             </div>
@@ -120,13 +122,17 @@
                                 </select>
                                 <div class="my-4">
                                     <label style="font-size: small; font-weight: bold;">Confirmação de Recebimento</label>
-                                    <div>
-                                        <input type="radio" id="received" name="paymentStatus" value="received" required>
-                                        <label for="received">Recebido</label>
-                                    </div>
-                                    <div>
-                                        <input type="radio" id="not-received" name="paymentStatus" value="notreceived">
-                                        <label for="not-received">Não Recebido</label>
+                                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                        <label for="received"
+                                            style="flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 5px; text-align: center; cursor: pointer;">
+                                            <input type="radio" id="received" name="paymentStatus" value="received" required style="display: none;">
+                                            Recebido
+                                        </label>
+                                        <label for="not-received"
+                                            style="flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 5px; text-align: center; cursor: pointer;">
+                                            <input type="radio" id="not-received" name="paymentStatus" value="notreceived" style="display: none;">
+                                            Não Recebido
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -135,7 +141,7 @@
                                 <label for="boleto-valor">Valor a Receber</label>
                                 <input type="tel" class="form-control" id="boleto-valor" placeholder="Insira o valor">
                                 <label for="boleto-date" class="mt-3">Data de Vencimento</label>
-                                <input type="date" class="form-control" id="boleto-date">
+                                <input type="date" class="form-control" id="boleto-date" required>
                             </div>
                         </div>
                         <div class="form-group mt-3">
@@ -167,11 +173,11 @@
                                 <input name="date" value="{{date}}" hidden>
                                 <div class="form-group mt-3">
                                     <label for="manutencao">Manutenção Veículo</label>
-                                    <input type="tel" class="form-control" id="manutencao" name="manutencao" placeholder="Insira o valor">
+                                    <input type="tel" class="form-control" id="manutencao" name="manutencao" value="0,00" placeholder="Insira o valor">
                                 </div>
                                 <div  class="form-group mt-3">
                                     <label for="combustivel">Combustível</label>
-                                    <input type="tel" class="form-control" id="combustivel" name="combustivel" placeholder="Insira o valor">
+                                    <input type="tel" class="form-control" id="combustivel" name="combustivel" value="0,00" placeholder="Insira o valor">
                                 </div>
                                 <div class="form-group mt-3">
                                     <label for="pedagio">Pedágio</label>
@@ -214,7 +220,7 @@
             Dia</button>
     </div>
     <!-- Modal -->
-    <div class="modal fade" id="fechamentoModal" tabindex="-1" aria-labelledby="fechamentoModalLabel" aria-hidden="true">
+    <!--<div class="modal fade" id="fechamentoModal" tabindex="-1" aria-labelledby="fechamentoModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -227,12 +233,12 @@
                         <input name="date" value="{{date}}" hidden>
                         <div class="form-group mt-3">
                             <label for="manutencao">Manutenção Veículo</label>
-                            <input type="tel" class="form-control" id="manutencao" name="manutencao"
+                            <input type="tel" class="form-control" id="manutencao" name="manutencao" value="0,00"
                                 placeholder="Insira o valor">
                         </div>
                         <div class="form-group mt-3">
                             <label for="combustivel">Combustível</label>
-                            <input type="tel" class="form-control" id="combustivel" name="combustivel"
+                            <input type="tel" class="form-control" id="combustivel" name="combustivel" value="0,00"
                                 placeholder="Insira o valor">
                         </div>
                         <div class="form-group mt-3">
@@ -258,7 +264,7 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div>-->
     {% endif %}
     <p class="no-records">Nenhum serviço agendado para essa data.</p>
     {% endif %}
@@ -286,7 +292,7 @@
             popup.style.display = 'none';
         }
     </script>
-    <script>
+    <!--<script>
         const inputValor = document.getElementById('amount');
         const inputValorCard = document.getElementById('card-valor');
         const inputValorBoleto = document.getElementById('boleto-valor');
@@ -325,11 +331,13 @@
             // Atualiza o valor do input com a string formatada como um valor em reais (R$)
             input.value = `${parteInteiraFormatada},${parteDecimal}`;
         }
-    </script>
+    </script>-->
     <script>
         let currentOsId = null;
         let currentOsCity = null;
         let currentOsDate = null;
+        let currentOsValueService = null;
+        let currentOSTypeService = null;
 
 
         function getSelectedPaymentStatus() {
@@ -341,10 +349,13 @@
                 }
             }
 
-        function setOsId(osId, city, osDate) {
+        function setOsId(osId, city, osDate, valueService, typeService) {
                 currentOsId = osId;  // Armazena o ID do serviço atual
                 currentOsCity = city;
                 currentOsDate = osDate;
+                currentOsValueService = valueService;
+                currentOSTypeService = typeService;
+
             }
         function togglePaymentOptions() {
                 var method = document.getElementById("payment-method").value;
@@ -397,12 +408,13 @@
                     alert("Erro: Confirme o RECEBIMENTO.");
                     return;
                 }
-
                 // Exemplo de coleta de dados
                 var paymentData = {
                     os_id: currentOsId,
                     os_city: currentOsCity,
                     os_date: currentOsDate,
+                    os_value_service: currentOsValueService,
+                    os_type_serve: currentOSTypeService,
                     method: method,
                     amount: amount,
                     cardValor: cardValor,
@@ -448,5 +460,18 @@
                 document.getElementById('paymentModal').addEventListener('hidden.bs.modal', function () {
                     clearModalFields();
                 });*/
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            configurarFormatacaoValor("amount");
+            
+            configurarFormatacaoValor("card-valor");
+            configurarFormatacaoValor("boleto-valor");
+            configurarFormatacaoValor("manutencao");
+            configurarFormatacaoValor("combustivel");
+            configurarFormatacaoValor("pedagio");
+            configurarFormatacaoValor("reparo");
+            configurarFormatacaoValor("outros");
+        });
     </script>
 {% endblock %}

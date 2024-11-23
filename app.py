@@ -13,6 +13,7 @@ import pytz
 from config import db, auth
 from collections import defaultdict
 from core.cities.class_cities import Cities
+from core.financeiro.class_financeiro import Financeiro
 
 
 app = Flask(__name__)
@@ -141,6 +142,12 @@ def admin():
     user_email = session.get('email', 'Admin')
     return render_template('admin.html', user_email=user_email)
 
+
+@app.route('/adm_painel_os')
+@check_roles(['admin'])
+def adm_painel_os():
+    return render_template('adm_painel_os.html')
+
 @app.route('/attendance')
 @check_roles('admin')
 def attendance():
@@ -200,6 +207,12 @@ def link_user_city():
 
 
 def convert_monetary_value(value_str):
+    # Verifique se o valor já está no formato desejado
+    if '.' in value_str and ',' not in value_str:
+        # Retorne o valor como está, pois já está no formato correto
+        return value_str
+
+    # Se não estiver no formato desejado, faça a substituição necessária
     clean_value = value_str.replace('.', '').replace(',', '.')
 
     return clean_value
@@ -311,8 +324,6 @@ def consulta_atendimentos():
 def adm_consulta_atendimentos():
     if 'user' not in session:
         return redirect(url_for('login'))
-
-    user_id = session['user']
 
     # Carregar as cidades vinculadas ao usuário
     cities = db.child("cities").get().val().values()
@@ -768,10 +779,12 @@ def finalizar_os():
     os_id = data.get('os_id')
     os_city = data.get('os_city')
     os_date = data.get('os_date')
-
+    os_value_service = convert_monetary_value(data.get('os_value_service'))
+    os_type_service = data.get('os_type_serve')
+    
     create_paymment = {}
 
-    # Tenta converter a nova data para ano, mês e dia
+    '''# Tenta converter a nova data para ano, mês e dia
     try:
             date_firebase = datetime.strptime(os_date, '%Y-%m-%d')
     except ValueError:
@@ -779,133 +792,169 @@ def finalizar_os():
 
     year = str(date_firebase.year)
     month = f"{date_firebase.month:02d}"
-    day = f"{date_firebase.day:02d}"
+    day = f"{date_firebase.day:02d}"'''
 
-    if data.get('statusPaymment') == 'received':
-        
-        # Filtra os dados e categoriza
-        if data.get("method") in ["pix", "dinheiro"]:
-            # Pagamentos recebidos
-            status_pagamento = "recebido"
-            detalhes_pagamento["valor"] = data.get("amount")
-            detalhes_pagamento["metodo"] = data.get("method")
+    if os_type_service == 'Retorno' or os_type_service == 'retorno':
 
-            create_paymment ={
-                'os_id': os_id,
-                'os_date': os_date,
-                'tecnico_id': session['user'],
-                'method': data.get('method'),
-                'amount': convert_monetary_value(data.get('amount')),
-            }
+        try:
 
-            try: 
-                Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
+            Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
 
-                Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+            Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment="recebido")
 
-                User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+            User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+
+        except:
+                    return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+
+    else:
+        if data.get('statusPaymment') == 'received':
+            
+            # Filtra os dados e categoriza
+            if data.get("method") in ["pix", "dinheiro"]:
+                # Pagamentos recebidos
+                status_pagamento = "recebido"
+                detalhes_pagamento["valor"] = data.get("amount")
+                detalhes_pagamento["metodo"] = data.get("method")
+                name = session['name']
+                method_payment = data.get("method")
+
+                amount = convert_monetary_value(data.get('amount'))
+
+                create_paymment ={
+                    'os_id': os_id,
+                    'os_date': os_date,
+                    'tecnico_id': session['user'],
+                    'method': data.get('method'),
+                    'amount': amount,
+                }
+
+                try: 
+                    Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
+
+                    Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+
+                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+
+                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=session['user'])
+                    
+                    if os_value_service != amount:
+                        taxa = "{:.2f}".format(float(os_value_service) - float(amount), 2)
+
+                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=session['user'])
+                    
 
                 
-            
-            except:
-                return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+                except:
+                    return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
 
+            
+            elif data.get("method") == "cartao":
+                status_pagamento = "recebido"
+                detalhes_pagamento["valor"] = data.get("cardValor")
+                detalhes_pagamento["parcelas"] = data.get("installments")
+
+                amount = convert_monetary_value(data.get('cardValor'))
+                name = session['name']
+                method_payment = data.get("method")
+
+                create_paymment ={
+                    'os_id': os_id,
+                    'os_date': os_date,
+                    'tecnico_id': session['user'],
+                    'method': data.get('method'),
+                    'amount': amount,
+                    'installments': data.get('installments')
+                }
+
+                try:
+                    Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
+
+                    Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+
+                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+                    
+                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=session['user'])
+
+                    if os_value_service != amount:
+                        taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
+
+                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=session['user'])
+
+                except:
+                    return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+
+        if data.get('statusPaymment') == 'notreceived' or data.get("method") == "boleto":
         
-        elif data.get("method") == "cartao":
-            status_pagamento = "recebido"
-            detalhes_pagamento["valor"] = data.get("cardValor")
-            detalhes_pagamento["parcelas"] = data.get("installments")
-
-            create_paymment ={
-                'os_id': os_id,
-                'os_date': os_date,
-                'tecnico_id': session['user'],
-                'method': data.get('method'),
-                'amount': convert_monetary_value(data.get('cardValor')),
-                'installments': data.get('installments')
-            }
-
-            try:
-                Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
-
-                Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
-
-                User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
-
-            except:
-                return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
-
-    if data.get('statusPaymment') == 'notreceived' or data.get("method") == "boleto":
-       
-        if data.get("method") == "boleto":
-            # Pagamentos a receber
-            status_pagamento = "pendente"
-            
-            create_paymment = {
-                'os_id': os_id,
-                'os_city': os_city,
-                'os_date': os_date,
-                'tecnico_id': session['user'],
-                'method': data.get('method'),
-                'amount': convert_monetary_value(data.get('boletoValor')),
-                'vencimento': data.get('vencimento')
-            }
-
-            try:
-                Wallet.create_paymment_pendding(data=create_paymment, date=os_date, city=os_city)
-                Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
-            
-            except:
-                return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
-            
-        elif data.get("method") in ["pix", "dinheiro"]:
-            # Pagamentos recebidos
-            status_pagamento = "pendente"
-            detalhes_pagamento["valor"] = data.get("amount")
-            detalhes_pagamento["metodo"] = data.get("method")
-
-            create_paymment ={
-                'os_id': os_id,
-                'os_date': os_date,
-                'os_city': os_city,
-                'tecnico_id': session['user'],
-                'method': data.get('method'),
-                'amount': convert_monetary_value(data.get('amount')),
-                'vencimento': os_date
-            }
-
-            try: 
-                Wallet.create_paymment_pendding(data=create_paymment, date=os_date, city=os_city)
-                Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+            if data.get("method") == "boleto":
+                # Pagamentos a receber
+                status_pagamento = "pendente"
                 
+                create_paymment = {
+                    'os_id': os_id,
+                    'os_city': os_city,
+                    'os_date': os_date,
+                    'tecnico_id': session['user'],
+                    'method': data.get('method'),
+                    'amount': convert_monetary_value(data.get('boletoValor')),
+                    'vencimento': data.get('vencimento')
+                }
+
+                try:
+                    Wallet.create_paymment_pendding(data=create_paymment, date=os_date, city=os_city)
+                    Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+                
+                except:
+                    return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+                
+            elif data.get("method") in ["pix", "dinheiro"]:
+                # Pagamentos recebidos
+                status_pagamento = "pendente"
+                detalhes_pagamento["valor"] = data.get("amount")
+                detalhes_pagamento["metodo"] = data.get("method")
+
+                create_paymment ={
+                    'os_id': os_id,
+                    'os_date': os_date,
+                    'os_city': os_city,
+                    'tecnico_id': session['user'],
+                    'method': data.get('method'),
+                    'amount': convert_monetary_value(data.get('amount')),
+                    'vencimento': os_date
+                }
+
+                try: 
+                    Wallet.create_paymment_pendding(data=create_paymment, date=os_date, city=os_city)
+                    Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+                    
+                
+                except:
+                    return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+
             
-            except:
-                return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+            elif data.get("method") == "cartao":
+                status_pagamento = "pendente"
+                detalhes_pagamento["valor"] = data.get("cardValor")
+                detalhes_pagamento["parcelas"] = data.get("installments")
 
-        
-        elif data.get("method") == "cartao":
-            status_pagamento = "pendente"
-            detalhes_pagamento["valor"] = data.get("cardValor")
-            detalhes_pagamento["parcelas"] = data.get("installments")
+                create_paymment ={
+                    'os_id': os_id,
+                    'os_date': os_date,
+                    'os_city': os_city,
+                    'tecnico_id': session['user'],
+                    'method': data.get('method'),
+                    'amount': convert_monetary_value(data.get('cardValor')),
+                    'installments': data.get('installments'),
+                    'vencimento': os_date
+                }
 
-            create_paymment ={
-                'os_id': os_id,
-                'os_date': os_date,
-                'os_city': os_city,
-                'tecnico_id': session['user'],
-                'method': data.get('method'),
-                'amount': convert_monetary_value(data.get('cardValor')),
-                'installments': data.get('installments'),
-                'vencimento': os_date
-            }
-
-            try:
-                Wallet.create_paymment_pendding(data=create_paymment, date=os_date, city=os_city)
-                Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+                try:
+                    Wallet.create_paymment_pendding(data=create_paymment, date=os_date, city=os_city)
+                    Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
 
-            except:
-                return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+                except:
+                    return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
 
 
 @app.route('/listar_pendentes_tecnico', methods=['GET', 'POST'])
@@ -959,7 +1008,7 @@ def listar_pendentes_tecnico():
     # Renderizar as transações filtradas
     return render_template('paymments_pendding_tecnico.html', transactions=pendding_transactions, ano=ano, mes=mes)
 
-
+'''
 @app.route('/extrato_tecnico', methods=['GET', 'POST'])
 @check_roles(['tecnico'])
 def extrato_tecnico():
@@ -1063,11 +1112,111 @@ def extrato_tecnico():
     # Renderizar as transações agrupadas por dia, incluindo os custos e o saldo restante
     return render_template('extrato_tecnico.html', grouped_transactions=grouped_transactions, ano=ano, mes=mes)
 
+'''
 
-@app.route('/fechar_dia_tecnico', methods=['POST'])
+    
+
+
+@app.route('/extrato_tecnico', methods=['GET', 'POST'])
+@check_roles(['tecnico'])
+def extrato_tecnico():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    tecnico_id = session['user']
+    now = datetime.now()
+
+    # Receber a data do formulário ou usar o valor padrão (dia atual)
+    if request.method == 'POST':
+        data = request.form.get('data', now.strftime("%Y-%m-%d"))
+    else:
+        data = now.strftime("%Y-%m-%d")  # Data atual como padrão
+
+    ano, mes, dia = data.split('-')
+
+    date = datetime.strptime(data, '%Y-%m-%d')
+
+    participation = User_Wallet.get_participation(id=tecnico_id, data=date)
+    participation_empresa = 100 - participation
+    
+    cities = db.child('users').child(session['user']).child('cities').get().val()
+
+    grouped_transactions = {}
+
+    # Buscar ordens de serviço para a data selecionada
+    for city in cities:
+        success_transactions_path = f"wallet/{city}/{ano}/{mes}"
+        paymments_success = db.child(success_transactions_path).get().val() or {}
+
+        # Filtrar transações para o dia específico
+        if dia in paymments_success:
+            day_data = paymments_success[dia]
+            success = day_data.get('transactions', {}).get('success', {})
+            if dia not in grouped_transactions:
+                grouped_transactions[dia] = {
+                    'transactions': [], 
+                    'total_amount': 0.0, 
+                    'costs': {'combustivel': 0.0, 'manutencao': 0.0, 'pedagio': 0.0, 'reparo': 0.0, 'outros': 0.0}, 
+                    'balance': 0.0,
+                    'city': city
+                }
+            for trans_id, trans_data in success.items():
+                if trans_data.get('tecnico_id') == tecnico_id:
+                    amount = float(trans_data.get('amount', 0))
+                    grouped_transactions[dia]['transactions'].append({
+                        'trans_id': trans_id,
+                        'data': trans_data,
+                        'city': city
+                    })
+                    grouped_transactions[dia]['total_amount'] += amount
+
+    # Buscar os custos do dia específico
+    costs_path = f"users/{session['user']}/wallet/costs/{ano}/{mes}"
+    month_costs_data = db.child(costs_path).get().val() or {}
+
+    # Garantir que o dia está nos custos recuperados
+    costs_data = month_costs_data.get(dia, {})  # Retorna um dicionário vazio se o dia não existir
+    
+    print(costs_data)
+
+    if costs_data:
+        # Acessar diretamente a única chave no dicionário
+        daily_costs = list(costs_data.values())[0]  # Acessa o primeiro (e único) valor do dicionário
+
+        # Extrair os valores dos custos, assumindo 0.0 se o campo não existir
+        combustivel = float(daily_costs.get('combustivel', 0.0))
+        manutencao = float(daily_costs.get('manutencao', 0.0))
+        pedagio = float(daily_costs.get('pedagio', 0.0))
+        reparo = float(daily_costs.get('reparo', 0.0))
+        outros = float(daily_costs.get('outros', 0.0))
+        total_costs = combustivel + manutencao + pedagio + reparo + outros
+
+        print(f"Combustível: {combustivel}, Manutenção: {manutencao}, Pedágio: {pedagio}, Reparo: {reparo}, Outros: {outros}, Total: {total_costs}")
+
+        # Atribuir os valores ao dicionário de transações agrupadas
+        if dia in grouped_transactions:
+            grouped_transactions[dia]['combustivel'] = combustivel
+            grouped_transactions[dia]['manutencao'] = manutencao
+            grouped_transactions[dia]['pedagio'] = pedagio
+            grouped_transactions[dia]['reparo'] = reparo
+            grouped_transactions[dia]['outros'] = outros
+            grouped_transactions[dia]['total_costs'] = total_costs
+            grouped_transactions[dia]['balance'] = grouped_transactions[dia]['total_amount'] - total_costs
+            grouped_transactions[dia]['tecnico'] = (grouped_transactions[dia]['balance'] / 100) * participation
+            grouped_transactions[dia]['tecnico_total'] = grouped_transactions[dia]['tecnico']
+            grouped_transactions[dia]['empresa'] = (grouped_transactions[dia]['balance'] / 100) * participation_empresa
+            # Passar a variável 'now' para o template
+    return render_template('extrato_tecnico.html', grouped_transactions=grouped_transactions, data=data, now=now)
+
+
+@app.route('/fechar_dia_tecnico', methods=['GET', 'POST'])
+@check_roles(['tecnico'])
 def fechar_dia_tecnico():
 
     date = request.form.get('date')
+    name = session['name']
+    user = session['name']
+    participation = User_Wallet.get_participation(id=session['user'], data=date)
 
     data = {
     'manutencao': convert_monetary_value(request.form.get('manutencao') if request.form.get('manutencao') != "" else "0.00"),
@@ -1078,8 +1227,41 @@ def fechar_dia_tecnico():
 }
 
     
+    
+
+    for item in data:
+        
+        if data[item] != "0.00":
+            print(data[item])
+
+            if item == 'manutencao':
+
+                category = 'Manutenção'
+                especie = 'Veículo'
+
+            elif item == 'combustivel':
+                category = 'Transporte'
+                especie = 'Combustível'
+            
+            elif item == 'pedagio':
+                category = 'Transporte'
+                especie = 'Pedágio'
+            
+            elif item == 'reparo':
+                category = 'Manutenção'
+                especie = 'Reparo'
+
+            elif item == 'outros':
+                category = 'Outros'
+                especie = 'Outros'
+
+            Financeiro.post_transaction_debito(date=date, amount=data[item], description=f'Custos', category=category, especie=especie, destinatario='', user=user, origem=name, id_origem=session['user'])
+
+    data['porcentagemTecnico'] = participation
+
     User_Wallet.create_costs(id=session['user'], date=date, data=data)
 
+    
 
 
     return redirect(url_for('dashboard_tecnico'))
@@ -1140,7 +1322,7 @@ def adm_extrato_tecnico():
                             if 'costs_retrieved' not in tecnico_transactions[name_tecnico]:
                                 costs_path = f"users/{tecnico_id}/wallet/costs/{year}/{month}/{day}"
                                 day_costs_data = db.child(costs_path).get().val() or {}
-                                participation = User_Wallet.get_participation(id=tecnico_id)
+                                participation = User_Wallet.get_participation(id=tecnico_id, data=date)
                                 participation_empresa = 100 - participation
 
                                 # Somar os custos se eles existirem
@@ -1302,6 +1484,8 @@ def update_pendding():
     os_city = request.form.get('paymmentCity')
     os_date = request.form.get('osDate')
     transaction_id = request.form.get('transactionId')
+    name_tecnico = request.form.get('osnametecnico')
+    amount = convert_monetary_value(request.form.get('amountAtualizado'))
    
     date_paymment = request.form.get('datePaymment')
 
@@ -1316,8 +1500,11 @@ def update_pendding():
     day = f"{date_firebase.day:02d}"
 
     paymment_pendding = dict(db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).get().val())
-   
-    status_pagamento = "recebido"    
+    
+    os_value_service = paymment_pendding['amount']
+    method_payment = paymment_pendding['method']
+    status_pagamento = "recebido"
+    id_tecnico = paymment_pendding['tecnico_id']
     
     try:
 
@@ -1328,11 +1515,68 @@ def update_pendding():
         User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=paymment_pendding['tecnico_id'])
 
         db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).remove()
-        
+
+        Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name_tecnico, id_origem=id_tecnico)
+
+        if os_value_service != amount:
+            taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
+
+            Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name_tecnico, id_origem=id_tecnico)
 
     except:
         return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
     return redirect(url_for('adm_lista_paymments_pendentes'))
+
+
+@app.route('/adm_lista_os', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def adm_lista_os():
+    if request.method == 'POST':
+        selected_date = request.form.get('selected_date')
+
+        if selected_date:
+            year, month, day = selected_date.split('-')
+
+            attendance_data = db.child("ordens_servico").get().val() or {}
+
+            # Dicionário para agrupar atendimentos por user_id
+            grouped_records = defaultdict(list)
+
+            for city, years in attendance_data.items():
+                if year in years:
+                    months = years[year]
+                    if month in months:
+                        days = months[month]
+                        if day in days:
+                            attendances = days[day]
+                            for attendance_id, attendance_info in attendances.items():
+                                user_id = attendance_info.get('city')
+                                
+                                if user_id:
+                                    
+
+                                    record = {
+                                        "city": city,
+                                        "date": f"{day}/{month}/{year}",
+                                        **attendance_info
+                                    }
+                                    
+                                    # Agrupa pelo nome do usuário
+                                    grouped_records[user_id].append(record)
+                                else:
+                                    # Se user_id não estiver presente, continue ou log um erro
+                                    print(f"User ID ausente para o atendimento {attendance_id}")
+
+            return render_template('adm_lista_os.html', grouped_records=grouped_records, selected_date=selected_date)
+    else:
+        return render_template('adm_lista_os.html', grouped_records={}, selected_date=None)
+
+
+@app.route('/relatorio', methods=['GET', 'POST'])
+def relatorio():
+   
+    
+    return render_template('relatorio.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)

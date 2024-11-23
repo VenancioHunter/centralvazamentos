@@ -4,6 +4,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<script src="../static/js/formatarValor.js"></script>
     <div class="my-4 text-center">
         <div>
             <h1>{{ city }}</h1>
@@ -93,7 +94,7 @@
                         </div>
                         <div class="form-group">
                             <label for="osPriceService">Valor Final</label>
-                            <input type="text" class="form-control" id="osPriceService" name="priceservice">
+                            <input type="text" class="form-control" id="osPriceService" name="priceservice" required>
                         </div>
                         <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
                             <div class="mb-3">
@@ -210,7 +211,7 @@
                         </div>
                         <div class="form-group">
                             <label for="osPriceServiceReparo">Valor Final</label>
-                            <input type="text" class="form-control" id="osPriceServiceReparo" value="0,00" name="priceservice">
+                            <input type="text" class="form-control" id="osPriceServiceReparo" name="priceservice" required>
                         </div>
                         <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
                             <div class="mb-3">
@@ -322,7 +323,7 @@
             //modal.find('#osDescricao').val(descricao);
         });
     </script>
-        <script>
+        <!--<script>
             const inputValor = document.getElementById('osPriceService');
 
             inputValor.addEventListener('input', formatarValor);
@@ -361,7 +362,7 @@
                 // Atualiza o valor do input com a string formatada como um valor em reais (R$)
                 inputValorReparo.value = `${parteInteiraFormatada},${parteDecimal}`;
             }
-        </script>
+        </script>-->
         <script>
             function handleSwitchChange(date1, startTime1, endTime1, technician1, city1) {
                 const date = date1;
@@ -441,5 +442,10 @@
                 dateInput.value = formattedDate;
             });
         </script>
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            configurarFormatacaoValor("osPriceService"); 
+            configurarFormatacaoValor("osPriceServiceReparo");
+        });
+    </script>
 {% endblock %}

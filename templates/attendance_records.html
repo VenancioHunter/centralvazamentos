@@ -4,17 +4,17 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-
+<script src="../static/js/formatarValor.js"></script>
 <div class="my-4">
     <h1 class="fs-1 text-center">Registrar Atendimento</h1>
 </div>
-<form method="POST" action="/attendance_records">
+<form method="POST" action="/attendance_records" onsubmit="handleFormSubmit()">
     <div class="mb-3">
-    <select class="form-select" name="city" required>
-        {% for city in cities %}
-        <option value="{{ city }}">{{ city }}</option>
-        {% endfor %}
-    </select>
+        <select class="form-select" name="city" required>
+            {% for city in cities %}
+            <option value="{{ city }}">{{ city }}</option>
+            {% endfor %}
+        </select>
     </div>
     <div class="mb-3">
         <label>Canal</label>
@@ -31,84 +31,106 @@
     </div>
     <div class="mb-3">
         <label>Sexo</label>
-        <div class="form-check ">
+        <div class="form-check">
             <input class="form-check-input" type="radio" name="sexo" value="M" id="flexRadioDefault1" checked>
-            <label class="form-check-label" for="flexRadioDefault1">
-                M
-            </label>
+            <label class="form-check-label" for="flexRadioDefault1">M</label>
         </div>
         <div class="form-check">
             <input class="form-check-input" type="radio" name="sexo" value="F" id="flexRadioDefault2">
-            <label class="form-check-label" for="flexRadioDefault2">
-                F
-            </label>
+            <label class="form-check-label" for="flexRadioDefault2">F</label>
         </div>
     </div>
-
     <div class="mb-3">
         <label for="FormControlInput2" class="form-label">Telefone</label>
         <input type="tel" class="form-control" id="FormControlInput2" name="phone" placeholder="Telefone" required>
     </div>
-
     <div class="mb-3">
-    <select class="form-select" name="service" required>
-        {% for service_id, service_name in services.items() %}
-        <option value="{{ service_name }}">{{ service_name }}</option>
-        {% endfor %}
-    </select>
+        <select class="form-select" name="service" required>
+            {% for service_id, service_name in services.items() %}
+            <option value="{{ service_name }}">{{ service_name }}</option>
+            {% endfor %}
+        </select>
     </div>
-
     <div class="mb-3">
         <label for="FormControlInput3" class="form-label">Valor</label>
-        <input type="tel" class="form-control" id="FormControlInput3" name="price" placeholder="Valor" value="0,00" required>
+        <input type="tel" class="form-control" id="FormControlInput3" name="price" placeholder="Valor" value="0,00"
+            required>
     </div>
-    
     <div class="mb-3">
         <label for="FormControlTextarea1" class="form-label">Observação</label>
         <textarea class="form-control" id="FormControlTextarea1" rows="3" name="details"></textarea>
     </div>
-
     <div align="center">
-    <button type="submit" class="btn btn-primary" style="width: 80%;">Registrar</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 80%;">Registrar</button>
     </div>
 </form>
 
 
-<script>
-    var phoneInput = document.getElementById('FormControlInput2');
+<!-- Overlay para bloquear a tela de fundo -->
+<div class="overlay" id="overlay"></div>
 
+<!-- Pop-up -->
+<div class="popup" id="popup" align="center">
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <div>
+        <span>Salvando...</span>
+    </div>
+</div>
+
+<script>
+
+    function mostrarPopup() {
+            var overlay = document.getElementById('overlay');
+            var popup = document.getElementById('popup');
+
+            overlay.style.display = 'block';
+            popup.style.display = 'block';
+
+            // Bloqueia a interação com a tela de fundo
+            overlay.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        }
+    // Função para formatar o telefone
+    var phoneInput = document.getElementById('FormControlInput2');
     phoneInput.addEventListener('input', function (e) {
         var phone = e.target.value;
-
-        // Remove qualquer caracter que não seja número
-        phone = phone.replace(/\D/g, '');
-
-        // Verifica o tamanho do número de telefone e adiciona a máscara adequada
+        phone = phone.replace(/\D/g, '');  // Remove tudo que não for número
         if (phone.length == 11) {
             phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-        } else if
-            (phone.length == 10) { phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3"); }
-        //Atualiza o valor do campo de entrada de texto com o número de telefone formatado
-        e.target.value = phone;
-    }); </script>
-    <script>
-        const inputValor = document.getElementById('FormControlInput3');
-
-        inputValor.addEventListener('input', formatarValor);
-
-        function formatarValor() {
-            // Remove qualquer caracter que não seja um dígito numérico
-            let valor = inputValor.value.replace(/\D/g, '');
-
-            // Divide o valor em duas partes: a parte inteira e a parte decimal
-            const parteInteira = valor.slice(0, -2);
-            const parteDecimal = valor.slice(-2);
-
-            // Adiciona um ponto para separar os milhares
-            const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-            // Atualiza o valor do input com a string formatada como um valor em reais (R$)
-            inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
+        } else if (phone.length == 10) {
+            phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
         }
+        e.target.value = phone;
+    });
+
+    // Função para formatar o valor
+    /*const inputValor = document.getElementById('FormControlInput3');
+    inputValor.addEventListener('input', formatarValor);
+
+    function formatarValor() {
+        let valor = inputValor.value.replace(/\D/g, '');  // Remove tudo que não for dígito
+        const parteInteira = valor.slice(0, -2);
+        const parteDecimal = valor.slice(-2);
+        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
+    }*/
+
+    // Função para tratar o envio do formulário e desativar o botão
+    function handleFormSubmit() {
+        mostrarPopup();
+        const submitButton = document.getElementById('submit-btn');
+        submitButton.disabled = true;  // Desativa o botão
+        submitButton.innerText = 'Registrando...';  // Altera o texto do botão
+        
+    }
+</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            configurarFormatacaoValor("FormControlInput3");
+        });
     </script>
 {% endblock %}

@@ -4,6 +4,7 @@
 {% block title %}Listar Transações Pendentes{% endblock %}
 
 {% block content %}
+<script src="../static/js/formatarValor.js"></script>
 <div class="container mt-5">
     <h2>Filtrar Transações Pendentes</h2>
     <form method="POST" action="{{ url_for('adm_lista_paymments_pendentes') }}">
@@ -58,7 +59,7 @@
                 </div>
                 <div class="col">
                     <div class="col">
-                        <button type="button" id="buttonconfirmarpaymment" class="btn btn-success float-end" data-toggle="modal" data-target="#confirmarpaymment" data-transactionid="{{ trans_data.transaction_id }}" data-osdate="{{ trans_data.os_date }}" data-vencimento="{{ trans_data.vencimento }}" data-idos="{{ trans_data.os_id }}" data-city="{{ trans_data.os_city }}">Confirmar Pagamento</button>
+                        <button type="button" id="buttonconfirmarpaymment" class="btn btn-success float-end" data-toggle="modal" data-target="#confirmarpaymment" data-transactionid="{{ trans_data.transaction_id }}" data-osdate="{{ trans_data.os_date }}" data-vencimento="{{ trans_data.vencimento }}" data-idos="{{ trans_data.os_id }}" data-city="{{ trans_data.os_city }}" data-nametecnicoos="{{trans_data.name_tecnico}}">Confirmar Pagamento</button>
                     </div>
                 </div>
             </div>
@@ -79,11 +80,17 @@
                     <form id="paymmentPenddingForm" method="post" action="/update_pendding">
                         <input id="paymmentIdOs" name="paymmentIdOs" hidden>
                         <input id="paymmentCity" name="paymmentCity" hidden>
+                        <input id="osnametecnico" name="osnametecnico" hidden>
                         <input id="osDate" name="osDate" hidden>
                         <input id="transactionId" name="transactionId" hidden>
                         <div class="form-group">
-                            <label for="paymentDate">Data</label>
+                            <label for="paymentDate" style="font-size: small;">Data</label>
                             <input type="date" class="form-control" id="osDatePaymment" name="datePaymment" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount" style="font-size: small;">Valor Recebido (R$)</label>
+                            <input type="tel" class="form-control" id="osAmount" name="amountAtualizado" value="0,00" required>
                         </div>
                         <div align="center">
                             <button type="submit" id="confirmaros" class="btn btn-primary" style="width: 80%;">Confirmar Pagamento</button>
@@ -110,6 +117,7 @@
             var osdate = button.data('osdate');
             var vencimento = button.data('vencimento'); 
             var transactionId = button.data('transactionid');
+            var osnametecnico = button.data('nametecnicoos');
 
             var modal = $(this);
             modal.find('#paymmentIdOs').val(idOs);
@@ -117,10 +125,12 @@
             modal.find('#paymmentVencimento').val(vencimento);
             modal.find('#osDate').val(osdate);
             modal.find('#transactionId').val(transactionId);
+            modal.find('#osnametecnico').val(osnametecnico);
+
         });
     </script>
-    <script>
-        const inputValor = document.getElementById('valuePaymment');
+    <!--<script>
+        const inputValor = document.getElementById('osAmount');
 
         inputValor.addEventListener('input', formatarValor);
 
@@ -138,6 +148,11 @@
             // Atualiza o valor do input com a string formatada como um valor em reais (R$)
             inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
         }
+    </script>-->
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                configurarFormatacaoValor("osAmount");
+            });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
     <script>
