@@ -1,4 +1,42 @@
-async function gerarPDF() {
+function validarCamposObrigatorios() {
+    // IDs dos campos obrigatórios
+    const camposObrigatorios = [
+        "nome",
+        "cpf",
+        "endereco",
+        "bairro", 
+        "cidade",
+        "estado",
+    ];
+
+    // Lista de mensagens de erro para campos vazios
+    const mensagensErro = [];
+
+    // Verifica cada campo
+    camposObrigatorios.forEach(id => {
+        const campo = document.getElementById(id);
+        if (!campo.value.trim()) {
+            mensagensErro.push(`O campo "${campo.previousElementSibling.textContent}" está vazio.`);
+        }
+    });
+
+    // Exibe mensagens de erro, se houver
+    if (mensagensErro.length > 0) {
+        alert(mensagensErro.join("\n")); // Exibe os erros em um único alerta
+        return false; // Interrompe o processo
+    }
+
+    return true; // Todos os campos estão preenchidos
+}
+
+
+async function gerarReparoPDF() {
+
+    // Primeiro, valida os campos obrigatórios
+    if (!validarCamposObrigatorios()) {
+        return; // Interrompe a geração do PDF se houver campos vazios
+    }
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
     let nome;
@@ -39,45 +77,45 @@ async function gerarPDF() {
 
     try {
         // Carregar as imagens do input
-        const imagensDataUrls = await carregarImagensDoInput("imagens");
+        const imagensDataUrls = await carregarImagensDoInput("imagens-reparo");
 
         // Primeira página: conteúdo textual do relatório
         pdf.setFontSize(16);
-        pdf.text("Relatório Técnico", 85, 45);
+        pdf.text("CLIENTE -", 90, 45);
 
         // Exemplo de conteúdo da primeira página
-         nome = document.getElementById("nome").value;
+        nome = document.getElementById("nome").value;
         const cpf = document.getElementById("cpf").value;
         const endereco = document.getElementById("endereco").value;
         const bairro = document.getElementById("bairro").value;
         const cidade = document.getElementById("cidade").value;
-        const data = document.getElementById("data").value;
-        const observacao = document.getElementById("observacao").value;
+        const data = document.getElementById("data-reparo").value;
+        const observacao = document.getElementById("observacaoreparo").value;
         //const total = document.getElementById("total").value;
         //const formaPagamento = document.getElementById("forma-pagamento").value;
-        const empresaSolicitacao = document.getElementById("empresaSolicitacao").value;
+        //const empresaSolicitacao = document.getElementById("empresaSolicitacao").value;
 
-        const detalhesFrente = document.getElementById("detalhes_frente").value.trim();
-        const detalhesFundo = document.getElementById("detalhes_fundos").value.trim();
-        const detalhesAreaServico = document.getElementById("detalhes_area_servico").value.trim();
-        const detalhesDispensa = document.getElementById("detalhes_dispensa").value.trim();
-        const detalhesCozinha = document.getElementById("detalhes_cozinha").value.trim();
-        const detalhesBanheiro = document.getElementById("detalhes_banheiro").value.trim();
-        const detalhesJardim = document.getElementById("detalhes_jardim").value.trim();
-        const detalhesSala = document.getElementById("detalhes_sala").value.trim();
+        const detalhesFrente = document.getElementById("detalhes_frente_reparo").value.trim();
+        const detalhesFundo = document.getElementById("detalhes_fundos_reparo").value.trim();
+        const detalhesAreaServico = document.getElementById("detalhes_area_servico_reparo").value.trim();
+        const detalhesDispensa = document.getElementById("detalhes_dispensa_reparo").value.trim();
+        const detalhesCozinha = document.getElementById("detalhes_cozinha_reparo").value.trim();
+        const detalhesBanheiro = document.getElementById("detalhes_banheiro_reparo").value.trim();
+        const detalhesJardim = document.getElementById("detalhes_jardim_reparo").value.trim();
+        const detalhesSala = document.getElementById("detalhes_sala_reparo").value.trim();
 
-        const detalhesAreaComum = document.getElementById("detalhes_areacomum").value.trim();
-        const detalhesGaragem = document.getElementById("detalhes_garagem").value.trim();
-        const detalhesPiscina = document.getElementById("detalhes_piscina").value.trim();
-        const detalhesRedeDeIncendio = document.getElementById("detalhes_rededeincendio").value.trim();
+        const detalhesAreaComum = document.getElementById("detalhes_areacomum_reparo").value.trim();
+        const detalhesGaragem = document.getElementById("detalhes_garagem_reparo").value.trim();
+        const detalhesPiscina = document.getElementById("detalhes_piscina_reparo").value.trim();
+        const detalhesRedeDeIncendio = document.getElementById("detalhes_rededeincendio_reparo").value.trim();
 
-
+        /*
         const geofonamentoCheckbox = document.getElementById("geofonamentoCheckbox");
         const pressurizacaoCheckbox = document.getElementById("pressurizacaoCheckbox");
         const cameraTermograficaCheckbox = document.getElementById("cameraTermograficaCheckbox");
         const sensorDeUmidadeCheckbox = document.getElementById("sensorDeUmidadeCheckbox");
         
-        
+        */
 
         const larguraMaximaLinha = 180; // Ajuste conforme necessário
 
@@ -89,75 +127,10 @@ async function gerarPDF() {
         pdf.text(`Cidade: ${cidade}`, 10, 83);
         pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 87);
         pdf.setFont("helvetica", "bold");
-        pdf.text("SERVIÇO EXECUTADO", 85, 95);
+        pdf.text("LAUDO DE REPARO", 85, 95);
         pdf.setFont("helvetica", "normal");
 
-        const selectedTechniques = [];
-
-        // Verifica os checkboxes e adiciona os textos ao array
-        if (geofonamentoCheckbox.checked) {
-            selectedTechniques.push("Geofonamento com o geofone eletrônico");
-        }
-        if (pressurizacaoCheckbox.checked) {
-            selectedTechniques.push("Pressurização da Rede");
-        }
-        if (cameraTermograficaCheckbox.checked) {
-            selectedTechniques.push("Inspeção com câmera termográfica");
-        }
-        if (sensorDeUmidadeCheckbox.checked) {
-            selectedTechniques.push("Verificação de umidade com o sensor de umidade");
-        }
-
-        let solicitacaoUM = true;
-        let solicitacaoDois = true;
-
-        // Formata o texto final de forma dinâmica
-        let techniquesText = "";
-        if (selectedTechniques.length > 0) {
-            const lastTechnique = selectedTechniques.pop(); // Remove o último elemento
-            techniquesText = `Técnicas utilizadas: ${selectedTechniques.join(", ")}${selectedTechniques.length > 0 ? " e " : ""}${lastTechnique}.`;
-
-            const techniquesTextLinhas = pdf.splitTextToSize(techniquesText, larguraMaximaLinha);
-            pdf.text(techniquesTextLinhas, 10, 105);
-        } else {
-            techniquesText = "Nenhuma técnica foi selecionada.";
-        }
-
-        if(geofonamentoCheckbox.checked){
-            let primeiroSetorVerificacao = ''; 
-            const primeiroSetor = document.querySelector('input[name="primeirosetor"]:checked')?.value;
-
-            
-
-            if (primeiroSetor === 'vazamento') {
-                primeiroSetorVerificacao = '1º Setor - Com o uso do geofone eletrônico identificamos um VAZAMENTO não aparente no solo nas instalações hidráulicas, conforme às fotos em anexo.';
-                solicitacaoUM = true;
-            } else {
-                primeiroSetorVerificacao = '1º Setor - Com o uso do geofone eletrônico foi realizado uma vistoria nas instalações hidráulicas e não foi identificado vazamentos.';
-                solicitacaoUM = false;
-            }
-
-            const linhasTextoPrimeiroSetor = pdf.splitTextToSize(primeiroSetorVerificacao, larguraMaximaLinha);
-            pdf.text(linhasTextoPrimeiroSetor, 10, 117);
-
-            const segundoSetor = document.querySelector('input[name="segundosetor"]:checked')?.value;
-            let segundoSetorVerificacao = ''; 
-
-            
-            if (segundoSetor == 'vazamento') {
-                segundoSetorVerificacao = '2º Setor - Com o uso do geofone eletrônico identificamos um VAZAMENTO não aparente no solo nas instalações hidráulicas, conforme às fotos em anexo.';
-                solicitacaoDois = true;
-            }
-            else {
-                segundoSetorVerificacao = '2º Setor - Com o uso do geofone eletrônico foi realizado uma vistoria nas instalações hidráulicas e não foi identificado vazamentos.';
-                solicitacaoDois = false;
-            }
-
-            const linhasTextoSegundoSetor = pdf.splitTextToSize(segundoSetorVerificacao, larguraMaximaLinha);
-            pdf.text(linhasTextoSegundoSetor, 10, 129);
-                
-        };
-
+        
         
         // Função para formatar os itens
         function formatarLocalizacao(nome, valor) {
@@ -190,58 +163,49 @@ async function gerarPDF() {
 
         // Adicionar título e itens ao PDF apenas se houver pelo menos um preenchido
         if (locaisDireita.some(texto => texto.includes("(X)")) || locaisEsquerda.some(texto => texto.includes("(X)"))) {
-            pdf.setFont("helvetica", "bold");
-            pdf.text("LOCAL DO VAZAMENTO", 85, 140);
-            pdf.setFont("helvetica", "normal");
+            
+            pdf.text("LOCAL REPARADO", 85, 100);
+            
 
-            let posicaoY = 150; // Posição inicial Y
+            let posicaoY = 110; // Posição inicial Y
             locaisDireita.forEach((local) => {
                 pdf.text( pdf.splitTextToSize(local, larguraLinhaLocalVazamento), 20, posicaoY); // Escreve cada item no PDF
-                posicaoY += 12; // Incrementa a posição Y
+                posicaoY += 15; // Incrementa a posição Y
             });
 
-            let posicaoYD = 150; // Posição inicial Y
+            let posicaoYD = 110; // Posição inicial Y
             locaisEsquerda.forEach((local) => {
                 pdf.text(pdf.splitTextToSize(local, larguraLinhaLocalVazamento), 110, posicaoYD); // Escreve cada item no PDF
-                posicaoYD += 12; // Incrementa a posição Y
+                posicaoYD += 15; // Incrementa a posição Y
             });
         }
         
         // OBSERVAÇÃO
         const linhasTextoObservacao = pdf.splitTextToSize(observacao, larguraMaximaLinha);
         pdf.setFont("helvetica", "bold"); 
-        pdf.text("Observação:", 10, 220);
+        pdf.text("Observação:", 10, 200);
         pdf.setFont("helvetica", "normal");
         
         if (observacao.length === 0) {
-            pdf.text(`Nenhuma observação`, 10, 227);
+            pdf.text(`Nenhuma observação`, 10, 207);
         }
         else {
-            pdf.text(linhasTextoObservacao, 10, 227);
+            pdf.text(linhasTextoObservacao, 10, 207);
         }
         
         pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 240);
 
 
         // SOLICITAÇÃO
-        let solicitacao = '';
+        let solicitacao = 'O serviço executado na data deste relatório tem garantia de 180 dias.';
         
-        if (empresaSolicitacao !== 'selecionar') {
-            
-            if (solicitacaoUM == true || solicitacaoDois == true) {
-                solicitacao = `Por meio desse relatório, solicitamos à ${empresaSolicitacao}, a refazer as contas altas.`;
-            }
-            else {
-                solicitacao = `Por meio desse relatório, solicitamos à ${empresaSolicitacao} a refazer as contas altas já que essa água não foi consumida e sim perdida no solo, sem o conhecimento e a intenção do cliente.`;
-            }
-
-            const linhasTextoSolicitacaoEmpresa = pdf.splitTextToSize(solicitacao, larguraMaximaLinha);
-            pdf.setFont("helvetica", "bold"); 
-            pdf.text("SOLICITAÇÃO", 90, 245);
-            pdf.setFont("helvetica", "normal");
-            pdf.text(linhasTextoSolicitacaoEmpresa, 10, 253);
+        const linhasTextoSolicitacaoEmpresa = pdf.splitTextToSize(solicitacao, larguraMaximaLinha);
+        pdf.setFont("helvetica", "bold"); 
+        pdf.text("GARANTIRA", 90, 245);
+        pdf.setFont("helvetica", "normal");
+        pdf.text(linhasTextoSolicitacaoEmpresa, 10, 253);
      
-        };
+        
         //const garantiaUm = `Garantia total no local localizado pelo técnico. ( Prazo máximo de 30 dias para acionar a garantia) caso solicite a mesma sem a necessidade devida, será cobrado novamente o valor do serviço de localização.`;
         //const linhasTextoGaramtiaUm = pdf.splitTextToSize( garantiaUm, larguraMaximaLinha);
         //pdf.text(linhasTextoGaramtiaUm, 10, 245);
@@ -251,7 +215,7 @@ async function gerarPDF() {
         //pdf.text(linhasTextoGaramtiaDois, 10, 255);
 
         // Obter o técnico selecionado e o CNPJ
-        const selectTecnico = document.getElementById('tecnico');
+        const selectTecnico = document.getElementById('tecnicoreparo');
         const tecnicoSelecionado = selectTecnico.options[selectTecnico.selectedIndex];
         const tecnicoNome = tecnicoSelecionado.value; // Nome do técnico
         const tecnicoCNPJ = tecnicoSelecionado.getAttribute('data-cnpj'); // CNPJ do técnico
@@ -360,5 +324,5 @@ async function gerarPDF() {
     }
 
     // Salvar PDF
-    pdf.save(`Laudo_Tecnico_${nome}.pdf`);
+    pdf.save(`Laudo_Reparo_${nome}.pdf`);
 }
