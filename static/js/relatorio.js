@@ -460,16 +460,51 @@ async function gerarPDF() {
                 }
             }
             else if (possuiVazamento === "nao" && revisarConta === "sim") {
-                
+                pdf.addPage();
+
+                await logo(pdf);
                 textUM = 'Após a inspeção técnica no local, não foram identificadas evidências superficiais ou ocultas de vazamento, de modo que a área analisada não apresentou quaisquer sinais de perda de água ou problemas relacionados.'
                 textDois = 'As características acima indicadas podem ensejar a revisão das contas de água e de esgoto junto à Concessionária do Serviço Público de Saneamento Básico, a qual deverá ser instruída com este Laudo Técnico.';
                 const P1 = pdf.splitTextToSize(textUM, larguraMaximaLinha);
                 const P2 = pdf.splitTextToSize(textDois, larguraMaximaLinha);
                 pdf.setFont("helvetica", "bold"); 
-                pdf.text("SOLICITAÇÃO", 90, 130);
+                pdf.text("SOLICITAÇÃO", 90, 50);
                 pdf.setFont("helvetica", "normal");
-                pdf.text(P1, 10, 140);
-                pdf.text(P2, 10, 150);
+                pdf.text(P1, 10, 60);
+                pdf.text(P2, 10, 70);
+
+                if (imagemAssinatura) {
+                    const imagemAssinaturaURL = `../static/img/${imagemAssinatura}`;
+                    const imgAssinatura = new Image();
+                    imgAssinatura.src = imagemAssinaturaURL;
+
+                    // Esperar o carregamento da imagem
+                    await new Promise((resolve, reject) => {
+                        imgAssinatura.onload = resolve;
+                        imgAssinatura.onerror = reject;
+                    });
+
+                    // Adicionar a assinatura no PDF
+                    pdf.addImage(imgAssinatura, "PNG", 15, 262, 45, 20); // Ajuste as dimensões conforme necessário
+                }
+                // Adicionar informações do técnico
+                pdf.text(`-----------------------------------`, 15, 280);    
+                pdf.text(`${tecnicoNome}`, 15, 285);
+                pdf.text(`CNPJ ${tecnicoCNPJ}`, 15, 290);
+
+
+
+                
+                if (data) {
+                    // Dividindo a string no formato ISO
+                    const [ano, mes, dia] = data.split('-');
+                    
+                    // Montando a data no formato dd/mm/yyyy
+                    const dataFormatada = `${dia}/${mes}/${ano}`;
+                    
+                    // Inserindo no PDF
+                    pdf.text(`${dataFormatada}, ${cidade}`, 140, 285);
+                }
             }   
         };
 
