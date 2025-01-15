@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}Bônus do Atendente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Bônus do Atendente</h3>
+    <form method="POST" class="mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="selected_year">Ano:</label>
+                <select id="selected_year" name="selected_year" class="form-control">
+                    {% for year in years %}
+                    <option value="{{ year }}" {% if selected_year==year|string %}selected{% endif %}>{{ year }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="selected_month">Mês:</label>
+                <select id="selected_month" name="selected_month" class="form-control">
+                    {% for month in months %}
+                    <option value="{{ month.value }}" {% if selected_month==month.value %}selected{% endif %}>{{
+                        month.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Buscar</button>
+    </form>
+
+    {% if transactions %}
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Telefone</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.phone }}</td>
+                <td>
+                    {% if transaction.type == 'c' %}
+                    <span class="badge bg-success">Crédito</span>
+                    {% else %}
+                    <span class="badge bg-danger">Débito</span>
+                    {% endif %}
+                </td>
+                <td>R$ {{ transaction.value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h4>Saldo Total: R$ {{ total_balance }}</h4>
+
+    {% else %}
+    <p class="mt-4">Nenhuma transação encontrada para o período selecionado.</p>
+    {% endif %}
+</div>
+{% endblock %}

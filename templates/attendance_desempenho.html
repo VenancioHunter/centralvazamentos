@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}Desempenho{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>{{ user_name }}</h3>
+    <form method="POST" class="mb-4">
+        <label for="selected_month">Selecionar Mês:</label>
+        <select id="selected_month" name="selected_month" class="form-select form-select-sm">
+            <option value="" disabled selected>Selecione o mês</option>
+            {% for mes in meses %}
+            <option value="{{ mes.value }}" {% if mes.value==selected_month %}selected{% endif %}>{{ mes.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm mt-2" style="width: 100%;">Buscar</button>
+    </form>
+
+    {% if selected_month %}
+    <div class="mt-4">
+        <h5>Resumo Mensal</h5>
+        <p><strong>Total Agendados:</strong> {{ total_agendados }} ({{ percent_agendados }}%)</p>
+        <p><strong>Total Aguardando:</strong> {{ total_aguardando }} ({{ percent_aguardando }}%)</p>
+        <p><strong>Total de Atendimentos:</strong> {{ total_atendimentos }}</p>
+    </div>
+    {% endif %}
+
+    {% if daily_summary %}
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Dia</th>
+                <th>Agendados</th>
+                <th>Aguardando</th>
+                <th>Total Atendimentos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for summary in daily_summary %}
+            <tr>
+                <td>{{ summary.day }}</td>
+                <td>{{ summary.agendados }}</td>
+                <td>{{ summary.aguardando }}</td>
+                <td>{{ summary.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">Nenhum atendimento encontrado para o mês selecionado.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,521 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}ADM Agenda{% endblock %} {% block
+content %}
+<script src="../static/js/formatarValor.js"></script>
+<div class="container">
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label for="date">Data:</label>
+      <input type="date" id="date" class="form-control" />
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button id="fetch-data" class="btn btn-primary w-100">Buscar</button>
+    </div>
+  </div>
+  <div id="results">
+    <!-- Resultados serão inseridos aqui -->
+  </div>
+</div>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="paymentModal"
+  tabindex="-1"
+  aria-labelledby="paymentModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="paymentModalLabel">
+          Detalhes do Agendamento
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="payment-method">Método de Pagamento</label>
+          <select
+            class="form-control"
+            id="payment-method"
+            onchange="togglePaymentOptions()"
+          >
+            <option value="">Selecione</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="pix">PIX</option>
+            <option value="cartao">Cartão de Crédito</option>
+            <option value="boleto">Boleto</option>
+          </select>
+        </div>
+        <!-- Campos Dinâmicos -->
+        <div id="payment-options">
+          <!-- Dinheiro / PIX -->
+          <div id="input-amount" class="form-group mt-3 d-none">
+            <label for="amount">Valor</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="amount"
+              placeholder="Insira o valor"
+            />
+            <div class="my-4">
+              <label style="font-size: small; font-weight: bold"
+                >Confirmação de Recebimento</label
+              >
+              <div>
+                <input
+                  type="radio"
+                  id="received"
+                  name="paymentStatus"
+                  value="received"
+                  required
+                />
+                <label for="received">Recebido</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="not-received"
+                  name="paymentStatus"
+                  value="notreceived"
+                />
+                <label for="not-received">Não Recebido</label>
+              </div>
+            </div>
+          </div>
+          <!-- Cartão de Crédito -->
+          <div id="credit-card-options" class="form-group mt-3 d-none">
+            <label for="card-valor">Valor</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="card-valor"
+              placeholder="Insira o valor"
+            />
+            <label for="installments" class="mt-3">Parcelas</label>
+            <select class="form-control" id="installments">
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="3">3x</option>
+              <option value="4">4x</option>
+              <option value="5">5x</option>
+              <option value="6">6x</option>
+              <option value="7">7x</option>
+              <option value="8">8x</option>
+              <option value="9">9x</option>
+              <option value="10">10x</option>
+              <!-- Adicione mais opções de parcelas se necessário -->
+            </select>
+            <div class="my-4">
+              <label style="font-size: small; font-weight: bold"
+                >Confirmação de Recebimento</label
+              >
+
+              <div>
+                <input
+                  type="radio"
+                  id="received-cartao"
+                  name="paymentStatus"
+                  value="received"
+                  required
+                />
+                <label for="received-cartao">Recebido</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="not-received-cartao"
+                  name="paymentStatus"
+                  value="notreceived"
+                />
+                <label for="not-received-cartao">Não Recebido</label>
+              </div>
+            </div>
+          </div>
+          <!-- Boleto -->
+          <div id="boleto-options" class="form-group mt-3 d-none">
+            <label for="boleto-valor">Valor a Receber</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="boleto-valor"
+              placeholder="Insira o valor"
+            />
+            <label for="boleto-date" class="mt-3">Data de Vencimento</label>
+            <input type="date" class="form-control" id="boleto-date" required />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="modal-service" class="form-label">Serviço</label>
+          <input type="text" id="modal-service" class="form-control" readonly />
+        </div>
+        <div class="mb-3">
+          <label for="modal-phone" class="form-label">Telefone</label>
+          <input type="text" id="modal-phone" class="form-control" readonly />
+        </div>
+        <div class="mb-3">
+          <label for="modal-price" class="form-label">Valor</label>
+          <input type="text" id="modal-price" class="form-control" readonly />
+        </div>
+        <div class="mb-3">
+          <label for="observacao-service" class="form-label">Observação</label>
+          <textarea
+            id="observacao-service"
+            class="form-control"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Fechar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="savePayment(this)"
+        >
+          Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para bloquear a tela de fundo -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Pop-up -->
+<div class="popup" id="popup" align="center">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <div>
+    <span>Aguarde...</span>
+  </div>
+</div>
+
+<script>
+  function mostrarPopup() {
+    var overlay = document.getElementById("overlay");
+    var popup = document.getElementById("popup");
+
+    overlay.style.display = "block";
+    popup.style.display = "block";
+
+    // Bloqueia a interação com a tela de fundo
+    overlay.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+
+  function fecharPopup() {
+    var overlay = document.getElementById("overlay");
+    var popup = document.getElementById("popup");
+
+    overlay.style.display = "none";
+    popup.style.display = "none";
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Usando Luxon para lidar com o fuso horário
+    const DateTime = luxon.DateTime;
+
+    // Obtenha a data atual no fuso horário de São Paulo
+    const nowInSaoPaulo = DateTime.now().setZone("America/Sao_Paulo");
+
+    // Formate a data para 'YYYY-MM-DD'
+    const formattedDate = nowInSaoPaulo.toFormat("yyyy-MM-dd");
+
+    // Obtenha o elemento de entrada da data
+    const dateInput = document.getElementById("date");
+
+    // Defina o valor do campo de data para a data atual em São Paulo
+    dateInput.value = formattedDate;
+  });
+</script>
+<script>
+  document.getElementById("fetch-data").addEventListener("click", () => {
+    reloadTechnicianSchedules();
+  });
+
+  function reloadTechnicianSchedules() {
+    const date = document.getElementById("date").value;
+
+    if (!date) {
+      alert("Erro: Data não encontrada para recarregar os agendamentos.");
+      return;
+    }
+    mostrarPopup();
+
+    fetch(`/get_technician_schedules?date=${date}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Erro ao recarregar os agendamentos.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = ""; // Limpa os resultados anteriores
+
+        if (Object.keys(data).length === 0) {
+          resultsDiv.innerHTML = "<p>Nenhum agendamento encontrado.</p>";
+          return;
+        }
+
+        for (const [technician, schedules] of Object.entries(data)) {
+          const technicianDiv = document.createElement("div");
+          technicianDiv.classList.add("card", "mb-3");
+
+          const cardBody = `
+          <div class="card-body">
+            <h5>${technician}</h5>
+            <ul class="list-group">
+              ${schedules
+                .map((schedule) => {
+                  const hasPaymentStatus = !!schedule.status_paymment;
+                  return `
+                    <li class="schedule-item list-group-item list-group-item-action ${
+                      hasPaymentStatus ? "disabled" : ""
+                    }" 
+                        data-name="${schedule.name}" 
+                        data-service="${schedule.service}" 
+                        data-phone="${schedule.phone}" 
+                        data-price="${schedule.newprice}" 
+                        onclick="setOsId('${schedule.os_id}', '${
+                    schedule.city
+                  }', '${schedule.data}', '${schedule.newprice}', '${
+                    schedule.service
+                  }', '${schedule.tecnico_id}')"
+                        style="cursor: ${
+                          hasPaymentStatus ? "not-allowed" : "pointer"
+                        }"
+                        ${
+                          hasPaymentStatus
+                            ? ""
+                            : 'data-toggle="modal" data-target="#paymentModal"'
+                        }
+                    >
+                      Nome: ${schedule.name}, Serviço: ${
+                    schedule.service
+                  }, Telefone: ${schedule.phone}, Hora: ${schedule.newprice}
+                    </li>`;
+                })
+                .join("")}
+            </ul>
+          </div>
+        `;
+
+          technicianDiv.innerHTML = cardBody;
+          resultsDiv.appendChild(technicianDiv);
+          fecharPopup();
+        }
+      })
+      .catch((error) => {
+        console.error("Erro ao recarregar os agendamentos:", error);
+        alert("Erro ao recarregar os agendamentos.");
+      });
+  }
+</script>
+<script>
+  function togglePaymentOptions() {
+    var method = document.getElementById("payment-method").value;
+
+    // Esconde todas as opções
+    document.getElementById("input-amount").classList.add("d-none");
+    document.getElementById("credit-card-options").classList.add("d-none");
+    document.getElementById("boleto-options").classList.add("d-none");
+
+    // Mostra o campo de acordo com a seleção
+    if (method === "dinheiro" || method === "pix") {
+      document.getElementById("input-amount").classList.remove("d-none");
+    } else if (method === "cartao") {
+      document.getElementById("credit-card-options").classList.remove("d-none");
+    } else if (method === "boleto") {
+      document.getElementById("boleto-options").classList.remove("d-none");
+    }
+  }
+</script>
+
+<script>
+  function getSelectedPaymentStatus() {
+    var selectedOption = document.querySelector(
+      'input[name="paymentStatus"]:checked'
+    );
+    if (selectedOption) {
+      return selectedOption.value;
+    } else {
+      return null; // Caso nenhuma opção esteja selecionada
+    }
+  }
+  document.addEventListener("click", (event) => {
+    const listItem = event.target.closest(".schedule-item");
+
+    if (listItem && !listItem.classList.contains("disabled")) {
+      // Obtenha os dados do `li` clicado
+      const name = listItem.getAttribute("data-name");
+      const service = listItem.getAttribute("data-service");
+      const phone = listItem.getAttribute("data-phone");
+      const price = listItem.getAttribute("data-price");
+
+      // Atualize o modal com as informações
+      document.getElementById(
+        "paymentModalLabel"
+      ).textContent = `Detalhes do Agendamento - ${name}`;
+      document.getElementById("modal-service").value = service;
+      document.getElementById("modal-phone").value = phone;
+      document.getElementById("modal-price").value = price;
+
+      // Exiba o modal
+      const paymentModal = new bootstrap.Modal(
+        document.getElementById("paymentModal")
+      );
+      paymentModal.show();
+    }
+  });
+
+  function savePayment() {
+    const observacao = document.getElementById("observacao-service").value;
+    alert(`Pagamento salvo com a observação: ${observacao}`);
+    // Aqui você pode enviar as informações para o backend, se necessário
+  }
+</script>
+<script>
+  function setOsId(osId, city, osDate, valueService, typeService, tecnicoId) {
+    currentOsId = osId; // Armazena o ID do serviço atual
+    currentOsCity = city;
+    currentOsDate = osDate;
+    currentOsValueService = valueService;
+    currentOSTypeService = typeService;
+    currentOsIdTecnico = tecnicoId;
+  }
+
+  function savePayment(button) {
+    // Aqui você pode coletar os dados preenchidos no modal
+    var method = document.getElementById("payment-method").value;
+    var amount = document.getElementById("amount").value;
+    var cardValor = document.getElementById("card-valor").value;
+    var installments = document.getElementById("installments").value;
+    var boletoValor = document.getElementById("boleto-valor").value;
+    var boletoDate = document.getElementById("boleto-date").value;
+    var observacaoService = document.getElementById("observacao-service").value;
+    var status = getSelectedPaymentStatus();
+
+    if (!currentOsId) {
+      alert("Erro: ID do serviço não encontrado.");
+      return;
+    }
+
+    if (!amount && !cardValor && !boletoValor) {
+      alert("Erro: Preencha o valor recebido.");
+      return;
+    }
+
+    if (method == "boleto") {
+      status = "notreceived";
+    }
+
+    if (!status) {
+      alert("Erro: Confirme o RECEBIMENTO.");
+      return;
+    }
+    // Exemplo de coleta de dados
+    var paymentData = {
+      os_id: currentOsId,
+      os_id_tecnico: currentOsIdTecnico,
+      os_city: currentOsCity,
+      os_date: currentOsDate,
+      os_value_service: currentOsValueService,
+      os_type_serve: currentOSTypeService,
+      method: method,
+      amount: amount,
+      cardValor: cardValor,
+      installments: installments,
+      boletoValor: boletoValor,
+      boletoDate: boletoDate,
+      observacaoService: observacaoService,
+      statusPaymment: status,
+    };
+    console.log(paymentData);
+    mostrarPopup();
+
+    button.disabled = true;
+    // Aqui você pode enviar os dados para o servidor usando AJAX
+    // Exemplo com fetch API
+    fetch("/finalizar_os", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(paymentData),
+    })
+      .then((responseData) => {
+        clearModalFields();
+        // Fechar o modal após o envio bem-sucedido
+        const modalElement = document.getElementById("paymentModal");
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+        button.disabled = false;
+        reloadTechnicianSchedules();
+      })
+      .catch((error) => {
+        console.error("Erro ao enviar os dados:", error);
+        alert(error.message);
+      });
+  }
+</script>
+
+<script>
+  function clearModalFields() {
+    // Limpar campos comuns
+    document.getElementById("amount").value = "";
+    document.getElementById("card-valor").value = "";
+    document.getElementById("installments").value = "1"; // Define a parcela padrão
+    document.getElementById("boleto-valor").value = "";
+    document.getElementById("boleto-date").value = "";
+
+    // Desmarcar as opções de pagamento
+    const paymentRadios = document.querySelectorAll(
+      'input[name="paymentStatus"]'
+    );
+    paymentRadios.forEach((radio) => {
+      radio.checked = false;
+    });
+
+    // Resetar o método de pagamento selecionado
+    document.getElementById("payment-method").value = "";
+
+    // Esconder os campos dinâmicos
+    document.getElementById("input-amount").classList.add("d-none");
+    document.getElementById("credit-card-options").classList.add("d-none");
+    document.getElementById("boleto-options").classList.add("d-none");
+  }
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    configurarFormatacaoValor("amount");
+
+    configurarFormatacaoValor("card-valor");
+    configurarFormatacaoValor("boleto-valor");
+    configurarFormatacaoValor("manutencao");
+    configurarFormatacaoValor("combustivel");
+    configurarFormatacaoValor("pedagio");
+    configurarFormatacaoValor("reparo");
+    configurarFormatacaoValor("outros");
+  });
+</script>
+{% endblock %}

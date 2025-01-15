@@ -8,6 +8,7 @@ import json
 from core.attendance.class_attendance import Attendance
 from core.wallet.class_wallet_os import Wallet
 from core.user.class_user_wallet import User_Wallet
+from core.user.class_user_attendant_wallet import User_Wallet_Attendant
 from core.user.class_user import User
 import pytz
 from config import db, auth
@@ -585,8 +586,20 @@ def gerar_os():
     month = f"{date.month:02d}"  # Garantir que o mês tenha dois dígitos
     day = f"{date.day:02d}"  # Garantir que o dia tenha dois dígitos
 
-    #db.child("ordens_servico").push(nova_os)
-    Attendance.update_status(id=id_attendance, city=city, date=data_formatada)
+    if newprice != "0.00":
+
+        info_bonus_user = {
+            "phone": request.form.get('phone'),
+            "service": request.form.get('service'),
+            "price": newprice,
+            "timestamp": timestamp,
+        }
+
+        User_Wallet_Attendant.create_transaction_credito(id_user=session['user'], date=date, info=info_bonus_user)
+
+
+    
+    Attendance.update_status(id=id_attendance, city=city, date=data_formatada, timestamp=timestamp)
 
     db.child("ordens_servico").child(city).child(year).child(month).child(day).push(nova_os)
 
@@ -779,6 +792,7 @@ def finalizar_os():
     os_id = data.get('os_id')
     os_city = data.get('os_city')
     os_date = data.get('os_date')
+    os_id_tecnico = data.get('os_id_tecnico')
     os_value_service = convert_monetary_value(data.get('os_value_service'))
     os_type_service = data.get('os_type_serve')
     
@@ -802,7 +816,7 @@ def finalizar_os():
 
             Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment="recebido")
 
-            User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+            User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
 
         except:
                     return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
@@ -824,7 +838,7 @@ def finalizar_os():
                 create_paymment ={
                     'os_id': os_id,
                     'os_date': os_date,
-                    'tecnico_id': session['user'],
+                    'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': amount,
                 }
@@ -834,14 +848,14 @@ def finalizar_os():
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
-                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
 
-                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=session['user'])
+                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
                     
                     if os_value_service != amount:
                         taxa = "{:.2f}".format(float(os_value_service) - float(amount), 2)
 
-                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=session['user'])
+                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
                     
 
                 
@@ -861,7 +875,7 @@ def finalizar_os():
                 create_paymment ={
                     'os_id': os_id,
                     'os_date': os_date,
-                    'tecnico_id': session['user'],
+                    'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': amount,
                     'installments': data.get('installments')
@@ -872,14 +886,14 @@ def finalizar_os():
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
-                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=session['user'])
+                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
                     
-                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=session['user'])
+                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
 
                     if os_value_service != amount:
                         taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
 
-                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=session['user'])
+                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
 
                 except:
                     return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
@@ -894,7 +908,7 @@ def finalizar_os():
                     'os_id': os_id,
                     'os_city': os_city,
                     'os_date': os_date,
-                    'tecnico_id': session['user'],
+                    'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('boletoValor')),
                     'vencimento': data.get('vencimento')
@@ -917,7 +931,7 @@ def finalizar_os():
                     'os_id': os_id,
                     'os_date': os_date,
                     'os_city': os_city,
-                    'tecnico_id': session['user'],
+                    'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('amount')),
                     'vencimento': os_date
@@ -941,7 +955,7 @@ def finalizar_os():
                     'os_id': os_id,
                     'os_date': os_date,
                     'os_city': os_city,
-                    'tecnico_id': session['user'],
+                    'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('cardValor')),
                     'installments': data.get('installments'),
@@ -1429,6 +1443,21 @@ def deletar_os():
     # Atualizando o dicionário com o motivo do cancelamento
     data['motivo_cancelamento'] = motivo
 
+    sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
+    now_in_sao_paulo = datetime.now(sao_paulo_tz)
+    timestamp = now_in_sao_paulo.timestamp()
+    
+    newprice = data['newprice']
+
+    if newprice != "0.00":
+
+        info_bonus_user = {
+            "price": newprice,
+            "timestamp": timestamp,
+        }
+
+        User_Wallet_Attendant.create_transaction_debito(id_user=data['user_id'], date=date_canceled, info=info_bonus_user)
+
     # Salvando os dados atualizados em canceled_services no Firebase
     db.child("canceled_services").child(city).child(ano).child(mes).child(dia).push(data)
 
@@ -1577,6 +1606,369 @@ def relatorio():
    
     
     return render_template('relatorio.html')
+
+@app.route('/orcamento', methods=['GET', 'POST'])
+def orcamento():
+   
+    
+    return render_template('orcamento.html')
+
+@app.route('/attendance_desempenho', methods=['GET', 'POST'])
+def attendance_desempenho():
+    id_atendente = session.get('user')  # ID do atendente logado
+    if not id_atendente:
+        return redirect('/login')  # Redireciona se não estiver logado
+
+    # Lista de meses para o select
+    meses = [
+        {"value": "01", "name": "Janeiro"},
+        {"value": "02", "name": "Fevereiro"},
+        {"value": "03", "name": "Março"},
+        {"value": "04", "name": "Abril"},
+        {"value": "05", "name": "Maio"},
+        {"value": "06", "name": "Junho"},
+        {"value": "07", "name": "Julho"},
+        {"value": "08", "name": "Agosto"},
+        {"value": "09", "name": "Setembro"},
+        {"value": "10", "name": "Outubro"},
+        {"value": "11", "name": "Novembro"},
+        {"value": "12", "name": "Dezembro"},
+    ]
+
+    selected_month = None
+    year = datetime.now(pytz.timezone('America/Sao_Paulo')).year  # Ano atual
+    daily_summary = {}
+    total_agendados = 0
+    total_aguardando = 0
+    total_atendimentos = 0
+
+    if request.method == 'POST':
+        selected_month = request.form.get('selected_month')
+
+    if selected_month:
+        # Obtém os dados de atendimentos do Firebase
+        attendance_data = db.child("attendance_records").get().val() or {}
+
+        # Filtra os registros para o atendente logado e o mês selecionado
+        for city, years in attendance_data.items():
+            if str(year) in years:
+                months = years[str(year)]
+                if selected_month in months:
+                    days = months[selected_month]
+                    for day, attendances in days.items():
+                        if day not in daily_summary:
+                            daily_summary[day] = {"agendados": 0, "aguardando": 0, "total": 0}
+
+                        for attendance_id, attendance_info in attendances.items():
+                            user_id = attendance_info.get('user_id')
+                            if user_id == id_atendente:  # Apenas registros do atendente logado
+                                status = attendance_info.get('status')
+                                if status == "Agendado":
+                                    daily_summary[day]["agendados"] += 1
+                                elif status == "Aguardando":
+                                    daily_summary[day]["aguardando"] += 1
+                                daily_summary[day]["total"] += 1
+
+    # Atualiza os totais mensais fora do loop diário
+    for day_summary in daily_summary.values():
+        total_agendados += day_summary["agendados"]
+        total_aguardando += day_summary["aguardando"]
+        total_atendimentos += day_summary["total"]
+
+    # Calcula as porcentagens
+    percent_agendados = (
+        round((total_agendados / total_atendimentos) * 100 if total_atendimentos else 0, 2)
+    )
+    percent_aguardando = (
+        round((total_aguardando / total_atendimentos) * 100 if total_atendimentos else 0, 2)
+    )
+
+    # Converte o resumo diário para uma lista ordenada por dia
+    ordered_daily_summary = [
+        {"day": f"{day}/{selected_month}/{year}", **summary}
+        for day, summary in sorted(daily_summary.items())
+    ]
+
+    # Obtém o nome do atendente logado
+    user_name = User.get_name(id_atendente)
+
+    return render_template(
+        'attendance_desempenho.html',
+        meses=meses,
+        selected_month=selected_month,
+        daily_summary=ordered_daily_summary,
+        total_agendados=total_agendados,
+        total_aguardando=total_aguardando,
+        total_atendimentos=total_atendimentos,
+        percent_agendados=percent_agendados,
+        percent_aguardando=percent_aguardando,
+        user_name=user_name
+    )
+
+
+@app.route('/bonus_attendant', methods=['GET', 'POST'])
+@check_roles(['user'])
+def bonus_attendant():
+    id_user = session.get('user')
+    if not id_user:
+        return redirect('/login')  # Redireciona para o login se não estiver logado
+
+    # Lista de anos e meses para os selects
+    current_year = datetime.now().year
+    years = [current_year - i for i in range(5)]  # Últimos 5 anos
+    months = [
+        {"value": "01", "name": "Janeiro"},
+        {"value": "02", "name": "Fevereiro"},
+        {"value": "03", "name": "Março"},
+        {"value": "04", "name": "Abril"},
+        {"value": "05", "name": "Maio"},
+        {"value": "06", "name": "Junho"},
+        {"value": "07", "name": "Julho"},
+        {"value": "08", "name": "Agosto"},
+        {"value": "09", "name": "Setembro"},
+        {"value": "10", "name": "Outubro"},
+        {"value": "11", "name": "Novembro"},
+        {"value": "12", "name": "Dezembro"},
+    ]
+
+    selected_year = None
+    selected_month = None
+    transactions = []
+    total_balance = 0.0  # Saldo total
+
+    if request.method == 'POST':
+        selected_year = request.form.get('selected_year')
+        selected_month = request.form.get('selected_month')
+
+        if selected_year and selected_month:
+            # Obtem dados do Firebase
+            data = db.child('users').child(id_user).child('wallet').child('credit_for_servide').child(selected_year).child(selected_month).get().val()
+            if data:
+                # Converte os dados em uma lista para exibição e ajusta a data
+                for key, value in data.items():
+                    timestamp = value.get('timestamp')
+                    if timestamp:
+                        date = datetime.fromtimestamp(timestamp).strftime('%d/%m/%Y')
+                        value['date'] = date
+
+                    # Atualiza o saldo com base no tipo
+                    transaction_value = float(value.get('value', 0))
+                    if value.get('type') == 'c':
+                        total_balance += transaction_value
+                    elif value.get('type') == 'd':
+                        total_balance -= transaction_value
+
+                    transactions.append({"id": key, **value})
+
+
+    total_balance = round(total_balance, 2)
+    return render_template(
+        'bonus_attendant.html',
+        years=years,
+        months=months,
+        selected_year=selected_year,
+        selected_month=selected_month,
+        transactions=transactions,
+        total_balance=total_balance # Passa o saldo formatado com 2 casas decimais
+    )
+
+
+
+@app.route('/relatorio_cidade', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def relatorio_cidade():
+    id_user = session.get('user')
+    if not id_user:
+        return redirect('/login')  # Redireciona para o login se não estiver logado
+    
+    current_year = datetime.now().year
+    years = [current_year - i for i in range(5)]  # Últimos 5 anos
+    months = [
+        {"value": "01", "name": "Janeiro"},
+        {"value": "02", "name": "Fevereiro"},
+        {"value": "03", "name": "Março"},
+        {"value": "04", "name": "Abril"},
+        {"value": "05", "name": "Maio"},
+        {"value": "06", "name": "Junho"},
+        {"value": "07", "name": "Julho"},
+        {"value": "08", "name": "Agosto"},
+        {"value": "09", "name": "Setembro"},
+        {"value": "10", "name": "Outubro"},
+        {"value": "11", "name": "Novembro"},
+        {"value": "12", "name": "Dezembro"},
+    ]
+    
+    cities = db.child('cities').get().val()
+    cities = list(cities.values())
+
+    
+    return render_template('relatorio_cidade.html', cities=cities,  years=years, months=months)
+
+@app.route('/get_city_data', methods=['GET'])
+@check_roles(['admin'])
+def get_city_data():
+    city = request.args.get('city')
+    year = request.args.get('year')
+    month = request.args.get('month')
+
+    if not city or not year or not month:
+        return jsonify({"error": "Invalid parameters"}), 400
+
+    try:
+        data = db.child("attendance_records").child(city).child(year).child(month).get().val()
+        data_schedule = db.child("ordens_servico").child(city).child(year).child(month).get().val()
+
+        total = 0
+        total_agendado = 0
+        total_retorno = 0
+        service_counts = {}
+        service_counts_agendado = {}
+        service_agendado_percentages = {}
+        channel_counts = {}
+        channel_counts_agendado = {}
+
+        if data:
+            for day, items in data.items():
+                total += len(items)
+                for item in items.values():
+                    # Contagem de status "Agendado"
+                    if item.get("status") == "Agendado":
+                        total_agendado += 1
+                        service = item.get("service")
+                        if service:
+                            service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
+                    # Contagem de tipos de serviço
+                    service = item.get("service")
+                    if service:
+                        service_counts[service] = service_counts.get(service, 0) + 1
+
+                    channel = item.get("canal")
+                    if channel:
+                        channel_counts[channel] = channel_counts.get(channel, 0) + 1
+                        if item.get("status") == "Agendado":
+                            channel_counts_agendado[channel] = channel_counts_agendado.get(channel, 0) + 1
+
+        # Calcula a porcentagem de agendados
+        porcentagem_agendado = round((total_agendado / total) * 100 if total else 0, 2)
+
+        # Calcula a porcentagem de cada serviço
+        service_percentages = {
+            service: round((count / total) * 100, 2) for service, count in service_counts.items()
+        }
+
+        # Calcula a porcentagem de cada serviço "Agendado"
+        service_percentages_agendado = {
+            service: round((count / total_agendado) * 100, 2) 
+            for service, count in service_counts_agendado.items()
+        }
+
+        # Calcula a porcentagem de "Agendados" em relação ao total de cada serviço
+        for service, count in service_counts.items():
+            if service in service_counts_agendado:
+                agendado_count = service_counts_agendado[service]
+                service_agendado_percentages[service] = round((agendado_count / count) * 100, 2)
+            else:
+                service_agendado_percentages[service] = 0
+
+        # Calcula a porcentagem de cada canal
+        channel_percentages = {
+            channel: round((count / total) * 100, 2) for channel, count in channel_counts.items()
+        }
+
+        # Calcula a porcentagem de cada canal com status "Agendado"
+        channel_percentages_agendado = {
+            channel: round((count / total_agendado) * 100, 2)
+            for channel, count in channel_counts_agendado.items()
+        }
+       
+        if data_schedule:
+            for day, items in data_schedule.items():
+                for item in items.values():
+                    if item.get("service") == "Retorno":
+                        total_retorno += 1
+
+
+        return jsonify({
+            "total": total,
+            "total_agendado": total_agendado,
+            "porcentagem_agendado": porcentagem_agendado,
+            "service_counts": service_counts,
+            "service_percentages": service_percentages,
+            "service_counts_agendado": service_counts_agendado,
+            "service_percentages_agendado": service_percentages_agendado,
+            "service_agendado_percentages": service_agendado_percentages,
+            "channel_counts": channel_counts,
+            "channel_percentages": channel_percentages,
+            "channel_counts_agendado": channel_counts_agendado,
+            "channel_percentages_agendado": channel_percentages_agendado,
+            "total_retorno": total_retorno,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/adm_schedule', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def adm_schedule():
+
+
+    return render_template('adm_schedule.html')
+
+@app.route('/get_technician_schedules', methods=['GET'])
+@check_roles(['admin'])
+def get_technician_schedules():
+    date_str = request.args.get('date')
+
+    # Validação da data
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({"error": "Formato de data inválido."}), 400
+
+    year = str(date.year)
+    month = f"{date.month:02d}"
+    day = f"{date.day:02d}"
+
+    # Obtenha todos os técnicos registrados no sistema
+    users = db.child("users").get().val()
+    user_role = 'tecnico'
+    technicians = {user_id: user for user_id, user in users.items() if user.get('role') == user_role}
+
+    # Obtenha a lista de cidades
+    cities = db.child('cities').get().val()
+    if not cities:
+        return jsonify({"error": "Nenhuma cidade encontrada."}), 404
+
+    cities = list(cities.values())
+    technician_schedules = {tech_id: [] for tech_id in technicians.keys()}
+
+    try:
+        for city in cities:
+            # Buscar agendamentos na cidade para a data específica
+            data_schedule = db.child("ordens_servico").child(city).child(year).child(month).child(day).get().val()
+            if data_schedule:
+                for order_id, order_data in data_schedule.items():
+                    technician_id = order_data.get('tecnico_id')
+                    
+                    # Verifica se o técnico existe e acumula os dados
+                    if technician_id in technician_schedules:
+                        order_data['os_id'] = order_id
+                        order_data['data'] = date_str
+                        technician_schedules[technician_id].append(order_data)
+                    else:
+                        print(f"ID do técnico {technician_id} não encontrado em technicians.")
+        
+        # Substituir IDs pelo nome e retornar apenas técnicos com agendamentos
+        formatted_schedules = {}
+        for tech_id, schedules in technician_schedules.items():
+            if schedules:  # Apenas incluir técnicos com agendamentos
+                formatted_schedules[technicians[tech_id]['name']] = schedules
+        
+        return jsonify(formatted_schedules), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)
