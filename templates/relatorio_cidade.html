@@ -187,14 +187,15 @@
 
                 for (const [channel, percentage] of Object.entries(data.channel_percentages_agendado)) {
                     const totalCountAgendado = data.channel_counts_agendado[channel] || 0;
+                    const totalValueChannel = data.value_total_channel[channel] || 0; // Obtém o valor total do canal
 
                     const listItem = document.createElement("li");
                     listItem.className = "list-group-item";
 
                     // Formata a mensagem
                     listItem.innerText = `
-                    ${channel}: ${totalCountAgendado} (${percentage}%)
-                `.trim();
+                        ${channel}: ${totalCountAgendado} atendimentos (${percentage}%) | Total: R$ ${parseFloat(totalValueChannel).toFixed(2)}
+                    `.trim();
 
                     channelScheduledDetails.appendChild(listItem);
                 }

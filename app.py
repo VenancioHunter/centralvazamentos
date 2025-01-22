@@ -1604,7 +1604,6 @@ def adm_lista_os():
 @app.route('/relatorio', methods=['GET', 'POST'])
 def relatorio():
    
-    
     return render_template('relatorio.html')
 
 @app.route('/orcamento', methods=['GET', 'POST'])
@@ -1826,6 +1825,7 @@ def get_city_data():
         service_agendado_percentages = {}
         channel_counts = {}
         channel_counts_agendado = {}
+        value_total_channel = {}
 
         if data:
             for day, items in data.items():
@@ -1846,7 +1846,9 @@ def get_city_data():
                     if channel:
                         channel_counts[channel] = channel_counts.get(channel, 0) + 1
                         if item.get("status") == "Agendado":
+                            price = item.get("price")
                             channel_counts_agendado[channel] = channel_counts_agendado.get(channel, 0) + 1
+                            value_total_channel[channel] = value_total_channel.get(channel, 0) + float(item.get("price", 0))
 
         # Calcula a porcentagem de agendados
         porcentagem_agendado = round((total_agendado / total) * 100 if total else 0, 2)
@@ -1902,6 +1904,7 @@ def get_city_data():
             "channel_counts_agendado": channel_counts_agendado,
             "channel_percentages_agendado": channel_percentages_agendado,
             "total_retorno": total_retorno,
+            "value_total_channel": value_total_channel
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1967,8 +1970,6 @@ def get_technician_schedules():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)
