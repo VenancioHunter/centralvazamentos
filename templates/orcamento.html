@@ -1,41 +1,50 @@
 <!-- templates/login.html -->
-{% extends "layout.html" %}
-
-{% block title %}Orçamento{% endblock %}
-
-{% block content %}
+{% extends "layout.html" %} {% block title %}Orçamento{% endblock %} {% block
+content %}
 <div class="container">
-    <h1>Sistema de Orçamento</h1>
+  <h1>Sistema de Orçamento</h1>
   <form id="budget-form">
     <div class="mb-3">
-        <label for="city" style="font-size: small; font-weight: bold;">Cidade do Técnico</label>
-        <select class="form-select" id="city">
+      <label for="city" style="font-size: small; font-weight: bold"
+        >Cidade do Técnico</label
+      >
+      <select class="form-select" id="city">
+        <option>Selecionar</option>
         <option value="campinas">Campinas</option>
         <option value="goiania">Goiânia</option>
         <option value="sao_paulo">São Paulo</option>
         <option value="salvador">Salvador</option>
-        </select>
+      </select>
     </div>
 
     <div class="mb-3">
-        <label for="especie" style="font-size: small; font-weight: bold;">Cidade Do Serviço</label>
-        <select id="serviceCity" class="form-select" name="serviceCity">
-            <option value="">Selecionar Cidade</option>
-        </select>
+      <label for="especie" style="font-size: small; font-weight: bold"
+        >Cidade Do Serviço</label
+      >
+      <select id="serviceCity" class="form-select" name="serviceCity">
+        <option value="">Selecionar Cidade</option>
+      </select>
     </div>
 
     <div class="mb-3">
-        <label for="service"  style="font-size: small; font-weight: bold;">Selecione o serviço:</label>
-        <select class="form-select" id="service">
+      <label for="service" style="font-size: small; font-weight: bold"
+        >Selecione o serviço:</label
+      >
+      <select class="form-select" id="service">
         <option value="">Selecione...</option>
         <option value="localizacao_vazamento">Localização De Vazamento</option>
-        <option value="localizacao_infiltracao">Localização De Infiltração</option>
-        </select>
+        <option value="localizacao_infiltracao">
+          Localização De Infiltração
+        </option>
+        <option value="rede_de_incendio">Rede de Incêndio</option>
+      </select>
     </div>
     <div class="mb-3" id="additional-fields"></div>
 
     <div class="mb-3">
-        <button type="button" id="calculate-btn" style="width:100%">Calcular</button>
+      <button type="button" id="calculate-btn" style="width: 100%">
+        Calcular
+      </button>
     </div>
   </form>
   <p id="taxa-deslocamento"></p>
@@ -43,113 +52,204 @@
 </div>
 
 <script>
-    const serviceSelect = document.getElementById('service');
-    const additionalFields = document.getElementById('additional-fields');
-    const calculateBtn = document.getElementById('calculate-btn');
-    const result = document.getElementById('result');
-    const taxaDeslocamento = document.getElementById('taxa-deslocamento');
-    
-    // Tabela de preços fixos
-    const pricingTable = {
-      campinas: {
-        localizacao_vazamento: { 1: 280, 2: 330, 3: 380, 4: 430, 5: 480, 6: 530, 7: 580, 8: 630, 9: 680, 10: 730 },
-        localizacao_infiltracao: { 1: 400, 2: 500 },
+  const serviceSelect = document.getElementById("service");
+  const additionalFields = document.getElementById("additional-fields");
+  const calculateBtn = document.getElementById("calculate-btn");
+  const result = document.getElementById("result");
+  const taxaDeslocamento = document.getElementById("taxa-deslocamento");
+
+  // Tabela de preços fixos
+  const pricingTable = {
+    campinas: {
+      localizacao_vazamento: {
+        1: 280,
+        2: 330,
+        3: 380,
+        4: 430,
+        5: 480,
+        6: 530,
+        7: 580,
+        8: 630,
+        9: 680,
+        10: 730,
       },
-      goiania: {
-        localizacao_vazamento: { 1: 250, 2: 280, 3: 300, 4: 350, 5: 400, 6: 500, 7: 650, 8: 750, 9: 850, 10: 1000 },
-        localizacao_infiltracao: { 1: 300, 2: 400 },
+      localizacao_infiltracao: { 1: 400, 2: 500 },
+    },
+    goiania: {
+      localizacao_vazamento: {
+        1: 250,
+        2: 280,
+        3: 300,
+        4: 350,
+        5: 400,
+        6: 500,
+        7: 650,
+        8: 750,
+        9: 850,
+        10: 1000,
       },
-      sao_paulo: {
-        localizacao_vazamento: { 1: 400, 2: 500 },
-        localizacao_infiltracao: { 1: 450, 2: 550 },
+      localizacao_infiltracao: { 1: 300, 2: 400 },
+    },
+    sao_paulo: {
+      localizacao_vazamento: { 1: 400, 2: 500 },
+      localizacao_infiltracao: { 1: 450, 2: 550 },
+    },
+    salvador: {
+      localizacao_vazamento: {
+        1: 250,
+        2: 300,
+        3: 350,
+        4: 400,
+        5: 450,
+        6: 500,
+        7: 550,
+        8: 600,
+        9: 650,
+        10: 700,
       },
-      salvador: {
-        localizacao_vazamento: { 1: 250, 2: 300, 3: 350, 4: 400, 5: 450, 6: 500, 7: 550, 8: 600, 9: 650, 10: 700 },
-        localizacao_infiltracao: { 1: 350, 2: 450 },
-      },
-    };
-    
-    // Atualizar os campos adicionais com base no serviço selecionado
-    serviceSelect.addEventListener('change', () => {
-      additionalFields.innerHTML = ''; // Limpar campos anteriores
-      const selectedService = serviceSelect.value;
-    
-      if (selectedService === 'localizacao_vazamento') {
-        additionalFields.innerHTML = `
+      localizacao_infiltracao: { 1: 350, 2: 450 },
+    },
+  };
+
+  // Atualizar os campos adicionais com base no serviço selecionado
+  serviceSelect.addEventListener("change", () => {
+    additionalFields.innerHTML = ""; // Limpar campos anteriores
+    const selectedService = serviceSelect.value;
+
+    if (selectedService === "localizacao_vazamento") {
+      additionalFields.innerHTML = `
           <label for="bathrooms">Número de banheiros:</label>
           <select class="form-select" id="bathrooms">
             <option value="1">1</option>
             <option value="2">2</option>
           </select>
         `;
-      } else if (selectedService === 'localizacao_infiltracao') {
-        additionalFields.innerHTML = `
+    } else if (selectedService === "localizacao_infiltracao") {
+      additionalFields.innerHTML = `
           <label for="infiltration_points">Número de pontos de infiltração:</label>
           <select class="form-select" id="infiltration_points">
             <option value="1">1</option>
             <option value="2">2</option>
           </select>
         `;
-      }
-    });
+    } else if (selectedService === "rede_de_incendio") {
+      additionalFields.innerHTML = `
+          <label for="local">Local</label>
+          <select class="form-select" id="local">
+            <option value="1">Concreto</option>
+            <option value="2">Grama</option>
+            <option value="3">Terra</option>
+            <option value="4">Mato</option>
+          </select>
 
-    const city = document.getElementById("city");
-    const serviceCity = document.getElementById("serviceCity");
+          <div class="my-3">
+          <label>Metragem</label>
+          <input class="form-control" type="number" id="metragem" />
+          </div>
+        `;
+    }
+  });
 
-    const optionsMap = {
-        "campinas": [
-            {value: 0, text: "Campinas"},
-            {value: 100, text: "Jundiaí"},
-            
-        ],
-        "goiania": [
-            {value: 0, text: "Senador Canedo"},
-            {value: 0, text: "Trindade"},
-            
-        ],
-    };
+  const city = document.getElementById("city");
+  const serviceCity = document.getElementById("serviceCity");
 
-    city.addEventListener("change", function () {
-        const selectedValue = city.value;
+  const optionsMap = {
+    campinas: [
+      { value: 0, text: "Campinas" },
+      { value: 100, text: "Jundiaí" },
+    ],
+    goiania: [
+      { value: 0, text: "Senador Canedo" },
+      { value: 0, text: "Trindade" },
+    ],
+  };
 
-        // Limpa o segundo select
-        serviceCity.innerHTML = "<option value=''>Selecione uma Cidade</option>";
+  city.addEventListener("change", function () {
+    const selectedValue = city.value;
 
-        // Se houver uma opção válida no primeiro select
-        if (optionsMap[selectedValue]) {
-            // Adiciona as novas opções no segundo select
-            optionsMap[selectedValue].forEach(option => {
-                const newOption = document.createElement("option");
-                newOption.value = option.value;
-                newOption.text = option.text;
-                serviceCity.appendChild(newOption);
-            });
-        }
-    });
-    
-    // Calcular o orçamento
-    calculateBtn.addEventListener('click', () => {
-      const city = document.getElementById('city').value;
-      const serviceCity = Number(document.getElementById('serviceCity').value);
-      const service = serviceSelect.value;
-    
-      if (!city || !service) {
-        result.textContent = 'Por favor, selecione a cidade e o serviço.';
-        return;
-      }
-    
-      const additionalField = service === 'localizacao_vazamento' ? 'bathrooms' : 'infiltration_points';
-      const quantity = parseInt(document.getElementById(additionalField)?.value, 10);
-    
+    // Limpa o segundo select
+    serviceCity.innerHTML = "<option value=''>Selecione uma Cidade</option>";
+
+    // Se houver uma opção válida no primeiro select
+    if (optionsMap[selectedValue]) {
+      // Adiciona as novas opções no segundo select
+      optionsMap[selectedValue].forEach((option) => {
+        const newOption = document.createElement("option");
+        newOption.value = option.value;
+        newOption.text = option.text;
+        serviceCity.appendChild(newOption);
+      });
+    }
+  });
+
+  // Calcular o orçamento
+  calculateBtn.addEventListener("click", () => {
+    const city = document.getElementById("city").value;
+    const serviceCityValue = Number(
+      document.getElementById("serviceCity").value
+    );
+    const service = serviceSelect.value;
+
+    if (!city || !service) {
+      result.textContent = "Por favor, selecione a cidade e o serviço.";
+      return;
+    }
+
+    let total = 0;
+
+    // Lógica para Localização de Vazamento e Infiltração
+    if (
+      service === "localizacao_vazamento" ||
+      service === "localizacao_infiltracao"
+    ) {
+      const additionalField =
+        service === "localizacao_vazamento"
+          ? "bathrooms"
+          : "infiltration_points";
+      const quantity = parseInt(
+        document.getElementById(additionalField)?.value,
+        10
+      );
+
       if (!quantity || !pricingTable[city][service][quantity]) {
-        result.textContent = 'Por favor, selecione uma quantidade válida.';
+        result.textContent = "Por favor, selecione uma quantidade válida.";
         return;
       }
-      
-      const total = pricingTable[city][service][quantity] + serviceCity;
 
-      taxaDeslocamento.textContent = `Taxa de Deslocamento R$ ${serviceCity.toFixed(2)}`;
-      result.textContent = `O orçamento total é R$ ${total.toFixed(2)}`;
-    });    
+      total = pricingTable[city][service][quantity];
+    }
+
+    // Lógica para Rede de Incêndio
+    if (service === "rede_de_incendio") {
+      const localType = document.getElementById("local").value; // Obtem o tipo de local (Concreto, Grama, etc.)
+      const metragem = parseFloat(document.getElementById("metragem").value);
+
+      if (!localType || !metragem || metragem <= 0) {
+        result.textContent =
+          "Por favor, selecione o tipo de local e informe uma metragem válida.";
+        return;
+      }
+
+      // Define o valor por metro com base no tipo de local
+      const pricePerMeter = localType === "1" ? 40 : 70; // 1 = Concreto, outras opções = 70
+      total = pricePerMeter * metragem;
+
+      // Aplica o orçamento mínimo
+      const minimumValue = localType === "1" ? 600 : 1000; // Concreto = 600, outras opções = 1000
+      if (total < minimumValue) {
+        total = minimumValue;
+      }
+    }
+
+    // Soma o valor da taxa de deslocamento
+    total += serviceCityValue;
+
+    // Atualiza os resultados no HTML
+    taxaDeslocamento.textContent = `Taxa de Deslocamento R$ ${serviceCityValue.toFixed(
+      2
+    )}`;
+    result.textContent = `O orçamento total é R$ ${total.toFixed(2)}`;
+  });
 </script>
+
 {% endblock %}

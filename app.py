@@ -989,11 +989,11 @@ def listar_pendentes_tecnico():
     else:
         ano = ano_atual  # Ano atual
         mes = mes_atual  # Mês atual
-
+    all_pendding_transactions = {}
     # Obter as cidades associadas ao técnico
     cities = db.child('users').child(session['user']).child('cities').get().val()
 
-    all_pendding_transactions = {}
+    
 
     # Buscar ordens de serviço pendentes para cada cidade
     for city in cities:
@@ -1005,8 +1005,12 @@ def listar_pendentes_tecnico():
             if day not in all_pendding_transactions:
                 all_pendding_transactions[day] = day_data
             else:
-                # Verifique se 'transactions' existe em day_data
+                # Verifique se 'transactions' e 'pendding' existem antes de atualizar
                 if 'transactions' in day_data and 'pendding' in day_data['transactions']:
+                    if 'transactions' not in all_pendding_transactions[day]:
+                        all_pendding_transactions[day]['transactions'] = {}
+                    if 'pendding' not in all_pendding_transactions[day]['transactions']:
+                        all_pendding_transactions[day]['transactions']['pendding'] = {}
                     # Mesclar as transações do dia
                     all_pendding_transactions[day]['transactions']['pendding'].update(day_data['transactions']['pendding'])
 
