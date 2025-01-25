@@ -30,6 +30,20 @@
                 </a>
             </div>
         </div>
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('attendance_desempenho') }}">
+                    <h5>Desempenho</h5>
+                </a>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="border border-0 m-2">
+                <a class="card-presentation" href="{{ url_for('bonus_attendant') }}">
+                    <h5>Ganhos Por Serviço</h5>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 {% with messages = get_flashed_messages() %}

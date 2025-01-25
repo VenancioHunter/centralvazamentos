@@ -1,0 +1,219 @@
+<!-- templates/signup.html -->
+{% extends "layout.html" %}
+
+{% block title %}Cidade{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <div class="row">
+        <div class="col-md-4">
+            <label for="selected_year">Ano:</label>
+            <select id="selected_year" name="selected_year" class="form-control">
+                {% for year in years %}
+                <option value="{{ year }}" {% if selected_year==year|string %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="selected_month">Mês:</label>
+            <select id="selected_month" name="selected_month" class="form-control">
+                {% for month in months %}
+                <option value="{{ month.value }}" {% if selected_month==month.value %}selected{% endif %}>
+                    {{ month.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label>Cidade</label>
+            <select class="form-select" id="city-select">
+                <option>Selecionar Cidade</option>
+                {% for city in cities %}
+                <option value="{{ city }}">{{ city }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card" style="background-color: #f24f7c; color: white;">
+                <div class="card-body">
+                    <h6>ATENDIMENTOS</h6>
+                    <h2 class="my-2" id="total-attendances">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="background-color: #716cb0; color: white;">
+                <div class="card-body">
+                    <h6>AGENDAMENTOS</h6>
+                    <h2 class="my-2" id="total-scheduled">0</h2>
+                    <p class="mb-0 badge" style="background-color: rgba(255, 255, 255, 0.100);">
+                        <span id="porcentagem_agendado">0</span>% Agendado
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="background-color: #33b0e0; color: white;">
+                <div class="card-body">
+                    <h6>RETORNOS</h6>
+                    <h2 class="my-2" id="total_retorno">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6>ATENDIMENTOS POR TIPO DE SERVIÇO</h6>
+                    <ul id="service-details" class="list-group">
+                        <!-- Detalhes dos serviços serão adicionados dinamicamente -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6>TIPOS DE SERVIÇO (Agendados)</h6>
+                    <ul id="service-scheduled-details" class="list-group">
+                        <!-- Detalhes dos serviços agendados serão adicionados dinamicamente -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3 p-4" style="background-color: #3bc1c32f;">
+        <h3 class="text-center">Canais de Atendimento</h3>
+        <div class="row mt-3">
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>CANAIS</h6>
+                        <ul id="channel-details" class="list-group" style="text-transform: capitalize;">
+                            <!-- Os detalhes dos canais serão adicionados dinamicamente -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>CANAIS - STATUS "Agendado"</h6>
+                        <ul id="channel-scheduled-details" class="list-group" style="text-transform: capitalize;">
+                            <!-- Os detalhes serão adicionados dinamicamente -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    async function fetchAttendances() {
+        const city = document.getElementById("city-select").value; // ID do select de cidade
+        const year = document.getElementById("selected_year").value; // ID do select de ano
+        const month = document.getElementById("selected_month").value; // ID do select de mês
+
+        if (!city || !year || !month) {
+            alert("Por favor, selecione todos os campos.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/get_city_data?city=${city}&year=${year}&month=${month}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                // Atualiza o valor no h2
+                document.getElementById("total-attendances").innerText = data.total;
+                document.getElementById("total-scheduled").innerText = data.total_agendado;
+                document.getElementById("porcentagem_agendado").innerText = data.porcentagem_agendado;
+                document.getElementById("total_retorno").innerText = data.total_retorno;
+
+                // Atualiza os detalhes dos serviços
+                const serviceDetails = document.getElementById("service-details");
+                serviceDetails.innerHTML = ""; // Limpa a lista existente
+                for (const [service, count] of Object.entries(data.service_counts)) {
+                    const percentage = data.service_percentages[service] || 0;
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item";
+                    listItem.innerText = `${service}: ${count} (${percentage}%)`;
+                    serviceDetails.appendChild(listItem);
+                }
+                 // Atualiza os detalhes dos serviços agendados
+                const serviceScheduledDetails = document.getElementById("service-scheduled-details");
+                serviceScheduledDetails.innerHTML = ""; // Limpa a lista existente
+
+                for (const [service, percentage] of Object.entries(data.service_agendado_percentages)) {
+                    const agendadoCount = data.service_counts_agendado[service] || 0;
+                    const totalCount = data.service_counts[service] || 0;
+                    const percentageTotal = data.service_percentages_agendado[service] || 0;
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item";
+
+                    // Formata a mensagem
+                    listItem.innerText = `
+                    ${service}: ${agendadoCount} ( Participação ${percentageTotal}%) | Agendado ${percentage}% 
+                `.trim();
+
+                    serviceScheduledDetails.appendChild(listItem);
+                }
+
+                 // Atualiza os detalhes dos canais
+                const channelDetails = document.getElementById("channel-details");
+                channelDetails.innerHTML = ""; // Limpa a lista existente
+
+                for (const [channel, percentage] of Object.entries(data.channel_percentages)) {
+                    const totalCount = data.channel_counts[channel] || 0;
+
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item";
+
+                    // Formata a mensagem
+                    listItem.innerText = `
+                    ${channel}: ${totalCount} (${percentage}%)
+                `.trim();
+
+                    channelDetails.appendChild(listItem);
+                }
+
+                // Atualiza os detalhes de canais "Agendado"
+                const channelScheduledDetails = document.getElementById("channel-scheduled-details");
+                channelScheduledDetails.innerHTML = ""; // Limpa a lista existente
+
+                for (const [channel, percentage] of Object.entries(data.channel_percentages_agendado)) {
+                    const totalCountAgendado = data.channel_counts_agendado[channel] || 0;
+                    const totalValueChannel = data.value_total_channel[channel] || 0; // Obtém o valor total do canal
+
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item";
+
+                    // Formata a mensagem
+                    listItem.innerText = `
+                        ${channel}: ${totalCountAgendado} atendimentos (${percentage}%) | Total: R$ ${parseFloat(totalValueChannel).toFixed(2)}
+                    `.trim();
+
+                    channelScheduledDetails.appendChild(listItem);
+                }
+
+            } else {
+                alert(data.error || "Erro ao buscar os dados.");
+            }
+        } catch (error) {
+            console.error("Erro ao buscar dados:", error);
+            alert("Ocorreu um erro ao buscar os dados.");
+        }
+    }
+
+    // Opcional: Vincule ao clique de um botão ou mudança no select
+    document.getElementById("city-select").addEventListener("change", fetchAttendances);
+    document.getElementById("selected_year").addEventListener("change", fetchAttendances);
+    document.getElementById("selected_month").addEventListener("change", fetchAttendances);
+</script>
+
+
+{% endblock %}

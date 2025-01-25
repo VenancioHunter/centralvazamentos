@@ -16,31 +16,43 @@
         </div>
     </form>
 
+    <!-- Contêiner para exibir o resumo dos status geral -->
+    <div id="status-summary" align="end" class="my-4 p-2" style="background-color: cadetblue;">
+        <!-- O resumo será preenchido pelo JavaScript -->
+    </div>
+
     {% if selected_date %}
     <div class="my-4" align="center">
         <h5>Exibindo resultados para: {{ selected_date }}</h5>
     </div>
+
     {% for user_name, records in grouped_records.items() %}
-    <h3>{{ user_name }} - Total de Atendimentos: {{ records|length }}</h3>
-    <!-- Mostra o nome do usuário e o total de agendamentos -->
-    {% for record in records %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">{{ record.get('name', 'N/A') }}</h5>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item">Cidade: {{ record.city }}</li>
-                <li class="list-group-item">Data: {{ record.date }}</li>
-                <li class="list-group-item">Telefone: {{ record.get('phone', 'N/A') }}</li>
-                <li class="list-group-item">Serviço: {{ record.get('service', 'N/A') }}</li>
-                <li class="list-group-item">Valor: {{ record.get('price', 'N/A') }}</li>
-                <li class="list-group-item">Obs.: {{ record.get('details', 'N/A') }}</li>
-            </ul>
-            <div class="text-end">
-                <label style="font-size: small;"><b>Status</b>: {{ record.get('status', 'N/A') }}</label>
+    <!-- Adiciona a classe .user-section para cada usuário -->
+    <div class="user-section mb-3">
+        <h5>{{ user_name }} - <span style="font-size: small;">Total de Atendimentos: {{ records|length }}</span></h5>
+
+        <!-- Contêiner para exibir o resumo dos status por usuário -->
+        <div class="status-summary" id="status-summary-{{ loop.index }}"></div>
+
+        {% for record in records %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ record.get('name', 'N/A') }}</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Cidade: {{ record.city }}</li>
+                    <li class="list-group-item">Data: {{ record.date }}</li>
+                    <li class="list-group-item">Telefone: {{ record.get('phone', 'N/A') }}</li>
+                    <li class="list-group-item">Serviço: {{ record.get('service', 'N/A') }}</li>
+                    <li class="list-group-item">Valor: {{ record.get('price', 'N/A') }}</li>
+                    <li class="list-group-item">Obs.: {{ record.get('details', 'N/A') }}</li>
+                </ul>
+                <div class="text-end">
+                    <label style="font-size: small;"><b>Status</b>: {{ record.get('status', 'N/A') }}</label>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
     {% endfor %}
     {% else %}
     <p>Selecione uma data para visualizar os atendimentos.</p>
@@ -49,12 +61,76 @@
 
 <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
+    document.addEventListener('DOMContentLoaded', () => {
         const DateTime = luxon.DateTime;
         const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
         const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
         const dateInput = document.getElementById('selected_date');
         dateInput.value = formattedDate;
+
+        // Seleciona todos os elementos de status
+        const statusElements = document.querySelectorAll("label[style='font-size: small;']");
+
+        let countAgendado = 0;
+        let countAguardando = 0;
+
+        // Conta os status geral
+        statusElements.forEach((element) => {
+            const status = element.textContent.trim().split(': ')[1];
+            if (status === "Agendado") {
+                countAgendado++;
+            } else if (status === "Aguardando") {
+                countAguardando++;
+            }
+        });
+
+        // Calcula o total e as porcentagens geral
+        const total = countAgendado + countAguardando;
+        const percentAgendado = total ? ((countAgendado / total) * 100).toFixed(2) : 0;
+        const percentAguardando = total ? ((countAguardando / total) * 100).toFixed(2) : 0;
+
+        // Exibe os resultados no contêiner HTML geral
+        const statusSummary = document.getElementById("status-summary");
+        statusSummary.innerHTML = `
+            <h5>Resumo dos Atendimentos</h5>
+            <p style='font-size: small;'><strong>Agendado:</strong> ${countAgendado} (${percentAgendado}%)</p>
+            <p style='font-size: small;'><strong>Aguardando:</strong> ${countAguardando} (${percentAguardando}%)</p>
+            <div class="mt-2"><p><strong>Total:</strong> ${total} Atendimentos</p></div>
+        `;
+
+        // Função para calcular e exibir o resumo de status por usuário
+        const userSections = document.querySelectorAll('.user-section');
+
+        userSections.forEach((section, index) => {
+            const statusElementsUsuario = section.querySelectorAll("label[style='font-size: small;']");
+
+            let countAgendadoUsuario = 0;
+            let countAguardandoUsuario = 0;
+
+            // Conta os status para cada usuário
+            statusElementsUsuario.forEach((element) => {
+                const statusUsuario = element.textContent.trim().split(': ')[1];
+                if (statusUsuario === "Agendado") {
+                    countAgendadoUsuario++;
+                } else if (statusUsuario === "Aguardando") {
+                    countAguardandoUsuario++;
+                }
+            });
+
+            // Calcula o total e as porcentagens por usuário
+            const totalUsuario = countAgendadoUsuario + countAguardandoUsuario;
+            const percentAgendadoUsuario = totalUsuario ? ((countAgendadoUsuario / totalUsuario) * 100).toFixed(2) : 0;
+            const percentAguardandoUsuario = totalUsuario ? ((countAguardandoUsuario / totalUsuario) * 100).toFixed(2) : 0;
+
+            // Exibe os resultados no contêiner específico para o usuário
+            const statusSummaryUsuario = section.querySelector(`#status-summary-${index + 1}`);
+            statusSummaryUsuario.innerHTML = `
+               
+                <span class="badge bg-success">Agendado: ${countAgendadoUsuario} (${percentAgendadoUsuario}%)</span>
+                <br>
+                <span class="badge bg-warning">Aguardando:${countAguardandoUsuario} (${percentAguardandoUsuario}%)</span>
+            `;
+        });
     });
 </script>
 {% endblock %}

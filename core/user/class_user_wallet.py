@@ -48,7 +48,30 @@ class User_Wallet:
         else:
             return False
         
-    def get_participation(id):
+    def get_participation(id, data):
+
+        try:
+            data = datetime.strptime(data, '%Y-%m-%d')
+
+        except:
+            pass
+        
+        year = str(data.year)
+        month = f"{data.month:02d}"
+        day = f"{data.day:02d}"
+
+        costs_porcentagem = f"users/{id}/wallet/costs/{year}/{month}/{day}"
+
+        # Busca os dados no Firebase
+        data1 = db.child(costs_porcentagem).get().val()
+
+        if data1:  # Verifica se data1 não é None ou vazio
+            # Itera sobre o OrderedDict para encontrar 'porcentagemTecnico'
+            for key, value in data1.items():
+                if 'porcentagemTecnico' in value:
+                    return value['porcentagemTecnico']
+
+    
         data = db.child("users").child(id).child("porcentagem").get().val()
 
         return data

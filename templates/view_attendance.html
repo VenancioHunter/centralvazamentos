@@ -4,6 +4,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<script src="../static/js/formatarValor.js"></script>
     <div class="my-4 text-center">
         <div>
             <h1>{{ city }}</h1>
@@ -38,6 +39,12 @@
                     data-name="{{ record.name }}" data-phone="{{ record.phone }}" data-service="{{ record.service }}"
                     data-price="{{ record.price }}" data-idrecord="{{ record_id }}">
                     Gerar OS
+                </button>
+
+                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#osRetorno" data-city="{{ city }}"
+                    data-name="{{ record.name }}" data-phone="{{ record.phone }}" data-service="{{ record.service }}"
+                    data-price="{{ record.price }}" data-idrecord="{{ record_id }}">
+                    Retorno
                 </button>
 
                 <!-- Botão para abrir o modal -->
@@ -93,7 +100,7 @@
                         </div>
                         <div class="form-group">
                             <label for="osPriceService">Valor Final</label>
-                            <input type="text" class="form-control" id="osPriceService" name="priceservice">
+                            <input type="text" class="form-control" id="osPriceService" name="priceservice" required>
                         </div>
                         <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
                             <div class="mb-3">
@@ -210,7 +217,7 @@
                         </div>
                         <div class="form-group">
                             <label for="osPriceServiceReparo">Valor Final</label>
-                            <input type="text" class="form-control" id="osPriceServiceReparo" value="0,00" name="priceservice">
+                            <input type="text" class="form-control" id="osPriceServiceReparo" name="priceservice" required>
                         </div>
                         <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
                             <div class="mb-3">
@@ -263,6 +270,105 @@
                         <input type="text" value="{{date}}" name="date" hidden>
     
                         <button type="submit" id="confirmaros" class="btn btn-primary">Confirmar OS Reparo</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para gerar OS Retorno-->
+    <div class="modal fade" id="osRetorno" tabindex="-1" role="dialog" aria-labelledby="osModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="osModalLabel">Gerar Ordem de Serviço</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="osForm" method="post" action="/gerar_os">
+                        <input id="osIdRecord" name="idRecord" hidden>
+                        <div class="form-group">
+                            <label for="osCity">Cidade</label>
+                            <input type="text" class="form-control" id="osCity" name="city" readonly>
+                        </div>
+                        <!--<div class="form-group">
+                                    <label for="osDate">Data</label>
+                                    <input type="text" class="form-control" id="osDate" name="date" readonly>
+                                </div>-->
+                        <div class="form-group">
+                            <label for="osName">Cliente</label>
+                            <input type="text" class="form-control" id="osName" name="name" readonly>
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="osPhone">Telefone</label>
+                            <input type="text" class="form-control" id="osPhone" name="phone" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="osServico">Serviço</label>
+                            <input type="text" class="form-control" id="osServico" name="service" value="Retorno" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="osPrice">Valor</label>
+                            <input type="text" class="form-control" id="osPrice" name="price" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="osPriceServiceRetorno">Valor Final</label>
+                            <input type="text" class="form-control" id="osPriceServiceRetorno" name="priceservice" required>
+                        </div>
+                        <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
+                            <div class="mb-3">
+                                <h5>Endereço</h5>
+                            </div>
+                            <div class="form-group">
+                                <label for="osBairro">Bairro/Setor</label>
+                                <input type="text" class="form-control" id="osBairro" name="bairro">
+                            </div>
+                            <div class="form-group">
+                                <label for="osRua">Rua</label>
+                                <input type="text" class="form-control" id="osRua" name="rua">
+                            </div>
+                            <div class="form-group">
+                                <label for="osNumeroCasa">Nº</label>
+                                <input type="text" class="form-control" id="osNumeroCasa" name="numerocasa">
+                            </div>
+                            <div class="form-group">
+                                <label for="osEnderecoComplemento">Complemento</label>
+                                <input type="text" class="form-control" id="osEnderecoComplemento"
+                                    name="enderecocomplemento">
+                            </div>
+                            <div class="form-group">
+                                <label for="osLocalizacao">Localização</label>
+                                <input type="text" class="form-control" id="osLocalizacao" name="localizacao">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="osDate">Data</label>
+                            <input type="date" class="form-control" id="osDate" name="dateos" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="osStartTime">Hora de Início</label>
+                            <input type="time" class="form-control" id="osStartTime" name="start_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="osEndTime">Hora de Término</label>
+                            <input type="time" class="form-control" id="osEndTime" name="end_time" required>
+                        </div>
+    
+                        <div class="mb-3">
+                            <select class="form-select" aria-label="Default select example" id="osTechnician"
+                                name="tecnico">
+                                <option selected>Selecionar Técnico</option>
+                                {% for tecnico_id, tecnico in tecnicos.items() %}
+                                <option value="{{ tecnico_id }}">{{ tecnico.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="text" value="{{date}}" name="date" hidden>
+    
+                        <button type="submit" id="confirmaros" class="btn btn-primary">Confirmar Retorno</button>
                     </form>
                 </div>
             </div>
@@ -322,7 +428,29 @@
             //modal.find('#osDescricao').val(descricao);
         });
     </script>
-        <script>
+    <script>
+        // Preencher os dados do modal quando o botão é clicado
+        $('#osRetorno').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Botão que acionou o modal
+            var city = button.data('city');
+            // var date = button.data('date');
+            var name = button.data('name');
+            var phone = button.data('phone');
+            var price = button.data('price');
+            var idRecord = button.data('idrecord');
+            // var descricao = button.data('descricao');
+
+            var modal = $(this);
+            modal.find('#osIdRecord').val(idRecord);
+            modal.find('#osCity').val(city);
+            //modal.find('#osDate').val(date);
+            modal.find('#osName').val(name);
+            modal.find('#osPhone').val(phone);
+            modal.find('#osPrice').val(price);
+            //modal.find('#osDescricao').val(descricao);
+        });
+    </script>
+        <!--<script>
             const inputValor = document.getElementById('osPriceService');
 
             inputValor.addEventListener('input', formatarValor);
@@ -361,7 +489,7 @@
                 // Atualiza o valor do input com a string formatada como um valor em reais (R$)
                 inputValorReparo.value = `${parteInteiraFormatada},${parteDecimal}`;
             }
-        </script>
+        </script>-->
         <script>
             function handleSwitchChange(date1, startTime1, endTime1, technician1, city1) {
                 const date = date1;
@@ -441,5 +569,11 @@
                 dateInput.value = formattedDate;
             });
         </script>
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            configurarFormatacaoValor("osPriceService"); 
+            configurarFormatacaoValor("osPriceServiceReparo");
+            configurarFormatacaoValor("osPriceServiceRetorno");
+        });
+    </script>
 {% endblock %}
