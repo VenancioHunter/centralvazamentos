@@ -2,53 +2,92 @@
 {% extends "layout.html" %} {% block title %}Orçamento{% endblock %} {% block
 content %}
 <div class="container">
-  <h1>Sistema de Orçamento</h1>
-  <form id="budget-form">
-    <div class="mb-3">
-      <label for="city" style="font-size: small; font-weight: bold"
-        >Cidade do Técnico</label
-      >
-      <select class="form-select" id="city">
-        <option>Selecionar</option>
-        <option value="campinas">Campinas</option>
-        <option value="goiania">Goiânia</option>
-        <option value="sao_paulo">São Paulo</option>
-        <option value="salvador">Salvador</option>
-      </select>
+  <div class="card mt-4" style="border: none">
+    <div class="card-header" style="border: none; background-color: #f16c69">
+      <h1 class="text-center" style="color: white">Sistema de Orçamento</h1>
     </div>
+    <div class="card-body">
+      <form id="budget-form">
+        <div class="mb-3">
+          <label for="city" style="font-size: small; font-weight: bold"
+            >Cidade do Técnico</label
+          >
+          <select class="form-select" id="city">
+            <option>Selecionar</option>
+            <option value="campinas">Campinas</option>
+            <option value="goiania">Goiânia</option>
+            <option value="sao_paulo">São Paulo</option>
+            <option value="salvador">Salvador</option>
+          </select>
+        </div>
 
-    <div class="mb-3">
-      <label for="especie" style="font-size: small; font-weight: bold"
-        >Cidade Do Serviço</label
-      >
-      <select id="serviceCity" class="form-select" name="serviceCity">
-        <option value="">Selecionar Cidade</option>
-      </select>
-    </div>
+        <div class="mb-3">
+          <label for="especie" style="font-size: small; font-weight: bold"
+            >Cidade Do Serviço</label
+          >
+          <select id="serviceCity" class="form-select" name="serviceCity">
+            <option value="">Selecionar Cidade</option>
+          </select>
+        </div>
 
-    <div class="mb-3">
-      <label for="service" style="font-size: small; font-weight: bold"
-        >Selecione o serviço:</label
-      >
-      <select class="form-select" id="service">
-        <option value="">Selecione...</option>
-        <option value="localizacao_vazamento">Localização De Vazamento</option>
-        <option value="localizacao_infiltracao">
-          Localização De Infiltração
-        </option>
-        <option value="rede_de_incendio">Rede de Incêndio</option>
-      </select>
-    </div>
-    <div class="mb-3" id="additional-fields"></div>
+        <div class="mb-3">
+          <label for="service" style="font-size: small; font-weight: bold"
+            >Selecione o Serviço</label
+          >
+          <select class="form-select" id="service">
+            <option value="">Selecione...</option>
+            <option value="localizacao_vazamento">
+              Localização De Vazamento
+            </option>
+            <option value="localizacao_infiltracao">
+              Localização De Infiltração
+            </option>
+            <option value="rede_de_incendio">Rede de Incêndio</option>
+            <option value="cond_horizontal">
+              Conta Alta - Cond. Horizontal
+            </option>
+          </select>
+        </div>
+        <div class="mb-3" id="additional-fields"></div>
 
-    <div class="mb-3">
-      <button type="button" id="calculate-btn" style="width: 100%">
-        Calcular
-      </button>
+        <div class="mb-3">
+          <button
+            class="btn btn-success"
+            type="button"
+            id="calculate-btn"
+            style="width: 100%"
+          >
+            Calcular
+          </button>
+        </div>
+      </form>
+      <div
+        class="container"
+        style="
+          text-align: center;
+          background-color: #f16b692d;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        "
+      >
+        <div class="mt-4">
+          <h3>Orçamento</h3>
+        </div>
+        <div class="mt-4">
+          <p id="taxa-deslocamento"></p>
+          <div class="row" style="display: flex; align-items: center">
+            <span style="font-style: italic; font-weight: bold"
+              >À vista <span id="result" style="font-weight: normal"></span
+            ></span>
+          </div>
+          <div class="row" style="display: flex; align-items: center">
+            <span style="font-style: italic; font-weight: bold"
+              >Cartão <span id="result-taxa" style="font-weight: normal"></span
+            ></span>
+          </div>
+        </div>
+      </div>
     </div>
-  </form>
-  <p id="taxa-deslocamento"></p>
-  <p id="result"></p>
+  </div>
 </div>
 
 <script>
@@ -56,39 +95,40 @@ content %}
   const additionalFields = document.getElementById("additional-fields");
   const calculateBtn = document.getElementById("calculate-btn");
   const result = document.getElementById("result");
+  const resultTaxa = document.getElementById("result-taxa");
   const taxaDeslocamento = document.getElementById("taxa-deslocamento");
 
   // Tabela de preços fixos
   const pricingTable = {
     campinas: {
       localizacao_vazamento: {
-        1: 280,
-        2: 330,
-        3: 380,
-        4: 430,
-        5: 480,
-        6: 530,
-        7: 580,
-        8: 630,
-        9: 680,
-        10: 730,
+        1: 279,
+        2: 329,
+        3: 379,
+        4: 439,
+        5: 479,
+        6: 539,
+        7: 579,
+        8: 629,
+        9: 679,
+        10: 729,
       },
       localizacao_infiltracao: { 1: 400, 2: 500 },
     },
     goiania: {
       localizacao_vazamento: {
-        1: 250,
-        2: 280,
-        3: 300,
-        4: 350,
-        5: 400,
-        6: 500,
-        7: 650,
-        8: 750,
-        9: 850,
-        10: 1000,
+        1: 259,
+        2: 289,
+        3: 299,
+        4: 349,
+        5: 399,
+        6: 499,
+        7: 649,
+        8: 749,
+        9: 849,
+        10: 990,
       },
-      localizacao_infiltracao: { 1: 300, 2: 400 },
+      localizacao_infiltracao: { 1: 299, 2: 599, 3: 799, 4: 999 },
     },
     sao_paulo: {
       localizacao_vazamento: { 1: 400, 2: 500 },
@@ -96,16 +136,16 @@ content %}
     },
     salvador: {
       localizacao_vazamento: {
-        1: 250,
-        2: 300,
-        3: 350,
-        4: 400,
-        5: 450,
-        6: 500,
-        7: 550,
-        8: 600,
-        9: 650,
-        10: 700,
+        1: 249,
+        2: 299,
+        3: 349,
+        4: 399,
+        5: 449,
+        6: 499,
+        7: 549,
+        8: 599,
+        9: 649,
+        10: 699,
       },
       localizacao_infiltracao: { 1: 350, 2: 450 },
     },
@@ -122,6 +162,14 @@ content %}
           <select class="form-select" id="bathrooms">
             <option value="1">1</option>
             <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
           </select>
         `;
     } else if (selectedService === "localizacao_infiltracao") {
@@ -130,6 +178,14 @@ content %}
           <select class="form-select" id="infiltration_points">
             <option value="1">1</option>
             <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
           </select>
         `;
     } else if (selectedService === "rede_de_incendio") {
@@ -147,6 +203,30 @@ content %}
           <input class="form-control" type="number" id="metragem" />
           </div>
         `;
+    } else if (selectedService === "cond_horizontal") {
+      additionalFields.innerHTML = `
+          
+          <label for="possui_hidrometro">As casas possuem hidrômetro?</label>
+          <select class="form-select" id="possui_hidrometro">
+            <option>Selecionar</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+          </select>
+
+          <div class="my-3">
+            <label for="possui_grama">Possui grama?</label>
+            <select class="form-select" id="possui_grama">
+              <option>Selecionar</option>
+              <option value="sim">Sim</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+
+          <div class="my-3">
+          <label>Total de Unidades</label>
+          <input class="form-control" type="number" id="metragem" />
+          </div>
+        `;
     }
   });
 
@@ -157,10 +237,35 @@ content %}
     campinas: [
       { value: 0, text: "Campinas" },
       { value: 100, text: "Jundiaí" },
+      { value: 0, text: "Valinhos" },
+      { value: 0, text: "Vinhedo" },
+      { value: 0, text: "Louveira" },
+      { value: 0, text: "Itatiba" },
+      { value: 0, text: "Hortolândia" },
+      { value: 0, text: "Sumaré" },
     ],
     goiania: [
+      { value: 0, text: "Goiânia" },
       { value: 0, text: "Senador Canedo" },
       { value: 0, text: "Trindade" },
+    ],
+    sao_paulo: [
+      { value: 0, text: "São Paulo" },
+      { value: 0, text: "Osasco" },
+      { value: 0, text: "São Bernardo do Campo" },
+      { value: 0, text: "Santo André" },
+      { value: 0, text: "Mauá" },
+      { value: 0, text: "Diadema" },
+      { value: 0, text: "São Caetano do Sul" },
+    ],
+    salvador: [
+      { value: 0, text: "Salvador" },
+      { value: 0, text: "Lauro de Freitas" },
+      { value: 0, text: "Camaçari" },
+      { value: 0, text: "Simões Filho" },
+      { value: 0, text: "Dias D'Ávila" },
+      { value: 0, text: "Candeias" },
+      { value: 0, text: "Madre de Deus" },
     ],
   };
 
@@ -241,14 +346,70 @@ content %}
       }
     }
 
+    if (service === "cond_horizontal") {
+      const possuiHidrometro =
+        document.getElementById("possui_hidrometro").value;
+      const possuiGrama = document.getElementById("possui_grama").value;
+      const unidades = parseInt(document.getElementById("metragem").value, 10);
+
+      if (!unidades || unidades <= 0) {
+        result.textContent = "Por favor, informe um número válido de unidades.";
+        return;
+      }
+
+      const pricing = {
+        goiania: {
+          hidrante: { valorUnidade: 60, minimo: 1700 },
+          semHidrante: { valorUnidade: 150, minimo: 3000 },
+          grama: { valorUnidade: 130, minimo: 2500 },
+        },
+        // Adicione outras cidades se necessário
+      };
+
+      const cidadePrecos = pricing[city];
+
+      if (!cidadePrecos) {
+        result.textContent = "Preços não definidos para esta cidade.";
+        return;
+      }
+
+      let valorHidrante = 0;
+      let valorGrama = 0;
+      let minimo = 0;
+
+      if (possuiHidrometro === "sim") {
+        valorHidrante = cidadePrecos.hidrante.valorUnidade * unidades;
+        minimo = cidadePrecos.hidrante.minimo;
+      } else {
+        valorHidrante = cidadePrecos.semHidrante.valorUnidade * unidades;
+        minimo = cidadePrecos.semHidrante.minimo;
+      }
+
+      if (possuiGrama === "sim") {
+        valorGrama = cidadePrecos.grama.valorUnidade * unidades;
+        minimo = Math.max(minimo, cidadePrecos.grama.minimo);
+      }
+
+      // Escolher o maior valor por unidade
+      total = Math.max(valorHidrante, valorGrama);
+
+      // Aplicar o valor mínimo se necessário
+      if (total < minimo) {
+        total = minimo;
+      }
+    }
+
     // Soma o valor da taxa de deslocamento
     total += serviceCityValue;
 
     // Atualiza os resultados no HTML
-    taxaDeslocamento.textContent = `Taxa de Deslocamento R$ ${serviceCityValue.toFixed(
+    taxaDeslocamento.textContent = `Deslocamento R$ ${serviceCityValue.toFixed(
       2
     )}`;
-    result.textContent = `O orçamento total é R$ ${total.toFixed(2)}`;
+
+    const taxa = total * 1.1;
+    result.textContent = `R$ ${total.toFixed(2)}`;
+    resultTaxa.textContent = `R$ ${taxa.toFixed(2)}`;
   });
 </script>
 
