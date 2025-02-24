@@ -1,0 +1,926 @@
+<!-- templates/login.html -->
+{% extends "layout.html" %} {% block title %}Lançamento Programado{% endblock %}
+{% block content %}
+<script src="../static/js/formatarValor.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+  integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+  integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+  crossorigin="anonymous"
+></script>
+<div>
+  <div class="row mt-4">
+    <div class="col">
+      <label for="ano" style="font-size: small; font-weight: bold">Ano</label>
+      <select class="form-select" id="ano" name="ano">
+        <option value="2024">2024</option>
+        <option value="2025" selected>2025</option>
+        <!-- Adicione outros anos, se necessário -->
+      </select>
+    </div>
+    <div class="col">
+      <label for="mes" style="font-size: small; font-weight: bold">Mês</label>
+      <select class="form-select" id="mes" name="mes">
+        <option>Selecionar</option>
+        <option value="01">Janeiro</option>
+        <option value="02">Fevereiro</option>
+        <option value="03">Março</option>
+        <option value="04">Abril</option>
+        <option value="05">Maio</option>
+        <option value="06">Junho</option>
+        <option value="07">Julho</option>
+        <option value="08">Agosto</option>
+        <option value="09">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+        <!-- Adicione outros meses -->
+      </select>
+    </div>
+  </div>
+
+  <div class="my-4 p-2" style="background-color: #888; color: white">
+    <h5>A Vencer</h5>
+  </div>
+  <div class="my-4">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Categoria</th>
+          <th>Espécie</th>
+          <th>Destinatário</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Vencimento</th>
+        </tr>
+      </thead>
+      <tbody id="transactionTableBody">
+        <!-- As transações serão adicionadas aqui -->
+      </tbody>
+    </table>
+  </div>
+  <div class="my-4">
+    <div class="my-4 p-2" style="background-color: cadetblue; color: white">
+      <h5>Pago</h5>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Categoria</th>
+          <th>Espécie</th>
+          <th>Destinatário</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Valor Pago</th>
+          <th>Vencimento</th>
+          <th>Pagamento</th>
+        </tr>
+      </thead>
+      <tbody id="transactionPaidTableBody">
+        <!-- As transações serão adicionadas aqui -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal para Pagar -->
+<div
+  class="modal fade"
+  id="pagarModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="PagaModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="border: none">
+        <div align="center">
+          <h5>Confirmar Pagamento</h5>
+        </div>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="pagarForm" method="post">
+          <input
+            type="text"
+            name="confirmarPagamentId"
+            id="confirmarPagamentId"
+            hidden
+          />
+          <input type="text" name="dataVencimento" id="dataVencimento" hidden />
+          <div>
+            <label style="font-size: small">Valor (R$)</label>
+            <input
+              class="form-control"
+              name="newamount"
+              id="newamount"
+              value="0,00"
+              required
+            />
+          </div>
+          <div>
+            <label style="font-size: small">Data</label>
+            <input
+              class="form-control"
+              type="date"
+              id="newdate"
+              name="newdate"
+              required
+            />
+          </div>
+          <div class="my-4">
+            <label style="font-size: small">Selecione uma opção</label>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="pagamentototalparcial"
+                id="flexRadioDefault1"
+                value="total"
+                required
+              />
+              <label class="form-check-label" for="flexRadioDefault1">
+                Pagamento Total
+              </label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="pagamentototalparcial"
+                id="flexRadioDefault2"
+                value="parcial"
+              />
+              <label class="form-check-label" for="flexRadioDefault2">
+                Pagamento Parcial
+              </label>
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-success mt-4"
+            style="width: 100%"
+          >
+            Confirmar Pagamento
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para gerar lançamento -->
+<div
+  class="modal fade"
+  id="lancamentoModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="lancamentoModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <form id="lancamentoForm" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5>Novo Lançamento</h5>
+          </div>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input name="typeTransaction" value="d" hidden />
+          <div class="my-4">
+            <label for="origem" style="font-size: small">Origem</label>
+            <select class="form-select" name="origem" required>
+              {% for id in destinatarios %} {% if destinatarios[id] == 'Central
+              Vazamentos' %}
+              <option value="{{destinatarios[id]}}" selected>
+                {{destinatarios[id]}}
+              </option>
+              {% else %}
+              <option value="{{destinatarios[id]}}">
+                {{destinatarios[id]}}
+              </option>
+              {% endif %} {% endfor %}
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label style="font-size: small">Valor (R$)</label>
+              <input
+                class="form-control"
+                name="amount"
+                id="amount"
+                value="0,00"
+                required
+              />
+            </div>
+            <div class="col">
+              <label style="font-size: small">Data</label>
+              <input
+                class="form-control"
+                type="date"
+                id="date"
+                name="date"
+                required
+              />
+            </div>
+          </div>
+          <!--<div class="my-2">
+                        <label style="font-size: small;">Categoria</label>
+                        <select id="categoria" class="form-select" name="categoria" required>
+                            <option>Selecionar</option>
+                            <option value="pessoal">Pessoal</option>
+                            <option value="publicidade">Publicidade</option>
+                            <option value="escritório">Escritório</option>
+                            <option value="comissão">Comissão</option>
+                            <option value="transporte">Transporte</option>
+                        </select>
+                    </div>-->
+          <div class="my-2">
+            <label style="font-size: small">Categoria</label>
+            <input
+              class="form-control"
+              name="categoria"
+              required
+              style="text-transform: capitalize"
+            />
+          </div>
+
+          <!--<label for="especie" style="font-size: small;">Espécie</label>
+                    <select id="especie" class="form-select" name="especie">
+                        <option value="">Selecione primeiro uma opção acima</option>
+                    </select>-->
+          <div class="my-2">
+            <label style="font-size: small">Espécie</label>
+            <input
+              class="form-control"
+              name="especie"
+              required
+              style="text-transform: capitalize"
+            />
+          </div>
+
+          <!--
+                    <div class="my-4">
+                        <label for="destinatario" style="font-size: small;">Destinatário</label>
+                        <select class="form-select" name="destinatario">
+                            <option selected value="">Selecionar</option>
+                            {% for id in destinatarios %}
+                            <option value="{{destinatarios[id]}}">{{destinatarios[id]}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>-->
+          <div class="my-2">
+            <label style="font-size: small">Destinatário</label>
+            <input
+              class="form-control"
+              name="destinatario"
+              required
+              style="text-transform: capitalize"
+            />
+          </div>
+
+          <div class="row my-2">
+            <div class="col">
+              <label style="font-size: small">Observação</label>
+              <textarea
+                class="form-control"
+                type="text"
+                name="descricao"
+              ></textarea>
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary mt-2"
+            style="width: 100%"
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal para Repetir Lançamento -->
+<div
+  class="modal fade"
+  id="repetirModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="repetirModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <form id="repetirForm" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Repetir Lançamento</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input name="typeTransaction" value="d" hidden />
+          <div class="my-4">
+            <label style="font-size: small">Origem</label>
+            <input
+              class="form-control"
+              name="origem"
+              id="repetir-origem"
+              readonly
+            />
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label style="font-size: small">Valor (R$)</label>
+              <input
+                class="form-control"
+                name="amount"
+                id="repetir-amount"
+                required
+              />
+            </div>
+            <div class="col">
+              <label style="font-size: small">Data</label>
+              <input
+                class="form-control"
+                type="date"
+                name="date"
+                id="repetir-date"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="my-2">
+            <label style="font-size: small">Categoria</label>
+            <input
+              class="form-control"
+              name="categoria"
+              id="repetir-categoria"
+              readonly
+            />
+          </div>
+
+          <div class="my-2">
+            <label style="font-size: small">Espécie</label>
+            <input
+              class="form-control"
+              name="especie"
+              id="repetir-especie"
+              readonly
+            />
+          </div>
+
+          <div class="my-2">
+            <label style="font-size: small">Destinatário</label>
+            <input
+              class="form-control"
+              name="destinatario"
+              id="repetir-destinatario"
+              readonly
+            />
+          </div>
+
+          <div class="row my-2">
+            <div class="col">
+              <label style="font-size: small">Observação</label>
+              <textarea
+                class="form-control"
+                type="text"
+                name="descricao"
+                id="repetir-descricao"
+                readonly
+              ></textarea>
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary mt-2"
+            style="width: 100%"
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div>
+  <link
+    rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
+  />
+  <a
+    href="#"
+    style="
+      position: fixed;
+      width: 60px;
+      height: 60px;
+      bottom: 40px;
+      right: 40px;
+      background-color: #ff4081;
+      color: #fff;
+      border-radius: 50px;
+      text-align: center;
+      font-size: 35px;
+      box-shadow: 1px 1px 2px #888;
+      z-index: 1000;
+      cursor: pointer;
+      text-decoration: none;
+    "
+    data-toggle="modal"
+    data-target="#lancamentoModal"
+  >
+    <span>+</span>
+  </a>
+</div>
+
+<script>
+  $("#pagarModal").on("show.bs.modal", function (event) {
+    var button = $(event.relatedTarget); // Botão que acionou o modal
+    var id = button.data("id");
+    var date = button.data("date");
+    var category = button.data("category");
+    var especie = button.data("especie");
+    var destinatario = button.data("destinatario");
+    var description = button.data("description");
+    var type = button.data("type");
+    var amount = button.data("amount");
+
+    var modal = $(this);
+    modal.find("#editTransactionId").val(id);
+    modal.find("#editDate").val(date);
+    modal.find("#editCategoria").val(category);
+    modal.find("#editEspecie").val(especie);
+    modal.find("#editDestinatario").val(destinatario);
+    modal.find("#editDescricao").val(description);
+    modal.find("#editTypeTransaction").val(type);
+    modal.find("#editAmount").val(amount);
+  });
+</script>
+
+<!-- Bootstrap e jQuery (necessário para o modal funcionar) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+  const select1 = document.getElementById("categoria");
+  const select2 = document.getElementById("especie");
+
+  // Objeto que mapeia as opções
+  const optionsMap = {
+    pessoal: [
+      { value: "operacional", text: "Operacional" },
+      { value: "administrativo", text: "Administrativo" },
+    ],
+    publicidade: [
+      { value: "google ads", text: "Google ads" },
+      { value: "meta", text: "meta" },
+      { value: "rádio", text: "Rário" },
+      { value: "TV", text: "TV" },
+    ],
+    escritório: [
+      { value: "aluguel", text: "Aluguel" },
+      { value: "água", text: "Água" },
+      { value: "energia", text: "Energia" },
+      { value: "internet", text: "Internet" },
+      { value: "celular", text: "Celular" },
+      { value: "equipamentos", text: "Equipamentos" },
+    ],
+    comissão: [
+      { value: "operacional", text: "Operacional" },
+      { value: "administrativa", text: "Administrativa" },
+    ],
+    transporte: [
+      { value: "combustível", text: "Combustível" },
+      { value: "passagem", text: "Passagem" },
+    ],
+  };
+
+  // Função que atualiza o segundo select com base na seleção do primeiro
+  select1.addEventListener("change", function () {
+    const selectedValue = select1.value;
+
+    // Limpa o segundo select
+    select2.innerHTML = "<option value=''>Selecione uma opção</option>";
+
+    // Se houver uma opção válida no primeiro select
+    if (optionsMap[selectedValue]) {
+      // Adiciona as novas opções no segundo select
+      optionsMap[selectedValue].forEach((option) => {
+        const newOption = document.createElement("option");
+        newOption.value = option.value;
+        newOption.text = option.text;
+        select2.appendChild(newOption);
+      });
+    }
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    configurarFormatacaoValor("amount");
+    configurarFormatacaoValor("newamount");
+    configurarFormatacaoValor("repetir-amount");
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Usando Luxon para lidar com o fuso horário
+    const DateTime = luxon.DateTime;
+
+    // Obtenha a data atual no fuso horário de São Paulo
+    const nowInSaoPaulo = DateTime.now().setZone("America/Sao_Paulo");
+
+    // Formate a data para 'YYYY-MM-DD'
+    const formattedDate = nowInSaoPaulo.toFormat("yyyy-MM-dd");
+
+    // Obtenha o elemento de entrada da data
+    const dateInput = document.getElementById("date");
+
+    // Defina o valor do campo de data para a data atual em São Paulo
+    dateInput.value = formattedDate;
+  });
+</script>
+
+<script>
+  $(document).ready(function () {
+    $("#lancamentoForm").on("submit", function (event) {
+      event.preventDefault();
+
+      // Coleta e envia os dados do formulário
+      const formData = new FormData(this);
+      fetch("/post_novo_lancamento_programado", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => {
+          if (response.ok) {
+            // Fecha o modal forçando a remoção das classes do Bootstrap
+            fecharModalLancamento();
+            fetchTransactions(); // Atualiza a tabela
+            fetchTransactionsPaid(); // Atualiza a tabela
+          } else {
+            alert("Erro ao salvar lançamento.");
+          }
+        })
+        .catch((error) => {
+          console.error("Erro:", error);
+          alert("Erro ao salvar lançamento.");
+        });
+    });
+
+    function fecharModalLancamento() {
+      // Força a remoção das classes de modal aberto
+      const modal = document.getElementById("lancamentoModal");
+      modal.classList.remove("show"); // Remove a classe 'show' que o mantém visível
+      modal.style.display = "none"; // Define display como 'none' para esconder o modal
+      document.body.classList.remove("modal-open"); // Remove a classe que impede o scroll do fundo
+      $(".modal-backdrop").remove(); // Remove o backdrop (fundo escuro)
+    }
+
+    // Limpa o formulário e remove mensagens de erro sempre que o modal é aberto
+    $("#lancamentoModal").on("shown.bs.modal", function () {
+      $("#lancamentoForm")[0].reset();
+      $(".error-message").remove(); // Limpa mensagens de erro, se houver
+    });
+  });
+
+  // Modal Pagamento
+  $(document).ready(function () {
+    $("#pagarModal").on("show.bs.modal", function (event) {
+      var button = $(event.relatedTarget); // Botão que acionou o modal
+      var id = button.data("id");
+
+      var modal = $(this);
+      modal.find("#confirmarPagamentId").val(id); // Define o valor do ID no campo oculto
+    });
+
+    $("#pagarForm").on("submit", function (event) {
+      event.preventDefault();
+
+      // Coleta e envia os dados do formulário
+      const formData = new FormData(this);
+
+      // Verifica se o valor de confirmarPagamentId foi adicionado corretamente
+      console.log(
+        "Valor de confirmarPagamentId:",
+        formData.get("confirmarPagamentId")
+      );
+
+      fetch("/post_confirmar_pagamento_programado", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => {
+          if (response.ok) {
+            fecharModalPagamento(); // Fecha o modal
+            fetchTransactions(); // Atualiza a tabela
+            fetchTransactionsPaid(); // Atualiza a tabela
+          } else {
+            alert("Erro ao salvar lançamento.");
+          }
+        })
+        .catch((error) => {
+          console.error("Erro:", error);
+          alert("Erro ao salvar lançamento.");
+        });
+    });
+
+    function fecharModalPagamento() {
+      const modal = document.getElementById("pagarModal");
+      modal.classList.remove("show");
+      modal.style.display = "none";
+      document.body.classList.remove("modal-open");
+      $(".modal-backdrop").remove();
+    }
+
+    // Limpa o formulário e remove mensagens de erro sempre que o modal é aberto
+    $("#pagarModal").on("shown.bs.modal", function (event) {
+      // Armazena o valor do ID antes de resetar o formulário
+      const confirmarPagamentId = $("#confirmarPagamentId").val();
+
+      const dataVencimento = $("#dataVencimento").val();
+
+      $("#pagarForm")[0].reset(); // Reseta o formulário
+      $(".error-message").remove(); // Limpa mensagens de erro, se houver
+
+      // Reatribui o valor do ID ao campo oculto após o reset
+      $("#confirmarPagamentId").val(confirmarPagamentId);
+      $("#dataVencimento").val(dataVencimento);
+    });
+  });
+
+  // Carrega a tabela quando a página é carregada
+  document.addEventListener("DOMContentLoaded", fetchTransactions);
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document
+      .getElementById("ano")
+      .addEventListener("change", fetchTransactions);
+    document
+      .getElementById("mes")
+      .addEventListener("change", fetchTransactions);
+    document
+      .getElementById("ano")
+      .addEventListener("change", fetchTransactionsPaid);
+    document
+      .getElementById("mes")
+      .addEventListener("change", fetchTransactionsPaid);
+  });
+
+  function fetchTransactions() {
+    const ano = document.getElementById("ano").value;
+    const mes = document.getElementById("mes").value;
+
+    console.log(`Ano: ${ano}, Mês: ${mes}`); // Confirme que os valores estão corretos
+
+    fetch(`/get_transactions_pendding/${ano}/${mes}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Dados recebidos:", data); // Verifique se os dados foram recebidos
+        updateTransactionTable(data);
+      })
+      .catch((error) => console.error("Erro ao buscar transações:", error));
+  }
+
+  function updateTransactionTable(transactions) {
+    const tableBody = document.getElementById("transactionTableBody");
+    tableBody.innerHTML = ""; // Limpa a tabela antes de atualizar
+    console.log("Atualizando tabela com transações:", transactions);
+
+    transactions.forEach((transaction) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+            <td>${transaction.category || ""}</td>
+            <td>${transaction.especie || ""}</td>
+            <td>${transaction.destinatario || ""}</td>
+            <td>${transaction.description || ""}</td>
+            <td>${transaction.amount || ""}</td>
+            <td>${transaction.vencimento || ""}</td>
+            <td> <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#pagarModal" data-id="${
+              transaction.id
+            }" data-vencimento="${transaction.vencimento}">Pagar</button> </td>
+            <td>${transaction.parcial ? "Parcial" : ""}</td>
+            <td>
+            <button class="btn btn-sm btn-warning btn-repetir"
+                data-origem="${transaction.origem || ""}"
+                data-categoria="${transaction.category || ""}"
+                data-especie="${transaction.especie || ""}"
+                data-destinatario="${transaction.destinatario || ""}"
+                data-observacao="${transaction.description || ""}"
+                data-toggle="modal"
+                data-target="#repetirModal">
+                Repetir
+            </button>
+        </td>
+            <td>
+                <button class="btn btn-sm btn-danger" onclick="deleteTransaction('${
+                  transaction.id
+                }', '${transaction.vencimento}')">
+                    Cancelar
+                </button>
+            </td>
+        `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  function fetchTransactionsPaid() {
+    const ano = document.getElementById("ano").value;
+    const mes = document.getElementById("mes").value;
+
+    console.log(`Ano: ${ano}, Mês: ${mes}`); // Confirme que os valores estão corretos
+
+    fetch(`/get_transactions_paid/${ano}/${mes}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Dados recebidos:", data); // Verifique se os dados foram recebidos
+        updateTransactionPaidTable(data);
+      })
+      .catch((error) => console.error("Erro ao buscar transações:", error));
+  }
+
+  function updateTransactionPaidTable(transactions) {
+    const tableBody = document.getElementById("transactionPaidTableBody");
+    tableBody.innerHTML = ""; // Limpa a tabela antes de atualizar
+    console.log("Atualizando tabela com transações:", transactions);
+
+    transactions.forEach((transaction) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+            <td>${transaction.category || ""}</td>
+            <td>${transaction.especie || ""}</td>
+            <td>${transaction.destinatario || ""}</td>
+            <td>${transaction.description || ""}</td>
+            <td>${transaction.amount || ""}</td>
+            <td>${transaction.valorpago || ""}</td>
+            <td>${transaction.vencimento || ""}</td>
+            <td>${transaction.datapagamento || ""}</td>
+            <td>
+            <button class="btn btn-sm btn-warning btn-repetir"
+                data-origem="${transaction.origem || ""}"
+                data-categoria="${transaction.category || ""}"
+                data-especie="${transaction.especie || ""}"
+                data-destinatario="${transaction.destinatario || ""}"
+                data-observacao="${transaction.description || ""}"
+                data-toggle="modal"
+                data-target="#repetirModal">
+                Repetir
+            </button>
+        </td>
+        `;
+      tableBody.appendChild(row);
+    });
+  }
+</script>
+
+<script>
+  $("#pagarModal").on("show.bs.modal", function (event) {
+    var button = $(event.relatedTarget); // Botão que acionou o modal
+    var id = button.data("id");
+    var vencimento = button.data("vencimento");
+
+    var modal = $(this);
+
+    modal.find("#confirmarPagamentId").val(id);
+    modal.find("#dataVencimento").val(vencimento);
+  });
+</script>
+
+<script>
+  // Função para deletar uma transação específica pelo ID, ano e mês usando fetch
+  function deleteTransaction(id, date) {
+    if (confirm("Tem certeza de que deseja cancelar esta transação?")) {
+      fetch(`/delete_transaction_programada/${id}?date=${date}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Erro ao cancelar a transação.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          alert("Transação cancelada com sucesso!");
+          // Atualize a tabela de transações, recarregando ou removendo a linha da tabela
+          fetchTransactions(); // Atualiza a tabela
+          fetchTransactionsPaid(); // Atualiza a tabela
+        })
+        .catch((error) => {
+          console.error("Erro:", error);
+          alert("Erro ao cancelar a transação.");
+        });
+    }
+  }
+</script>
+
+<script>
+  document.addEventListener("click", function (event) {
+    if (event.target.classList.contains("btn-repetir")) {
+      let button = event.target;
+
+      // Captura os dados do botão clicado
+      let origem = button.getAttribute("data-origem") || "";
+      let valor = button.getAttribute("data-valor") || "0,00";
+      let categoria = button.getAttribute("data-categoria") || "";
+      let especie = button.getAttribute("data-especie") || "";
+      let destinatario = button.getAttribute("data-destinatario") || "";
+      let observacao = button.getAttribute("data-observacao") || "";
+
+      // Preenche o modal com os valores capturados
+      document.getElementById("repetir-origem").value = origem;
+      document.getElementById("repetir-amount").value = valor;
+      document.getElementById("repetir-categoria").value = categoria;
+      document.getElementById("repetir-especie").value = especie;
+      document.getElementById("repetir-destinatario").value = destinatario;
+      document.getElementById("repetir-descricao").value = observacao;
+
+      // Define a data atual como padrão
+      let today = new Date().toISOString().split("T")[0];
+      document.getElementById("repetir-date").value = today;
+    }
+  });
+
+  $(document).ready(function () {
+    $("#repetirForm").on("submit", function (event) {
+      event.preventDefault();
+
+      // Coleta e envia os dados do formulário
+      const formData = new FormData(this);
+      fetch("/post_novo_lancamento_programado", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => {
+          if (response.ok) {
+            fecharModalRepetirLancamento(); // Fecha o modal
+            fetchTransactions(); // Atualiza a tabela
+            fetchTransactionsPaid(); // Atualiza a tabela
+          } else {
+            alert("Erro ao salvar lançamento.");
+          }
+        })
+        .catch((error) => {
+          console.error("Erro:", error);
+          alert("Erro ao salvar lançamento.");
+        });
+    });
+
+    function fecharModalRepetirLancamento() {
+      // Força a remoção das classes de modal aberto
+      const modal = document.getElementById("repetirModal");
+      modal.classList.remove("show"); // Remove a classe 'show' que o mantém visível
+      modal.style.display = "none"; // Define display como 'none' para esconder o modal
+      document.body.classList.remove("modal-open"); // Remove a classe que impede o scroll do fundo
+      $(".modal-backdrop").remove(); // Remove o backdrop (fundo escuro)
+    }
+
+    // Limpa o formulário e remove mensagens de erro sempre que o modal é aberto
+    $("#repetirModal").on("shown.bs.modal", function () {
+      $(".error-message").remove(); // Limpa mensagens de erro, se houver
+    });
+  });
+</script>
+{% endblock %}
