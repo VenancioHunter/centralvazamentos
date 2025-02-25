@@ -18,6 +18,7 @@
 
     </style>
     <link href="../static/css/popup.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/relatorio.css">
 </head>
 
 <body>
@@ -27,13 +28,13 @@
             {% if session.get('user') %}
             {% set user_role = session.get('role') %}
             {% if user_role == 'user' %}
-                <a class="navbar-brand" href="">Central Vazamentos</a>
+                <a class="navbar-brand" href="{{ url_for('dashboard') }}">Central Vazamentos</a>
             {% endif %}
             {% if user_role == 'admin' %}
-            <a class="navbar-brand" href="/">Central Vazamentos</a>
+            <a class="navbar-brand" href="{{ url_for('admin') }}">Central Vazamentos</a>
             {% endif %}
             {% if user_role == 'tecnico' %}
-            <a class="navbar-brand" href="">Central Vazamentos</a>
+            <a class="navbar-brand" href="{{ url_for('dashboard_tecnico') }}">Central Vazamentos</a>
             {% endif %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,31 +45,31 @@
                     
                     {% if user_role == 'user' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="">Início</a>
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">Início</a>
                     </li>
                     {% endif %}
     
                     {% if user_role == 'admin' %}
-                    <li class="nav-item" hidden>
-                        <a class="nav-link" href="">Usuários</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('users') }}">Usuários</a>
                     </li>
-                    <li class="nav-item" hidden>
-                        <a class="nav-link" href="">Adicionar Serviço</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('add_service') }}">Adicionar Serviço</a>
                     </li>
-                    <li class="nav-item" hidden>
-                        <a class="nav-link" href="">Adicionar Cidade</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('add_city') }}">Adicionar Cidade</a>
                     </li>
-                    <li class="nav-item" hidden>
-                        <a class="nav-link" href="">Vincular</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('link_user_city') }}">Vincular</a>
                     </li>
-                    <li class="nav-item" hidden>
-                        <a class="nav-link" href="">Consultar Atendimentos</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('view_all_attendances') }}">Consultar Atendimentos</a>
                     </li>
                     {% endif %}
     
                     {% if user_role == 'tecnico' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="">Início</a>
+                        <a class="nav-link" href="{{ url_for('dashboard_tecnico') }}">Início</a>
                     </li>
                     {% endif %}
     
