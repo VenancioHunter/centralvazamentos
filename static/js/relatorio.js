@@ -140,7 +140,7 @@ async function gerarPDF() {
             "Coqueiro Seco": "(82) 982000-7297",
             "Cadoz": "(82) 982000-7297",
             "Rio Largo": "(82) 982000-7297",
-            "Marechal": "(82) 982000-7297",
+            "Marechal Deodoro": "(82) 982000-7297",
             "Santa Luzia": "(82) 982000-7297",
             "Pilar": "(82) 982000-7297",
             "Barra de São Miguel": "(82) 982000-7297",
