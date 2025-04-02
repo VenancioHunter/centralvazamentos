@@ -199,6 +199,7 @@ async function gerarPDF() {
             "Poa": "(11) 93300-3231",
             "Mogi das Cruzes": "(11) 93300-3231",
             "Itaquacetuba": "(11) 93300-3231",
+            "Cajamar": "(19) 92001-6371",
 
         };
 

@@ -1974,6 +1974,12 @@ def get_technician_schedules():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/orcamento_client', methods=['GET', 'POST'])
+def orcamento_client():
+   
+    return render_template('orcamento_client.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)
