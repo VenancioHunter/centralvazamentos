@@ -138,7 +138,7 @@ const total = valorLocalizacao + valorReparo;
             "Coqueiro Seco": "(82) 982000-7297",
             "Cadoz": "(82) 982000-7297",
             "Rio Largo": "(82) 982000-7297",
-            "Marechal": "(82) 982000-7297",
+            "Marechal Deodoro": "(82) 982000-7297",
             "Santa Luzia": "(82) 982000-7297",
             "Pilar": "(82) 982000-7297",
             "Barra de São Miguel": "(82) 982000-7297",
@@ -197,6 +197,15 @@ const total = valorLocalizacao + valorReparo;
             "Poa": "(11) 93300-3231",
             "Mogi das Cruzes": "(11) 93300-3231",
             "Itaquacetuba": "(11) 93300-3231",
+            "Cajamar": "(19) 92001-6371",
+
+            "Florianópolis": "(48) 93300-4291",
+            "São José": "(48) 93300-4291",
+            "Palhoça": "(48) 93300-4291",
+            "Biguaçu": "(48) 93300-4291",
+
+            "Porto Alegre": "(51) 92001-5474",
+            "Canoas": "(51) 92001-5474",
 
         };
 

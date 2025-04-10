@@ -201,6 +201,14 @@ async function gerarPDF() {
             "Itaquacetuba": "(11) 93300-3231",
             "Cajamar": "(19) 92001-6371",
 
+            "Florianópolis": "(48) 93300-4291",
+            "São José": "(48) 93300-4291",
+            "Palhoça": "(48) 93300-4291",
+            "Biguaçu": "(48) 93300-4291",
+
+            "Porto Alegre": "(51) 92001-5474",
+            "Canoas": "(51) 92001-5474",
+
         };
 
         const telefone = telefonesMap[cidade] || "Telefone não disponível";
