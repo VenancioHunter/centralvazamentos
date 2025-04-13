@@ -200,6 +200,8 @@ async function gerarPDF() {
             "Mogi das Cruzes": "(11) 93300-3231",
             "Itaquacetuba": "(11) 93300-3231",
             "Cajamar": "(19) 92001-6371",
+            "Amparo": "(19) 92001-6371",
+            "Capivari": "(19) 92001-6371",
 
             "Florianópolis": "(48) 93300-4291",
             "São José": "(48) 93300-4291",
