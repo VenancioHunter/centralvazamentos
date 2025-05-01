@@ -29,7 +29,22 @@ content %}
     </div>
     <ul class="list-group list-group-flush">
       <li class="list-group-item">Nome: {{ os.name }}</li>
-      <li class="list-group-item">Telefone: {{ os.phone }}</li>
+      <li class="list-group-item">
+        Telefone:
+        <span
+          class="telefone-copiavel"
+          data-numero="{{ os.phone }}"
+          style="cursor: pointer; color: blue; text-decoration: underline"
+        >
+          {{ os.phone }}
+        </span>
+        <span
+          class="copiado-msg"
+          style="color: green; margin-left: 10px; display: none"
+        >
+          Copiado!
+        </span>
+      </li>
       <li class="list-group-item">Serviço: {{ os.service }}</li>
     </ul>
     <div class="p-4 my-4" style="background-color: rgb(219, 219, 219)">
@@ -652,4 +667,26 @@ content %}
     configurarFormatacaoValor("outros");
   });
 </script>
+<script>
+  document.querySelectorAll(".telefone-copiavel").forEach(function (elemento) {
+    elemento.addEventListener("click", function () {
+      const numero = this.dataset.numero;
+      const copiadoMsg = this.nextElementSibling;
+
+      navigator.clipboard
+        .writeText(numero)
+        .then(() => {
+          copiadoMsg.style.display = "inline";
+
+          setTimeout(() => {
+            copiadoMsg.style.display = "none";
+          }, 2000);
+        })
+        .catch((err) => {
+          console.error("Erro ao copiar:", err);
+        });
+    });
+  });
+</script>
+
 {% endblock %}
