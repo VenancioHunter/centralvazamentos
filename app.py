@@ -1981,5 +1981,10 @@ def orcamento_client():
    
     return render_template('orcamento_client.html')
 
+@app.route('/adm_painel_tecnicos', methods=['GET', 'POST'])
+def adm_painel_tecnicos():
+   
+    return render_template('adm_painel_tecnicos.html')
+
 if __name__ == '__main__':
     app.run(debug=True, port=5036)

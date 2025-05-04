@@ -1,0 +1,23 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}Técnico{% endblock %} {% block
+content %}
+<div align="center" class="mt-4">
+  <h1>ADM Técnicos</h1>
+</div>
+<link href="../static/css/dashboard.css" rel="stylesheet" />
+<div>
+  <div class="row text-center mt-4">
+    <div class="col-sm-12">
+      <div class="border border-0 m-2">
+        <a
+          class="card-presentation"
+          href="{{url_for('vincular_tecnico')}}"
+          style="text-decoration: none"
+        >
+          <h5>Vincular Técnico</h5>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
