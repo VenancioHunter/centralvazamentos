@@ -31,13 +31,13 @@ class User_Wallet_Attendant:
             info["value"] = "2.50"
             info['type'] = "d"
             
-            if isinstance(date, str):
-                date = datetime.strptime(date, '%Y-%m-%d')
+        if isinstance(date, str):
+            date = datetime.strptime(date, '%Y-%m-%d')
 
-            year = str(date.year)
-            month = f"{date.month:02d}"
+        year = str(date.year)
+        month = f"{date.month:02d}"
 
-            db.child('users').child(id_user).child('wallet').child('credit_for_servide').child(year).child(month).push(info)
+        db.child('users').child(id_user).child('wallet').child('credit_for_servide').child(year).child(month).push(info)
 
         
 

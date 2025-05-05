@@ -52,6 +52,16 @@
                     {% endif %}
                 </td>
                 <td>R$ {{ transaction.value }}</td>
+                <td>
+                    {% if transaction.type == 'c' %}
+                    <form method="POST" action="/bonus_attendant_delete" onsubmit="return confirm('Tem certeza que deseja apagar?')">
+                        <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
+                        <input type="hidden" name="selected_month" value="{{ selected_month }}">
+                        <input type="hidden" name="selected_year" value="{{ selected_year }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Apagar</button>
+                    </form>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

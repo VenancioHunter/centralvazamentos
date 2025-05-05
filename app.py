@@ -1452,6 +1452,7 @@ def deletar_os():
     timestamp = now_in_sao_paulo.timestamp()
     
     newprice = data['newprice']
+    print(type(newprice))
 
     if newprice != "0.00":
 
@@ -1775,6 +1776,18 @@ def bonus_attendant():
         total_balance=total_balance # Passa o saldo formatado com 2 casas decimais
     )
 
+@app.route("/bonus_attendant_delete", methods=["POST"])
+def apagar_transacao():
+
+    id_user = session.get('user')
+    transaction_id = request.form.get("transaction_id")
+    selected_month = request.form.get("selected_month")
+    selected_year = request.form.get("selected_year")
+    db.child("users").child(id_user).child("wallet/credit_for_servide").child(selected_year).child(selected_month).child(transaction_id).remove()
+    
+    # Redireciona de volta com filtros aplicados, por exemplo
+    return redirect(url_for("bonus_attendant", selected_month=selected_month, selected_year=selected_year))
+
 
 
 @app.route('/relatorio_cidade', methods=['GET', 'POST'])
@@ -1826,22 +1839,17 @@ def get_city_data():
         total_retorno = 0
         service_counts = {}
         service_counts_agendado = {}
-        service_agendado_percentages = {}
+        #service_agendado_percentages = {}
         channel_counts = {}
         channel_counts_agendado = {}
         value_total_channel = {}
+        service_value_totals_agendado = {} 
 
+        # TOTAL e canais vêm de "data"
         if data:
             for day, items in data.items():
                 total += len(items)
                 for item in items.values():
-                    # Contagem de status "Agendado"
-                    if item.get("status") == "Agendado":
-                        total_agendado += 1
-                        service = item.get("service")
-                        if service:
-                            service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
-                    # Contagem de tipos de serviço
                     service = item.get("service")
                     if service:
                         service_counts[service] = service_counts.get(service, 0) + 1
@@ -1849,50 +1857,49 @@ def get_city_data():
                     channel = item.get("canal")
                     if channel:
                         channel_counts[channel] = channel_counts.get(channel, 0) + 1
-                        if item.get("status") == "Agendado":
-                            price = item.get("price")
-                            channel_counts_agendado[channel] = channel_counts_agendado.get(channel, 0) + 1
-                            value_total_channel[channel] = value_total_channel.get(channel, 0) + float(item.get("price", 0))
 
-        # Calcula a porcentagem de agendados
+        # Dados de agendamento vêm de "data_schedule"
+        if data_schedule:
+            for day, items in data_schedule.items():
+                for item in items.values():
+                    total_agendado += 1
+
+                    service = item.get("service")
+                    if service:
+                        service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
+
+                        # Soma os valores por serviço
+                        price = float(item.get("newprice", 0))
+                        service_value_totals_agendado[service] = service_value_totals_agendado.get(service, 0) + price
+
+                        if service == "Retorno":
+                            total_retorno += 1
+
+                    
+
+        # Cálculo de porcentagens
         porcentagem_agendado = round((total_agendado / total) * 100 if total else 0, 2)
 
-        # Calcula a porcentagem de cada serviço
         service_percentages = {
             service: round((count / total) * 100, 2) for service, count in service_counts.items()
         }
 
-        # Calcula a porcentagem de cada serviço "Agendado"
         service_percentages_agendado = {
             service: round((count / total_agendado) * 100, 2) 
             for service, count in service_counts_agendado.items()
         }
 
-        # Calcula a porcentagem de "Agendados" em relação ao total de cada serviço
         for service, count in service_counts.items():
             if service in service_counts_agendado:
+     
                 agendado_count = service_counts_agendado[service]
-                service_agendado_percentages[service] = round((agendado_count / count) * 100, 2)
+                '''service_agendado_percentages[service] = round((agendado_count / count) * 100, 2)
             else:
-                service_agendado_percentages[service] = 0
+                service_agendado_percentages[service] = 0'''
 
-        # Calcula a porcentagem de cada canal
         channel_percentages = {
             channel: round((count / total) * 100, 2) for channel, count in channel_counts.items()
         }
-
-        # Calcula a porcentagem de cada canal com status "Agendado"
-        channel_percentages_agendado = {
-            channel: round((count / total_agendado) * 100, 2)
-            for channel, count in channel_counts_agendado.items()
-        }
-       
-        if data_schedule:
-            for day, items in data_schedule.items():
-                for item in items.values():
-                    if item.get("service") == "Retorno":
-                        total_retorno += 1
-
 
         return jsonify({
             "total": total,
@@ -1902,16 +1909,18 @@ def get_city_data():
             "service_percentages": service_percentages,
             "service_counts_agendado": service_counts_agendado,
             "service_percentages_agendado": service_percentages_agendado,
-            "service_agendado_percentages": service_agendado_percentages,
+            #"service_agendado_percentages": service_agendado_percentages,
             "channel_counts": channel_counts,
             "channel_percentages": channel_percentages,
             "channel_counts_agendado": channel_counts_agendado,
-            "channel_percentages_agendado": channel_percentages_agendado,
             "total_retorno": total_retorno,
-            "value_total_channel": value_total_channel
+            "value_total_channel": value_total_channel,
+            "service_value_totals_agendado": service_value_totals_agendado
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/adm_schedule', methods=['GET', 'POST'])
 @check_roles(['admin'])
