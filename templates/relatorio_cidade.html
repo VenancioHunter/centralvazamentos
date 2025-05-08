@@ -111,6 +111,20 @@
             </div>
         </div>
     </div>
+    <div>
+        <table class="table table-bordered mt-4" id="scheduled-services-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Telefone</th>
+                <th>Serviço</th>
+                <th>Valor</th>
+                <th>Observação</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    </div>
 </div>
 <script>
     async function fetchAttendances() {
@@ -180,8 +194,28 @@
 
                     channelDetails.appendChild(listItem);
                 }
+                const scheduledServicesTableBody = document.querySelector("#scheduled-services-table tbody");
+                scheduledServicesTableBody.innerHTML = ""; // Limpa a tabela
 
-            
+                if (data.service_schedule_list && data.service_schedule_list.length > 0) {
+                    data.service_schedule_list.forEach(item => {
+                        const row = document.createElement("tr");
+
+                        row.innerHTML = `
+                            <td>${item.date || '-'}</td>
+                            <td>${item.phone || '-'}</td>
+                            <td>${item.service || '-'}</td>
+                            <td>R$ ${parseFloat(item.price).toFixed(2)}</td>
+                            <td>${item.obs || ''}</td>
+                        `;
+
+                        scheduledServicesTableBody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td colspan="5" class="text-center">Nenhum serviço agendado encontrado.</td>`;
+                    scheduledServicesTableBody.appendChild(row);
+                }  
 
             } else {
                 alert(data.error || "Erro ao buscar os dados.");

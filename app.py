@@ -1844,6 +1844,7 @@ def get_city_data():
         channel_counts_agendado = {}
         value_total_channel = {}
         service_value_totals_agendado = {} 
+        service_schedule_list = []
 
         # TOTAL e canais vêm de "data"
         if data:
@@ -1874,6 +1875,23 @@ def get_city_data():
 
                         if service == "Retorno":
                             total_retorno += 1
+                
+                for item_id, item in items.items():
+                    service = item.get("service")
+                    price = float(item.get("newprice", 0))
+                    date = item.get("date", day)  # ou outro campo de data
+                    phone = item.get("phone", "")
+                    obs = item.get("obs", "")
+
+                    service_schedule_list.append({
+                        "service": service,
+                        "price": price,
+                        "date": date,
+                        "phone": phone,
+                        "obs": obs
+                    })
+                        
+                
 
                     
 
@@ -1915,7 +1933,8 @@ def get_city_data():
             "channel_counts_agendado": channel_counts_agendado,
             "total_retorno": total_retorno,
             "value_total_channel": value_total_channel,
-            "service_value_totals_agendado": service_value_totals_agendado
+            "service_value_totals_agendado": service_value_totals_agendado,
+            "service_schedule_list": service_schedule_list
         })
 
     except Exception as e:
