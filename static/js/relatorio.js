@@ -167,6 +167,7 @@ async function gerarPDF() {
             "Senador Canedo": "(62) 93300-6961",
             "Trindade": "(62) 93300-6961",
             "Anápolis": "(62) 93300-6961",
+            "Goianira": "(62) 93300-6961",
 
             "São Paulo": "(11) 93300-3231",
             "Osasco": "(11) 93300-3231",
