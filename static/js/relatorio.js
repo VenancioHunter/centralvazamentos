@@ -211,6 +211,8 @@ async function gerarPDF() {
 
             "Porto Alegre": "(51) 92001-5474",
             "Canoas": "(51) 92001-5474",
+            "Glorinha": "(51) 92001-5474",
+            "Guaíba": "(51) 92001-5474",
 
         };
 

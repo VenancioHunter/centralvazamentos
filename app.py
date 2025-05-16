@@ -1839,14 +1839,14 @@ def get_city_data():
         total_retorno = 0
         service_counts = {}
         service_counts_agendado = {}
-        #service_agendado_percentages = {}
         channel_counts = {}
         channel_counts_agendado = {}
         value_total_channel = {}
-        service_value_totals_agendado = {} 
+        service_value_totals_agendado = {}
+        service_value_averages_agendado = {}
         service_schedule_list = []
 
-        # TOTAL e canais vêm de "data"
+        # Processa dados de atendimento (dados gerais)
         if data:
             for day, items in data.items():
                 total += len(items)
@@ -1859,41 +1859,41 @@ def get_city_data():
                     if channel:
                         channel_counts[channel] = channel_counts.get(channel, 0) + 1
 
-        # Dados de agendamento vêm de "data_schedule"
+        # Processa dados de agendamento (ordens de serviço)
         if data_schedule:
             for day, items in data_schedule.items():
-                for item in items.values():
+                for item_id, item in items.items():
                     total_agendado += 1
 
                     service = item.get("service")
-                    if service:
-                        service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
-
-                        # Soma os valores por serviço
-                        price = float(item.get("newprice", 0))
-                        service_value_totals_agendado[service] = service_value_totals_agendado.get(service, 0) + price
-
-                        if service == "Retorno":
-                            total_retorno += 1
-                
-                for item_id, item in items.items():
-                    service = item.get("service")
                     price = float(item.get("newprice", 0))
-                    date = item.get("date", day)  # ou outro campo de data
+                    date = item.get("date", day)
                     phone = item.get("phone", "")
                     obs = item.get("obs", "")
 
-                    service_schedule_list.append({
-                        "service": service,
-                        "price": price,
-                        "date": date,
-                        "phone": phone,
-                        "obs": obs
-                    })
-                        
-                
+                    if service:
+                        # Contagem por serviço
+                        service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
 
-                    
+                        # Soma de valores por serviço
+                        service_value_totals_agendado[service] = service_value_totals_agendado.get(service, 0) + price
+
+                        # Lista detalhada de agendamentos
+                        service_schedule_list.append({
+                            "service": service,
+                            "price": price,
+                            "date": date,
+                            "phone": phone,
+                            "obs": obs
+                        })
+
+                        if service == "Retorno":
+                            total_retorno += 1
+
+        # Cálculo do valor médio por serviço
+        for service, total_value in service_value_totals_agendado.items():
+            count = service_counts_agendado.get(service, 0)
+            service_value_averages_agendado[service] = round(total_value / count, 2) if count else 0
 
         # Cálculo de porcentagens
         porcentagem_agendado = round((total_agendado / total) * 100 if total else 0, 2)
@@ -1903,17 +1903,9 @@ def get_city_data():
         }
 
         service_percentages_agendado = {
-            service: round((count / total_agendado) * 100, 2) 
+            service: round((count / total_agendado) * 100, 2)
             for service, count in service_counts_agendado.items()
         }
-
-        for service, count in service_counts.items():
-            if service in service_counts_agendado:
-     
-                agendado_count = service_counts_agendado[service]
-                '''service_agendado_percentages[service] = round((agendado_count / count) * 100, 2)
-            else:
-                service_agendado_percentages[service] = 0'''
 
         channel_percentages = {
             channel: round((count / total) * 100, 2) for channel, count in channel_counts.items()
@@ -1927,18 +1919,19 @@ def get_city_data():
             "service_percentages": service_percentages,
             "service_counts_agendado": service_counts_agendado,
             "service_percentages_agendado": service_percentages_agendado,
-            #"service_agendado_percentages": service_agendado_percentages,
             "channel_counts": channel_counts,
             "channel_percentages": channel_percentages,
             "channel_counts_agendado": channel_counts_agendado,
             "total_retorno": total_retorno,
             "value_total_channel": value_total_channel,
             "service_value_totals_agendado": service_value_totals_agendado,
-            "service_schedule_list": service_schedule_list
+            "service_value_averages_agendado": service_value_averages_agendado,  # <- NOVO
+            "service_schedule_list": service_schedule_list  # <- DETALHES
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/adm_schedule', methods=['GET', 'POST'])

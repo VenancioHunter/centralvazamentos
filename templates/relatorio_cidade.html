@@ -111,6 +111,21 @@
             </div>
         </div>
     </div>
+    <div class="mt-4">
+        <h5>Valor Médio por Serviço Agendado</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Serviço</th>
+                    <th>Valor Médio</th>
+                </tr>
+            </thead>
+            <tbody id="average-service-values">
+                <!-- Conteúdo será preenchido via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
     <div>
         <table class="table table-bordered mt-4" id="scheduled-services-table">
         <thead>
@@ -215,7 +230,22 @@
                     const row = document.createElement("tr");
                     row.innerHTML = `<td colspan="5" class="text-center">Nenhum serviço agendado encontrado.</td>`;
                     scheduledServicesTableBody.appendChild(row);
-                }  
+                }
+
+                // Atualiza a tabela de valores médios por serviço agendado
+                const avgValuesBody = document.getElementById("average-service-values");
+                avgValuesBody.innerHTML = ""; // Limpa a tabela anterior
+
+                const averages = data.service_value_averages_agendado || {};
+                for (const [service, avg] of Object.entries(averages)) {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${service}</td>
+                        <td>R$ ${parseFloat(avg).toFixed(2).replace('.', ',')}</td>
+                    `;
+                    avgValuesBody.appendChild(row);
+                }
+
 
             } else {
                 alert(data.error || "Erro ao buscar os dados.");
