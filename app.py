@@ -795,6 +795,7 @@ def finalizar_os():
     os_id_tecnico = data.get('os_id_tecnico')
     os_value_service = convert_monetary_value(data.get('os_value_service'))
     os_type_service = data.get('os_type_serve')
+    taxa = convert_monetary_value(data.get('taxa') or "0.00")
     
     create_paymment = {}
 
@@ -833,8 +834,9 @@ def finalizar_os():
                 name = session['name']
                 method_payment = data.get("method")
 
-                amount = convert_monetary_value(data.get('amount'))
-
+                amount = "{:.2f}".format(float(convert_monetary_value(data.get('amount'))) - float(convert_monetary_value(taxa)))
+                amount_financeiro = convert_monetary_value(data.get('amount'))
+                
                 create_paymment ={
                     'os_id': os_id,
                     'os_date': os_date,
@@ -850,15 +852,13 @@ def finalizar_os():
 
                     User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
 
-                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
+                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=amount_financeiro, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
                     
-                    if os_value_service != amount:
-                        taxa = "{:.2f}".format(float(os_value_service) - float(amount), 2)
-
+                    if taxa != "0.00":
+                        taxa = "{:.2f}".format(float(taxa), 2)
+                        
                         Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
-                    
-
-                
+                            
                 except:
                     return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
 
@@ -868,7 +868,8 @@ def finalizar_os():
                 detalhes_pagamento["valor"] = data.get("cardValor")
                 detalhes_pagamento["parcelas"] = data.get("installments")
 
-                amount = convert_monetary_value(data.get('cardValor'))
+                amount = "{:.2f}".format(float(convert_monetary_value(data.get('cardValor'))) - float(convert_monetary_value(taxa)))
+                amount_financeiro = convert_monetary_value(data.get('cardValor'))
                 name = session['name']
                 method_payment = data.get("method")
 
@@ -888,10 +889,10 @@ def finalizar_os():
 
                     User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
                     
-                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
+                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=amount_financeiro, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
 
-                    if os_value_service != amount:
-                        taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
+                    if taxa != "0.00":
+                        taxa = "{:.2f}".format(float(taxa), 2)
 
                         Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
 
@@ -911,7 +912,7 @@ def finalizar_os():
                     'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('boletoValor')),
-                    'vencimento': data.get('vencimento')
+                    'vencimento': data.get('boletoDate')
                 }
 
                 try:
@@ -1195,7 +1196,7 @@ def extrato_tecnico():
     # Garantir que o dia está nos custos recuperados
     costs_data = month_costs_data.get(dia, {})  # Retorna um dicionário vazio se o dia não existir
     
-    print(costs_data)
+ 
 
     if costs_data:
         # Acessar diretamente a única chave no dicionário
@@ -1209,7 +1210,6 @@ def extrato_tecnico():
         outros = float(daily_costs.get('outros', 0.0))
         total_costs = combustivel + manutencao + pedagio + reparo + outros
 
-        print(f"Combustível: {combustivel}, Manutenção: {manutencao}, Pedágio: {pedagio}, Reparo: {reparo}, Outros: {outros}, Total: {total_costs}")
 
         # Atribuir os valores ao dicionário de transações agrupadas
         if dia in grouped_transactions:
@@ -1250,7 +1250,7 @@ def fechar_dia_tecnico():
     for item in data:
         
         if data[item] != "0.00":
-            print(data[item])
+            
 
             if item == 'manutencao':
 
@@ -1452,7 +1452,6 @@ def deletar_os():
     timestamp = now_in_sao_paulo.timestamp()
     
     newprice = data['newprice']
-    print(type(newprice))
 
     if newprice != "0.00":
 
@@ -2004,8 +2003,112 @@ def orcamento_client():
 
 @app.route('/adm_painel_tecnicos', methods=['GET', 'POST'])
 def adm_painel_tecnicos():
-   
-    return render_template('adm_painel_tecnicos.html')
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    users_data = User.get_users()
+
+    users_list = []
+    for user_id, user_info in users_data.items():
+        if user_info.get('role') == 'tecnico':
+            name = user_info.get('name')
+            email = user_info.get('email')
+            role = user_info.get('role')
+            users_list.append({'id': user_id, 'name': name, 'email': email, 'role': role})
+
+    return render_template('adm_painel_tecnicos.html',users=users_list)
+
+
+@app.route('/perfil/<id>', methods=['GET', 'POST'])
+def perfil(id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    data_user = db.child("users").child(id).get().val()
+
+    cities = db.child("cities").get().val() or {}
+
+    return render_template('perfil.html', data_user=data_user, id_user=id, cities=cities)
+
+@app.route('/user_remove_city', methods=['POST'])
+def user_remove_city():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    index = data.get('index')
+    city_name = data.get('city')
+
+    if index is None or not city_name:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    user_id = data.get('id')
+
+    try:
+        cities = db.child("users").child(user_id).child('cities').get().val()
+
+        if not cities or not isinstance(cities, list):
+            return jsonify({'success': False, 'error': 'Lista de cidades não encontrada ou inválida'}), 404
+
+        if 0 <= index < len(cities) and cities[index] == city_name:
+            cities.pop(index)
+            db.child("users").child(user_id).update({"cities": cities})
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Cidade não encontrada ou não corresponde ao índice'}), 400
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/user_add_city', methods=['POST'])
+def user_add_city():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    city = data.get('city')
+    user_id = data.get('id')
+
+    if not city:
+        return jsonify({'success': False, 'error': 'Cidade não fornecida'}), 400
+    if not user_id:
+        return jsonify({'success': False, 'error': 'ID do usuário não fornecido'}), 400
+
+    try:
+        cities = db.child("users").child(user_id).child('cities').get().val()
+
+        if not cities:
+            cities = []
+
+        if city in cities:
+            return jsonify({'success': False, 'error': 'Cidade já adicionada'}), 400
+
+        cities.append(city)
+        db.child("users").child(user_id).update({"cities": cities})
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/user_update_percentage', methods=['POST'])
+def user_update_percentage():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    user_id = data.get('id')
+    percentage = data.get('percentage')
+
+    if not user_id or percentage is None:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    try:
+        # Atualiza ou cria o campo 'percentage'
+        db.child("users").child(user_id).update({"porcentagem": percentage})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)

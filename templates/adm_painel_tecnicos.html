@@ -5,7 +5,7 @@ content %}
   <h1>ADM Técnicos</h1>
 </div>
 <link href="../static/css/dashboard.css" rel="stylesheet" />
-<div>
+<!--<div>
   <div class="row text-center mt-4">
     <div class="col-sm-12">
       <div class="border border-0 m-2">
@@ -19,5 +19,27 @@ content %}
       </div>
     </div>
   </div>
+</div>-->
+<div>
+  {% if users %}
+  <div class="row text-center mt-4">
+    {% for user in users %}
+    <div class="col-sm-12">
+      <div class="border border-0 m-2">
+        <a
+          class="card-presentation"
+          href="perfil/{{user.id}}"
+          style="text-decoration: none"
+        >
+          <h5>{{ user.name }}</h5>
+          {{ user.email }}
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>Nenhum usuário encontrado.</p>
+  {% endif %}
 </div>
 {% endblock %}
