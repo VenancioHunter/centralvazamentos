@@ -160,6 +160,8 @@ async function gerarPDF() {
             "Vera Cruz": "(71) 93300-1134",
             "Itaparica": "(71) 93300-1134",
             "Mata de São João": "(71) 93300-1134",
+            "Alagoinhas": "(71) 93300-1134",
+            "Madre De Deus": "(71) 93300-1134",
 
 
             "Goiânia": "(62) 93300-6961",
