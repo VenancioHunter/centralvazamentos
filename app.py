@@ -1373,10 +1373,10 @@ def adm_extrato_tecnico():
     return render_template('adm_extrato_tecnico.html', tecnico_transactions=tecnico_transactions, date=date_str, year=year, month=month, day=day)
 
 @app.route('/os/<city>/<year>/<month>/<day>/<id>', methods=['GET', 'POST'])
-@check_roles(['admin', 'tecnico'])
+#@check_roles(['admin', 'tecnico'])
 def os(city, year, month, day, id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
+    #if 'user' not in session:
+    #    return redirect(url_for('login'))
     
     get_os = db.child("ordens_servico").child(city).child(year).child(month).child(day).child(id).get().val()
 
