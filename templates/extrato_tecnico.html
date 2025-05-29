@@ -145,6 +145,10 @@ content %}
   </button>
 </div>
 
+<button id="shareBtn" class="btn btn-warning" style="width: 100%">
+  📤 Compartilhar Extrato
+</button>
+
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -161,6 +165,45 @@ content %}
         link.download = `extrato_${new Date().toISOString().split("T")[0]}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
+      });
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const btn = document.getElementById("shareBtn");
+    const extrato = document.getElementById("extratoContainer");
+
+    btn.addEventListener("click", function () {
+      html2canvas(extrato, {
+        useCORS: true,
+        scrollY: -window.scrollY,
+        windowWidth: document.body.scrollWidth,
+      }).then(function (canvas) {
+        canvas.toBlob(async function (blob) {
+          const file = new File(
+            [blob],
+            `extrato_${new Date().toISOString().split("T")[0]}.png`,
+            {
+              type: "image/png",
+            }
+          );
+
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                title: "Extrato do Dia",
+                text: "Veja o extrato de hoje",
+                files: [file],
+              });
+            } catch (error) {
+              alert("Erro ao compartilhar: " + error);
+            }
+          } else {
+            alert("Compartilhamento não suportado neste dispositivo.");
+          }
+        }, "image/png");
       });
     });
   });
