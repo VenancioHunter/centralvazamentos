@@ -38,10 +38,27 @@ async function gerarPDF() {
     if (!validarCamposObrigatorios()) {
         return; // Interrompe a geração do PDF se houver campos vazios
     }
+    
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
     let nome;
+
+     // SHAPE SUPERIOR
+     try {
+        const shapeTop = new Image();
+        shapeTop.src = "../static/img/shape_superior.png"; // Caminho do seu shape superior
+
+        await new Promise((resolve, reject) => {
+            shapeTop.onload = resolve;
+            shapeTop.onerror = reject;
+        });
+
+        // Adiciona o shape no topo (ajuste X, Y, largura e altura conforme necessário)
+        pdf.addImage(shapeTop, "PNG", 0, 0, 210, 55); // 210 = largura A4, 30 = altura do shape
+    } catch (e) {
+        console.warn("Shape superior não carregado:", e);
+        }
     try {
         // Definir logo
         const logoURL = "../static/img/logo.png";
@@ -77,11 +94,28 @@ async function gerarPDF() {
         return dataUrls;
     };
 
+   
+        // SHAPE INFERIOR
+    try {
+        const shapeBottom = new Image();
+        shapeBottom.src = "../static/img/shape_inferior.png"; // Caminho do seu shape inferior
+
+        await new Promise((resolve, reject) => {
+            shapeBottom.onload = resolve;
+            shapeBottom.onerror = reject;
+        });
+
+        // Adiciona o shape no rodapé (posição Y geralmente no fim da página A4)
+        pdf.addImage(shapeBottom, "PNG", 0, 285, 210, 17); // 280 = quase final da página
+    } catch (e) {
+        console.warn("Shape inferior não carregado:", e);
+    }
+
     try {
 
         // Primeira página: conteúdo textual do relatório
-        pdf.setFontSize(16);
-        pdf.text("CLIENTE", 90, 45);
+        //pdf.setFontSize(16);
+        //pdf.text("CLIENTE", 90, 45);
 
         // Exemplo de conteúdo da primeira página
         nome = document.getElementById("nome").value;
@@ -117,8 +151,9 @@ const total = valorLocalizacao + valorReparo;
 
         const larguraMaximaLinha = 180; // Ajuste conforme necessário
 
+        pdf.setFontSize(14);
+        pdf.text(`${nome}`, 10, 55);
         pdf.setFontSize(10);
-        pdf.text(`Nome: ${nome}`, 10, 55);
         pdf.text(`CPF/CNPJ: ${cpf}`, 10, 62);
         pdf.text(`Endereço: ${endereco}`, 10, 69);
         pdf.text(`Bairro: ${bairro}`, 10, 76);
@@ -211,14 +246,22 @@ const total = valorLocalizacao + valorReparo;
 
         const telefone = telefonesMap[cidade] || "Telefone não disponível";
         
+        pdf.setFontSize(14);
+        pdf.setTextColor(255, 255, 255);
         pdf.setFont("helvetica", "bold");
-        pdf.text(`Central Vazamentos`, 160, 20);
+        pdf.text(`Central Vazamentos`, 130, 20);
         pdf.setFont("helvetica", "normal");
-        pdf.text(`Tel: ${telefone}`, 160, 25);
+        pdf.setFontSize(10);
+        pdf.text(`CNPJ: 43.973.146/0001-26`, 130, 25);
+        pdf.text(`Tel: ${telefone}`, 130, 30);
+        pdf.text(`E-mail: comercial@centralvazamentos.com.br`, 130, 35);
 
+
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
 
         const selectedTechniques = [];
-const allTechniques = {
+        const allTechniques = {
     "geofonamentoCheckbox": "Geofonamento com o geofone eletrônico",
     "pressurizacaoCheckbox": "Pressurização da Rede",
     "cameraTermograficaCheckbox": "Inspeção com câmera termográfica",
@@ -298,13 +341,26 @@ pdf.text(techniquesTextLinhas, 10, 117);
                 pdf.text(linhasTextoObservacao, 10, 147);
             }
         }
+
+        // Define a cor do fundo (por exemplo, cinza claro)
+        pdf.setFillColor(13, 85, 144); // RGB: 220, 220, 220
+
+        // Desenha o fundo retangular antes do texto
+        pdf.rect(10, 174, 190, 9, "F"); // x, y, largura, altura, modo 'F' = filled
         
-        pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 177);
+        //pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 177);
+        pdf.setTextColor(255, 255, 255); // Define a cor do texto (RGB)
+
+        // Texto em negrito e colorido
         pdf.setFont("helvetica", "bold"); 
         pdf.text("SERVIÇO", 15, 180);
         pdf.text("VALOR", 175, 180);
+
+        // Restaura a cor para preto e fonte normal após o título
+        pdf.setTextColor(0, 0, 0);
         pdf.setFont("helvetica", "normal");
-        pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 183);
+
+        //pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 183);
         pdf.text(`Vistoria`, 15, 187);
         pdf.text(`${formatLocalizacao}`, 170, 187);
         pdf.text(`Reparo`, 15, 192);
@@ -312,33 +368,7 @@ pdf.text(techniquesTextLinhas, 10, 117);
         pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 195);
         pdf.text(`${totalFormatado}`, 170, 198);
         pdf.text(`TOTAL`, 15, 198);
-        /*
-        // SOLICITAÇÃO
-        let solicitacao = '';
         
-        if (empresaSolicitacao !== 'selecionar') {
-            
-            if (solicitacaoUM == true || solicitacaoDois == true) {
-                solicitacao = `Por meio desse relatório, solicitamos à ${empresaSolicitacao}, a refazer as contas altas.`;
-            }
-            else {
-                solicitacao = `Por meio desse relatório, solicitamos à ${empresaSolicitacao} a refazer as contas altas já que essa água não foi consumida e sim perdida no solo, sem o conhecimento e a intenção do cliente.`;
-            }
-
-            const linhasTextoSolicitacaoEmpresa = pdf.splitTextToSize(solicitacao, larguraMaximaLinha);
-            pdf.setFont("helvetica", "bold"); 
-            pdf.text("SOLICITAÇÃO", 90, 245);
-            pdf.setFont("helvetica", "normal");
-            pdf.text(linhasTextoSolicitacaoEmpresa, 10, 253);
-     
-        };*/
-        //const garantiaUm = `Garantia total no local localizado pelo técnico. ( Prazo máximo de 30 dias para acionar a garantia) caso solicite a mesma sem a necessidade devida, será cobrado novamente o valor do serviço de localização.`;
-        //const linhasTextoGaramtiaUm = pdf.splitTextToSize( garantiaUm, larguraMaximaLinha);
-        //pdf.text(linhasTextoGaramtiaUm, 10, 245);
-
-        //const garantiaDois = `Garantia de 180 dias em todos os serviços  hidráulicos reparados pela empresa. Porém se o reparo for executado por terceiros, prevalece a garantia de 30 dias da localização.`;
-        //const linhasTextoGaramtiaDois = pdf.splitTextToSize( garantiaDois, larguraMaximaLinha);
-        //pdf.text(linhasTextoGaramtiaDois, 10, 255);
 
         // Obter o técnico selecionado e o CNPJ
         const selectTecnico = document.getElementById('tecnico');
@@ -358,12 +388,12 @@ pdf.text(techniquesTextLinhas, 10, 117);
             });
 
             // Adicionar a assinatura no PDF
-            pdf.addImage(imgAssinatura, "PNG", 15, 262, 45, 20); // Ajuste as dimensões conforme necessário
+            pdf.addImage(imgAssinatura, "PNG", 24, 262, 45, 20); // Ajuste as dimensões conforme necessário
         }
         // Adicionar informações do técnico
-        pdf.text(`-----------------------------------`, 15, 280);    
-        pdf.text(`${tecnicoNome}`, 23, 285);
-        pdf.text(`Gerente Comercial`, 20, 290);
+        pdf.text(`-----------------------------------`, 24, 280);    
+        pdf.text(`${tecnicoNome}`, 32, 285);
+        pdf.text(`Gerente Comercial`, 29, 290);
 
 
 
