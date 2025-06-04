@@ -1,0 +1,26 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<div class="text-center mt-5">
+  <h2>Modelos de Orçamento</h2>
+</div>
+<!--<p>Você está logado como: {{ user_email }}</p>-->
+<link href="../static/css/dashboard.css" rel="stylesheet" />
+<div>
+  <div class="row text-center mt-4">
+    <div class="col-sm-12">
+      <div class="border border-0 m-2">
+        <a class="card-presentation" href="{{ url_for('orcamento_client') }}">
+          <h5>Orçamento Vistoria</h5>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% with messages = get_flashed_messages() %} {% if messages %}
+<ul class="flashes">
+  {% for message in messages %}
+  <li>{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %} {% endwith %} {% endblock %}

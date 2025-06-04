@@ -2,8 +2,19 @@
 {% extends "layout.html" %}
 
 {% block title %}Orcamento Cliente{% endblock %}
-
+<style>
+    .item-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 5px;
+      align-items: center;
+    }
+    .item-row span {
+      width: 150px;
+    }
+  </style>
 {% block content %}
+
 <script src="../static/js/formatarValor.js"></script>
 <div class="container">
 <form class="p-2" id="laudo-form" style="background-color: white;">
@@ -16,22 +27,22 @@
         <div class="card-body" style="background-color: rgba(222, 184, 135, 0.39);">
             <div class="mb-3">
                 <label for="nome" style="font-size: small; font-weight: bold;">Nome</label>
-                <input class="form-control" type="text" id="nome" name="nome" style="text-transform: capitalize;" required>
+                <input class="form-control" type="text" id="nome" name="nome" value="Venancio De Souza Benevides" style="text-transform: capitalize;" required>
             </div>
 
             <div class="mb-3">
                 <label for="cpf" style="font-size: small; font-weight: bold;">CPF/CNPJ</label>
-                <input class="form-control" type="tel" id="cpf" name="cpf" oninput="formatarCpfCnpj(this)" required>
+                <input class="form-control" type="tel" id="cpf" name="cpf" value="071.357.565-41" oninput="formatarCpfCnpj(this)" required>
             </div>
 
             <div class="mb-3">
                 <label for="endereco" style="font-size: small; font-weight: bold;">Endereço</label>
-                <input class="form-control" type="text" id="endereco" style="text-transform: capitalize;" name="endereco" required>
+                <input class="form-control" type="text" id="endereco" style="text-transform: capitalize;" value="r" name="endereco" required>
             </div class="mb-3">
 
             <div class="mb-3">
                 <label for="bairro" style="font-size: small; font-weight: bold;">Bairro</label>
-                <input class="form-control" type="text" id="bairro" style="text-transform: capitalize;" name="bairro" required>
+                <input class="form-control" type="text" id="bairro" style="text-transform: capitalize;" value="r" name="bairro" required>
             </div>
             
             <div class="mb-3">
@@ -51,14 +62,35 @@
                     <option value="">Selecione um ESTADO primeiro</option>
                 </select>
             </div>
-
-            <!--<div class="mb-3">
-                <label for="cidade" style="font-size: small; font-weight: bold;">Cidade</label>
-                <input class="form-control" type="text" id="cidade" name="cidade" style="text-transform: capitalize;" required>
-            </div>-->
-
         </div>
     </div>
+
+    <div>
+        <h2>Adicionar Itens ao Orçamento</h2>
+
+  <div>
+    <select id="item-select">
+      <option value="" disabled selected>Selecione um item</option>
+      <option value="Vistoria">Vistoria</option>
+      <option value="Mão de Obra">Mão de Obra</option>
+      <option value="Materiais">Materiais</option>
+    </select>
+
+    <input type="number" id="item-valor" placeholder="Valor (R$)" />
+    <button onclick="adicionarItem(event)">Adicionar</button>
+  </div>
+
+  <div style="margin-top: 15px;">
+    <input type="text" id="novo-item" placeholder="Novo item" />
+    <button onclick="adicionarNovoItem(event)">Adicionar novo tipo</button>
+  </div>
+
+  <hr>
+
+  <h3>Itens no orçamento:</h3>
+  <div id="lista-itens"></div>
+    </div>
+
     <div>
         <div class="">
             <h5 align="center">ORÇAMENTO</h5>
@@ -237,7 +269,7 @@
         }
 
 </script>
-<script src="../static/js/orcamento.js"></script>
+<script src="../static/js/orcamentoReparo.js"></script>
 
 <script>
     const geofonamentoCheckbox = document.getElementById("geofonamentoCheckbox");
@@ -443,4 +475,60 @@
     });
 </script>
 
+<script>
+    function adicionarItem(event) {
+      event.preventDefault(); // Evita o recarregamento da página
+  
+      const select = document.getElementById('item-select');
+      const valor = document.getElementById('item-valor').value.trim();
+      const lista = document.getElementById('lista-itens');
+  
+      const itemSelecionado = select.value;
+  
+      if (!itemSelecionado || valor === "") {
+        alert("Selecione um item e informe o valor.");
+        return;
+      }
+  
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <span><strong>${itemSelecionado}</strong></span>
+        <span>R$ ${parseFloat(valor).toFixed(2)}</span>
+        <button type="button" onclick="this.parentElement.remove()">Remover</button>
+      `;
+      lista.appendChild(row);
+  
+      // limpa campos
+      select.selectedIndex = 0;
+      document.getElementById('item-valor').value = '';
+    }
+  
+    function adicionarNovoItem(event) {
+      event.preventDefault(); // Evita o recarregamento da página
+  
+      const novoItem = document.getElementById('novo-item').value.trim();
+      const select = document.getElementById('item-select');
+  
+      if (!novoItem) {
+        alert("Digite o nome do novo item.");
+        return;
+      }
+  
+      const existe = Array.from(select.options).some(opt => opt.value.toLowerCase() === novoItem.toLowerCase());
+      if (existe) {
+        alert("Esse item já existe.");
+        return;
+      }
+  
+      const option = document.createElement('option');
+      option.value = novoItem;
+      option.textContent = novoItem;
+      select.appendChild(option);
+  
+      document.getElementById('novo-item').value = '';
+    }
+  </script>
+  
+  
 {% endblock %}
