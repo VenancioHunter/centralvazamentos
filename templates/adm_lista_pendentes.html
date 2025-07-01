@@ -40,18 +40,24 @@
 
     <h3 class="mt-5">Pagamento Pendente</h3>
     {% if transactions %}
-    <ul class="list-group">
+
+    
         {% for  trans_data in transactions %}
-        <li class="list-group-item">
-            <strong>Transação ID:</strong> {{ trans_data.transaction_id }}<br>
-            <strong>Transação ID OS:</strong> {{ trans_data.os_id }}<br>
-            <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
-            <strong>Método:</strong> {{ trans_data.method }}<br>
-            <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
-            <strong>Técnico:</strong> {{ trans_data.name_tecnico }}<br>
-            <strong>Cidade:</strong> {{ trans_data.os_city }}<br>
-        </li>
-        <li class="list-group-item" align="center">
+        <div class="card mb-3">
+        <div class="card-body ">
+            <ul class="list-group">
+                    <li class="list-group-item">
+                        <!--<strong>Transação ID:</strong> {{ trans_data.transaction_id }}<br>
+                        <strong>Transação ID OS:</strong> {{ trans_data.os_id }}<br>-->
+                        <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
+                        <strong>Método:</strong> {{ trans_data.method }}<br>
+                        <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
+                        <strong>Técnico:</strong> {{ trans_data.name_tecnico }}<br>
+                        <strong>Cidade:</strong> {{ trans_data.os_city }}<br>
+                    </li>
+            </ul>
+        </div>
+        <div class="card-footer" align="center">
             <div class="row">
                 <div class="col">
                     {% set year, month, day = trans_data.os_date.split('-') %}
@@ -64,9 +70,9 @@
                     </div>
                 </div>
             </div>
-        </li>
+        </div>
+        </div>
         {% endfor %}
-    </ul>
     <!-- Modal para gerar OS -->
     <div class="modal fade" id="confirmarpaymment" tabindex="-1" role="dialog" aria-labelledby="paymmentModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">

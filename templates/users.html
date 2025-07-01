@@ -1,32 +1,45 @@
 <!-- templates/dashboard.html -->
-{% extends "layout.html" %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
-<div class="text-center my-4">
-    <h1>Usuários</h1>
+{% extends "layout.html" %} {% block title %}Técnico{% endblock %} {% block
+content %}
+<div align="center" class="mt-4">
+  <h1>ADM Técnicos</h1>
 </div>
-{% if users %}
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Função</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for user in users %}
-        <tr>
-            <td>{{ user.name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.role }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>Nenhum usuário encontrado.</p>
-{% endif %}
+<link href="../static/css/dashboard.css" rel="stylesheet" />
+<!--<div>
+      <div class="row text-center mt-4">
+        <div class="col-sm-12">
+          <div class="border border-0 m-2">
+            <a
+              class="card-presentation"
+              href="{{url_for('vincular_tecnico')}}"
+              style="text-decoration: none"
+            >
+              <h5>Vincular Técnico</h5>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>-->
+<div>
+  {% if users %}
+  <div class="row text-center mt-4">
+    {% for user in users %}
+    <div class="col-sm-12">
+      <div class="border border-0 m-2">
+        <a
+          class="card-presentation"
+          href="perfil/{{user.id}}"
+          style="text-decoration: none"
+        >
+          <h5>{{ user.name }}</h5>
+          {{ user.email }}
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>Nenhum usuário encontrado.</p>
+  {% endif %}
+</div>
 {% endblock %}
