@@ -217,7 +217,9 @@ async function gerarPDF() {
             "Glorinha": "(51) 92001-5474",
             "Guaíba": "(51) 92001-5474",
             "Gravataí": "(51) 92001-5474",
-            "Novo Hamburgo" : "(51) 92001-5474",
+            "Novo Hamburgo": "(51) 92001-5474",
+            "Viamão": "(51) 92001-5474",
+            "Esteio" : "(51) 92001-5474",
 
         };
 
