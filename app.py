@@ -1396,7 +1396,7 @@ def users():
         name = user_info.get('name')
         email = user_info.get('email')
         role = user_info.get('role')
-        users_list.append({'name': name, 'email': email, 'role': role})
+        users_list.append({'id': user_id, 'name': name, 'email': email, 'role': role})
 
     return render_template('users.html', users=users_list)
 
