@@ -206,6 +206,7 @@ async function gerarPDF() {
             "Cajamar": "(19) 92001-6371",
             "Amparo": "(19) 92001-6371",
             "Capivari": "(19) 92001-6371",
+            "Limeira": "(19) 92001-6371",
 
             "Florianópolis": "(48) 93300-4291",
             "São José": "(48) 93300-4291",
@@ -220,7 +221,23 @@ async function gerarPDF() {
             "Novo Hamburgo": "(51) 92001-5474",
             "Viamão": "(51) 92001-5474",
             "Esteio": "(51) 92001-5474",
-            "Alvorada" : "(51) 92001-5474",
+            "Alvorada": "(51) 92001-5474",
+            
+            "Curitiba": "(41) 92001-6421",
+            "São José dos Pinhais": "(41) 92001-6421",
+            "Pinhais": "(41) 92001-6421",
+            "Araucária": "(41) 92001-6421",
+            "Colombo": "(41) 92001-6421",
+            "Campo Largo": "(41) 92001-6421",
+            "Almirante Tamandaré": "(41) 92001-6421",
+
+            "Belo Horizonte": "(31) 93300-6395",
+            "Contagem": "(31) 93300-6395",
+            "Betim": "(31) 93300-6395",
+            "Sabará": "(31) 93300-6395",
+            "Nova Lima": "(31) 93300-6395",
+            "Santa Luzia": "(31) 93300-6395",
+            "Ibirité": "(31) 93300-6395",
 
         };
 
