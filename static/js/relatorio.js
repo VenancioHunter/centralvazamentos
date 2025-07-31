@@ -207,6 +207,7 @@ async function gerarPDF() {
             "Amparo": "(19) 92001-6371",
             "Capivari": "(19) 92001-6371",
             "Limeira": "(19) 92001-6371",
+            "Sorocaba": "(11) 92015-4693",
 
             "Florianópolis": "(48) 93300-4291",
             "São José": "(48) 93300-4291",
