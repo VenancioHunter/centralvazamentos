@@ -223,6 +223,7 @@ async function gerarPDF() {
             "Viamão": "(51) 92001-5474",
             "Esteio": "(51) 92001-5474",
             "Alvorada": "(51) 92001-5474",
+            "São Leopoldo": "(51) 92001-5474",
             
             "Curitiba": "(41) 92001-6421",
             "São José dos Pinhais": "(41) 92001-6421",
