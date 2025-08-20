@@ -582,11 +582,14 @@ content %}
       return;
     }
 
+    const toNum = (v) => parseFloat(String(v).replace(",", "."));
+
     if (
-      amount > currentOsValueService ||
-      cardValor > currentOsValueService ||
-      boletoValor > currentOsValueService
+      toNum(amount) > toNum(currentOsValueService) ||
+      toNum(cardValor) > toNum(currentOsValueService) ||
+      toNum(boletoValor) > toNum(currentOsValueService)
     ) {
+      console.log(cardValor, currentOsValueService);
       alert("O valor informado não pode ser maior que o valor da OS.");
       return;
     }
