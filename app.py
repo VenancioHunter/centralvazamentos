@@ -558,7 +558,17 @@ def gerar_os():
     else:
         newprice = convert_monetary_value(newprice)
     
+    contador = db.child("contador_os").get().val()
+    if contador is None:
+        contador = 0
+
+    # Incrementa
+    novo_numero_os = contador + 1
+    db.child("contador_os").set(novo_numero_os)
+
+
     nova_os = {
+        "numero_os": novo_numero_os,
         "city": request.form.get('city'),
         "name": request.form.get('name'),
         "phone": request.form.get('phone'),
@@ -846,6 +856,9 @@ def finalizar_os():
                 }
 
                 try: 
+
+                    #Financeiro.post_transaction_pendente(id_os=os_id, os_city=os_city, os_date=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa)
+
                     Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
@@ -883,6 +896,9 @@ def finalizar_os():
                 }
 
                 try:
+
+                    #Financeiro.post_transaction_pendente(id_os=os_id, os_city=os_city, os_date=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa)
+
                     Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
@@ -1273,7 +1289,7 @@ def fechar_dia_tecnico():
                 category = 'Outros'
                 especie = 'Outros'
 
-            Financeiro.post_transaction_debito(date=date, amount=data[item], description=f'Custos', category=category, especie=especie, destinatario='', user=user, origem=name, id_origem=session['user'])
+            Financeiro.post_transaction_debito(date=date, amount=data[item], category=category, especie=especie, destinatario='', user=user, origem=name, id_origem=session['user'])
 
     data['porcentagemTecnico'] = participation
 
@@ -1583,12 +1599,14 @@ def adm_lista_os():
                         if day in days:
                             attendances = days[day]
                             for attendance_id, attendance_info in attendances.items():
+                                
                                 user_id = attendance_info.get('city')
                                 
                                 if user_id:
                                     
 
                                     record = {
+                                        "id": attendance_id,
                                         "city": city,
                                         "date": f"{day}/{month}/{year}",
                                         **attendance_info
@@ -2120,6 +2138,52 @@ def user_update_percentage():
 def orcamentos():
    
     return render_template('orcamentos.html')
+
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    return datetime.fromtimestamp(value).strftime('%d/%m/%Y %H:%M')
+
+
+@app.route("/financeiro/pendentes")
+def listar_pendentes():
+    
+    pendentes = {}
+    data = db.child("financeiro").child("transactions_pendentes").get().val() or {}
+
+    for ano, meses in data.items():
+        for mes, dias in meses.items():
+            for dia, transacoes in dias.items():
+                for pendente_id, pendente in transacoes.items():
+                    pendentes[pendente_id] = {
+                        **pendente,
+                        "ano": ano,
+                        "mes": mes,
+                        "dia": dia,
+                        "id": pendente_id
+                    }
+
+    return render_template("pendentes.html", pendentes=pendentes) 
+
+
+@app.route("/financeiro/confirmar/<pendente_id>")
+def confirmar_transacao(pendente_id):
+    pendente = db.child("financeiro").child("pendentes").child(pendente_id).get().val()
+
+    if pendente:
+        # Converte timestamp para data
+        date = datetime.datetime.fromtimestamp(pendente['timestamp'])
+        year = str(date.year)
+        month = f"{date.month:02d}"
+        day = f"{date.day:02d}"
+
+        # Move para transactions
+        db.child("financeiro").child("transactions").child(year).child(month).child(day).child("transactions").push(pendente)
+
+        # Remove de pendentes
+        db.child("financeiro").child("pendentes").child(pendente_id).remove()
+
+    return redirect(url_for('listar_pendentes'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)
