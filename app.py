@@ -558,7 +558,17 @@ def gerar_os():
     else:
         newprice = convert_monetary_value(newprice)
     
+    contador = db.child("contador_os").get().val()
+    if contador is None:
+        contador = 0
+
+    # Incrementa
+    novo_numero_os = contador + 1
+    db.child("contador_os").set(novo_numero_os)
+
+
     nova_os = {
+        "numero_os": novo_numero_os,
         "city": request.form.get('city'),
         "name": request.form.get('name'),
         "phone": request.form.get('phone'),
@@ -788,13 +798,18 @@ def finalizar_os():
     # Inicializa as variáveis de categorização
     status_pagamento = None
     detalhes_pagamento = {}
-
+    numero_os = data.get('os_numero')
     os_id = data.get('os_id')
     os_city = data.get('os_city')
     os_date = data.get('os_date')
     os_id_tecnico = data.get('os_id_tecnico')
+
     os_value_service = convert_monetary_value(data.get('os_value_service'))
     os_type_service = data.get('os_type_serve')
+    taxa = convert_monetary_value(data.get('taxa') or "0.00")
+    outros_custos_service = convert_monetary_value(data.get('outrosCustosService') or "0.00")
+    observacoes_service = data.get('observacaoService') or ""
+    print(outros_custos_service)
     
     create_paymment = {}
 
@@ -833,32 +848,39 @@ def finalizar_os():
                 name = session['name']
                 method_payment = data.get("method")
 
-                amount = convert_monetary_value(data.get('amount'))
-
+                amount = "{:.2f}".format(float(convert_monetary_value(data.get('amount'))) - (float(convert_monetary_value(taxa)) + float(convert_monetary_value(outros_custos_service))))
+                amount_financeiro = convert_monetary_value(data.get('amount'))
+                
                 create_paymment ={
                     'os_id': os_id,
                     'os_date': os_date,
                     'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': amount,
+                    'taxa': taxa,
+                    'outros_custos_service': outros_custos_service,
+                    'observacoes_service': observacoes_service,
+                    'numero_os': numero_os,
+                    'valor_bruto': os_value_service,
                 }
 
                 try: 
+
+                    Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service,observacoes_service=observacoes_service)
+
                     Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
                     User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
 
-                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
+                    #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=amount_financeiro, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
                     
-                    if os_value_service != amount:
-                        taxa = "{:.2f}".format(float(os_value_service) - float(amount), 2)
-
-                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
-                    
-
-                
+                    #if taxa != "0.00":
+                        #taxa = "{:.2f}".format(float(taxa), 2)
+                        
+                        #Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
+                            
                 except:
                     return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
 
@@ -868,7 +890,8 @@ def finalizar_os():
                 detalhes_pagamento["valor"] = data.get("cardValor")
                 detalhes_pagamento["parcelas"] = data.get("installments")
 
-                amount = convert_monetary_value(data.get('cardValor'))
+                amount = "{:.2f}".format(float(convert_monetary_value(data.get('cardValor'))) - float(convert_monetary_value(taxa)))
+                amount_financeiro = convert_monetary_value(data.get('cardValor'))
                 name = session['name']
                 method_payment = data.get("method")
 
@@ -878,22 +901,30 @@ def finalizar_os():
                     'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': amount,
-                    'installments': data.get('installments')
+                    'installments': data.get('installments'),
+                    'taxa': taxa,
+                    'outros_custos_service': outros_custos_service,
+                    'observacoes_service': observacoes_service,
+                    'numero_os': numero_os,
+                    'valor_bruto': os_value_service,
                 }
 
                 try:
+
+                    Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service,observacoes_service=observacoes_service)
+
                     Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
                     User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
                     
-                    Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
+                    #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=amount_financeiro, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
 
-                    if os_value_service != amount:
-                        taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
+                    #if taxa != "0.00":
+                        #taxa = "{:.2f}".format(float(taxa), 2)
 
-                        Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
+                        #Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name, destinatario='', id_origem=os_id_tecnico)
 
                 except:
                     return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
@@ -911,7 +942,8 @@ def finalizar_os():
                     'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('boletoValor')),
-                    'vencimento': data.get('vencimento')
+                    'vencimento': data.get('boletoDate'),
+                    'numero_os': numero_os,
                 }
 
                 try:
@@ -934,7 +966,8 @@ def finalizar_os():
                     'tecnico_id': os_id_tecnico,
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('amount')),
-                    'vencimento': os_date
+                    'vencimento': os_date,
+                    'numero_os': numero_os,
                 }
 
                 try: 
@@ -959,7 +992,8 @@ def finalizar_os():
                     'method': data.get('method'),
                     'amount': convert_monetary_value(data.get('cardValor')),
                     'installments': data.get('installments'),
-                    'vencimento': os_date
+                    'vencimento': os_date,
+                    'numero_os': numero_os,
                 }
 
                 try:
@@ -1195,7 +1229,7 @@ def extrato_tecnico():
     # Garantir que o dia está nos custos recuperados
     costs_data = month_costs_data.get(dia, {})  # Retorna um dicionário vazio se o dia não existir
     
-    print(costs_data)
+ 
 
     if costs_data:
         # Acessar diretamente a única chave no dicionário
@@ -1209,7 +1243,6 @@ def extrato_tecnico():
         outros = float(daily_costs.get('outros', 0.0))
         total_costs = combustivel + manutencao + pedagio + reparo + outros
 
-        print(f"Combustível: {combustivel}, Manutenção: {manutencao}, Pedágio: {pedagio}, Reparo: {reparo}, Outros: {outros}, Total: {total_costs}")
 
         # Atribuir os valores ao dicionário de transações agrupadas
         if dia in grouped_transactions:
@@ -1236,12 +1269,19 @@ def fechar_dia_tecnico():
     user = session['name']
     participation = User_Wallet.get_participation(id=session['user'], data=date)
 
-    data = {
+    '''data = {
     'manutencao': convert_monetary_value(request.form.get('manutencao') if request.form.get('manutencao') != "" else "0.00"),
     'combustivel': convert_monetary_value(request.form.get('combustivel') if request.form.get('combustivel') != "" else "0.00"),
     'pedagio': convert_monetary_value(request.form.get('pedagio') if request.form.get('pedagio') != "" else "0.00"),
     'reparo': convert_monetary_value(request.form.get('reparo') if request.form.get('reparo') != "" else "0.00"),
     'outros': convert_monetary_value(request.form.get('outros') if request.form.get('outros') != "" else "0.00"),
+}'''
+    data = {
+    'manutencao': "0.00",
+    'combustivel': "0.00",
+    'pedagio': "0.00",
+    'reparo': "0.00",
+    'outros': "0.00",
 }
 
     
@@ -1250,7 +1290,7 @@ def fechar_dia_tecnico():
     for item in data:
         
         if data[item] != "0.00":
-            print(data[item])
+            
 
             if item == 'manutencao':
 
@@ -1273,7 +1313,7 @@ def fechar_dia_tecnico():
                 category = 'Outros'
                 especie = 'Outros'
 
-            Financeiro.post_transaction_debito(date=date, amount=data[item], description=f'Custos', category=category, especie=especie, destinatario='', user=user, origem=name, id_origem=session['user'])
+            Financeiro.post_transaction_debito(date=date, amount=data[item], category=category, especie=especie, destinatario='', user=user, origem=name, id_origem=session['user'])
 
     data['porcentagemTecnico'] = participation
 
@@ -1281,7 +1321,7 @@ def fechar_dia_tecnico():
 
     
 
-
+    print('Dados salvos com sucesso!')
     return redirect(url_for('dashboard_tecnico'))
 
 @app.route('/adm_relatorios', methods=['GET', 'POST'])
@@ -1373,10 +1413,10 @@ def adm_extrato_tecnico():
     return render_template('adm_extrato_tecnico.html', tecnico_transactions=tecnico_transactions, date=date_str, year=year, month=month, day=day)
 
 @app.route('/os/<city>/<year>/<month>/<day>/<id>', methods=['GET', 'POST'])
-@check_roles(['admin', 'tecnico'])
+#@check_roles(['admin', 'tecnico'])
 def os(city, year, month, day, id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
+    #if 'user' not in session:
+    #    return redirect(url_for('login'))
     
     get_os = db.child("ordens_servico").child(city).child(year).child(month).child(day).child(id).get().val()
 
@@ -1396,7 +1436,7 @@ def users():
         name = user_info.get('name')
         email = user_info.get('email')
         role = user_info.get('role')
-        users_list.append({'name': name, 'email': email, 'role': role})
+        users_list.append({'id': user_id, 'name': name, 'email': email, 'role': role})
 
     return render_template('users.html', users=users_list)
 
@@ -1513,12 +1553,16 @@ def adm_lista_paymments_pendentes():
 @app.route('/update_pendding', methods=['POST', 'GET'])
 def update_pendding():
 
+    numero_os = request.form.get('numeroos')
     os_id = request.form.get('paymmentIdOs')
     os_city = request.form.get('paymmentCity')
     os_date = request.form.get('osDate')
     transaction_id = request.form.get('transactionId')
     name_tecnico = request.form.get('osnametecnico')
     amount = convert_monetary_value(request.form.get('amountAtualizado'))
+    taxa = convert_monetary_value( request.form.get('taxa') or "0.00")
+    outros_custos_service = convert_monetary_value( request.form.get('outrosCustosService') or "0.00")
+    observacoes_service =  request.form.get('observacaoService') or ""
    
     date_paymment = request.form.get('datePaymment')
 
@@ -1532,29 +1576,47 @@ def update_pendding():
     month = f"{date_firebase.month:02d}"
     day = f"{date_firebase.day:02d}"
 
+    
+
     paymment_pendding = dict(db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).get().val())
     
     os_value_service = paymment_pendding['amount']
     method_payment = paymment_pendding['method']
     status_pagamento = "recebido"
     id_tecnico = paymment_pendding['tecnico_id']
-    
-    try:
 
+    
+
+
+    amount = "{:.2f}".format(float(convert_monetary_value(amount)) - (float(convert_monetary_value(taxa)) + float(convert_monetary_value(outros_custos_service))))
+    amount_financeiro = convert_monetary_value(request.form.get('amountAtualizado'))
+    
+
+    paymment_pendding['numero_os'] = numero_os
+    paymment_pendding['amount'] = amount
+    paymment_pendding['taxa'] = taxa
+    paymment_pendding['outros_custos_service'] = outros_custos_service
+    paymment_pendding['observacoes_service'] = observacoes_service
+    paymment_pendding['valor_bruto'] = os_value_service
+
+
+    try:
         Wallet.create_paymment_success(data=paymment_pendding, date=date_paymment, city=os_city)
 
         Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
-        User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=paymment_pendding['tecnico_id'])
+        User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=id_tecnico)
 
         db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).remove()
 
-        Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name_tecnico, id_origem=id_tecnico)
+        Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=date_paymment, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service, observacoes_service=observacoes_service)
 
-        if os_value_service != amount:
-            taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
+        #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name_tecnico, id_origem=id_tecnico)
 
-            Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name_tecnico, id_origem=id_tecnico)
+        #if os_value_service != amount:
+            #taxa = "{:.2f}".format(round(float(os_value_service) - float(amount), 2))
+
+            #Financeiro.post_transaction_debito(user=session['name'], date=os_date, amount=taxa, description=f'', category='financeiro', especie=f'Taxa - {method_payment}', origem=name_tecnico, id_origem=id_tecnico)
 
     except:
         return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
@@ -1583,12 +1645,14 @@ def adm_lista_os():
                         if day in days:
                             attendances = days[day]
                             for attendance_id, attendance_info in attendances.items():
+                                
                                 user_id = attendance_info.get('city')
                                 
                                 if user_id:
                                     
 
                                     record = {
+                                        "id": attendance_id,
                                         "city": city,
                                         "date": f"{day}/{month}/{year}",
                                         **attendance_info
@@ -1775,6 +1839,18 @@ def bonus_attendant():
         total_balance=total_balance # Passa o saldo formatado com 2 casas decimais
     )
 
+@app.route("/bonus_attendant_delete", methods=["POST"])
+def apagar_transacao():
+
+    id_user = session.get('user')
+    transaction_id = request.form.get("transaction_id")
+    selected_month = request.form.get("selected_month")
+    selected_year = request.form.get("selected_year")
+    db.child("users").child(id_user).child("wallet/credit_for_servide").child(selected_year).child(selected_month).child(transaction_id).remove()
+    
+    # Redireciona de volta com filtros aplicados, por exemplo
+    return redirect(url_for("bonus_attendant", selected_month=selected_month, selected_year=selected_year))
+
 
 
 @app.route('/relatorio_cidade', methods=['GET', 'POST'])
@@ -1826,22 +1902,18 @@ def get_city_data():
         total_retorno = 0
         service_counts = {}
         service_counts_agendado = {}
-        service_agendado_percentages = {}
         channel_counts = {}
         channel_counts_agendado = {}
         value_total_channel = {}
+        service_value_totals_agendado = {}
+        service_value_averages_agendado = {}
+        service_schedule_list = []
 
+        # Processa dados de atendimento (dados gerais)
         if data:
             for day, items in data.items():
                 total += len(items)
                 for item in items.values():
-                    # Contagem de status "Agendado"
-                    if item.get("status") == "Agendado":
-                        total_agendado += 1
-                        service = item.get("service")
-                        if service:
-                            service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
-                    # Contagem de tipos de serviço
                     service = item.get("service")
                     if service:
                         service_counts[service] = service_counts.get(service, 0) + 1
@@ -1849,50 +1921,58 @@ def get_city_data():
                     channel = item.get("canal")
                     if channel:
                         channel_counts[channel] = channel_counts.get(channel, 0) + 1
-                        if item.get("status") == "Agendado":
-                            price = item.get("price")
-                            channel_counts_agendado[channel] = channel_counts_agendado.get(channel, 0) + 1
-                            value_total_channel[channel] = value_total_channel.get(channel, 0) + float(item.get("price", 0))
 
-        # Calcula a porcentagem de agendados
+        # Processa dados de agendamento (ordens de serviço)
+        if data_schedule:
+            for day, items in data_schedule.items():
+                for item_id, item in items.items():
+                    total_agendado += 1
+
+                    service = item.get("service")
+                    price = float(item.get("newprice", 0))
+                    date = item.get("date", day)
+                    phone = item.get("phone", "")
+                    obs = item.get("obs", "")
+
+                    if service:
+                        # Contagem por serviço
+                        service_counts_agendado[service] = service_counts_agendado.get(service, 0) + 1
+
+                        # Soma de valores por serviço
+                        service_value_totals_agendado[service] = service_value_totals_agendado.get(service, 0) + price
+
+                        # Lista detalhada de agendamentos
+                        service_schedule_list.append({
+                            "service": service,
+                            "price": price,
+                            "date": date,
+                            "phone": phone,
+                            "obs": obs
+                        })
+
+                        if service == "Retorno":
+                            total_retorno += 1
+
+        # Cálculo do valor médio por serviço
+        for service, total_value in service_value_totals_agendado.items():
+            count = service_counts_agendado.get(service, 0)
+            service_value_averages_agendado[service] = round(total_value / count, 2) if count else 0
+
+        # Cálculo de porcentagens
         porcentagem_agendado = round((total_agendado / total) * 100 if total else 0, 2)
 
-        # Calcula a porcentagem de cada serviço
         service_percentages = {
             service: round((count / total) * 100, 2) for service, count in service_counts.items()
         }
 
-        # Calcula a porcentagem de cada serviço "Agendado"
         service_percentages_agendado = {
-            service: round((count / total_agendado) * 100, 2) 
+            service: round((count / total_agendado) * 100, 2)
             for service, count in service_counts_agendado.items()
         }
 
-        # Calcula a porcentagem de "Agendados" em relação ao total de cada serviço
-        for service, count in service_counts.items():
-            if service in service_counts_agendado:
-                agendado_count = service_counts_agendado[service]
-                service_agendado_percentages[service] = round((agendado_count / count) * 100, 2)
-            else:
-                service_agendado_percentages[service] = 0
-
-        # Calcula a porcentagem de cada canal
         channel_percentages = {
             channel: round((count / total) * 100, 2) for channel, count in channel_counts.items()
         }
-
-        # Calcula a porcentagem de cada canal com status "Agendado"
-        channel_percentages_agendado = {
-            channel: round((count / total_agendado) * 100, 2)
-            for channel, count in channel_counts_agendado.items()
-        }
-       
-        if data_schedule:
-            for day, items in data_schedule.items():
-                for item in items.values():
-                    if item.get("service") == "Retorno":
-                        total_retorno += 1
-
 
         return jsonify({
             "total": total,
@@ -1902,16 +1982,20 @@ def get_city_data():
             "service_percentages": service_percentages,
             "service_counts_agendado": service_counts_agendado,
             "service_percentages_agendado": service_percentages_agendado,
-            "service_agendado_percentages": service_agendado_percentages,
             "channel_counts": channel_counts,
             "channel_percentages": channel_percentages,
             "channel_counts_agendado": channel_counts_agendado,
-            "channel_percentages_agendado": channel_percentages_agendado,
             "total_retorno": total_retorno,
-            "value_total_channel": value_total_channel
+            "value_total_channel": value_total_channel,
+            "service_value_totals_agendado": service_value_totals_agendado,
+            "service_value_averages_agendado": service_value_averages_agendado,  # <- NOVO
+            "service_schedule_list": service_schedule_list  # <- DETALHES
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/adm_schedule', methods=['GET', 'POST'])
 @check_roles(['admin'])
@@ -1974,6 +2058,178 @@ def get_technician_schedules():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/orcamento_client', methods=['GET', 'POST'])
+def orcamento_client():
+   
+    return render_template('orcamento_client.html')
+
+@app.route('/orcamento_client_reparo', methods=['GET', 'POST'])
+def orcamento_client_reparo():
+   
+    return render_template('orcamento_client_reparo.html')
+
+@app.route('/adm_painel_tecnicos', methods=['GET', 'POST'])
+def adm_painel_tecnicos():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    users_data = User.get_users()
+
+    users_list = []
+    for user_id, user_info in users_data.items():
+        if user_info.get('role') == 'tecnico':
+            name = user_info.get('name')
+            email = user_info.get('email')
+            role = user_info.get('role')
+            users_list.append({'id': user_id, 'name': name, 'email': email, 'role': role})
+
+    return render_template('adm_painel_tecnicos.html',users=users_list)
+
+
+@app.route('/perfil/<id>', methods=['GET', 'POST'])
+def perfil(id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    data_user = db.child("users").child(id).get().val()
+
+    cities = db.child("cities").get().val() or {}
+
+    return render_template('perfil.html', data_user=data_user, id_user=id, cities=cities)
+
+@app.route('/user_remove_city', methods=['POST'])
+def user_remove_city():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    index = data.get('index')
+    city_name = data.get('city')
+
+    if index is None or not city_name:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    user_id = data.get('id')
+
+    try:
+        cities = db.child("users").child(user_id).child('cities').get().val()
+
+        if not cities or not isinstance(cities, list):
+            return jsonify({'success': False, 'error': 'Lista de cidades não encontrada ou inválida'}), 404
+
+        if 0 <= index < len(cities) and cities[index] == city_name:
+            cities.pop(index)
+            db.child("users").child(user_id).update({"cities": cities})
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Cidade não encontrada ou não corresponde ao índice'}), 400
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/user_add_city', methods=['POST'])
+def user_add_city():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    city = data.get('city')
+    user_id = data.get('id')
+
+    if not city:
+        return jsonify({'success': False, 'error': 'Cidade não fornecida'}), 400
+    if not user_id:
+        return jsonify({'success': False, 'error': 'ID do usuário não fornecido'}), 400
+
+    try:
+        cities = db.child("users").child(user_id).child('cities').get().val()
+
+        if not cities:
+            cities = []
+
+        if city in cities:
+            return jsonify({'success': False, 'error': 'Cidade já adicionada'}), 400
+
+        cities.append(city)
+        db.child("users").child(user_id).update({"cities": cities})
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/user_update_percentage', methods=['POST'])
+def user_update_percentage():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    user_id = data.get('id')
+    percentage = data.get('percentage')
+
+    if not user_id or percentage is None:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    try:
+        # Atualiza ou cria o campo 'percentage'
+        db.child("users").child(user_id).update({"porcentagem": percentage})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/orcamentos', methods=['GET', 'POST'])
+def orcamentos():
+   
+    return render_template('orcamentos.html')
+
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    return datetime.fromtimestamp(value).strftime('%d/%m/%Y %H:%M')
+
+
+@app.route("/financeiro/pendentes")
+def listar_pendentes():
+    
+    pendentes = {}
+    data = db.child("financeiro").child("transactions_pendentes").get().val() or {}
+
+    for ano, meses in data.items():
+        for mes, dias in meses.items():
+            for dia, transacoes in dias.items():
+                for pendente_id, pendente in transacoes.items():
+                    pendentes[pendente_id] = {
+                        **pendente,
+                        "ano": ano,
+                        "mes": mes,
+                        "dia": dia,
+                        "id": pendente_id
+                    }
+
+    return render_template("pendentes.html", pendentes=pendentes) 
+
+
+@app.route("/financeiro/confirmar/<pendente_id>")
+def confirmar_transacao(pendente_id):
+    pendente = db.child("financeiro").child("pendentes").child(pendente_id).get().val()
+
+    if pendente:
+        # Converte timestamp para data
+        date = datetime.datetime.fromtimestamp(pendente['timestamp'])
+        year = str(date.year)
+        month = f"{date.month:02d}"
+        day = f"{date.day:02d}"
+
+        # Move para transactions
+        db.child("financeiro").child("transactions").child(year).child(month).child(day).child("transactions").push(pendente)
+
+        # Remove de pendentes
+        db.child("financeiro").child("pendentes").child(pendente_id).remove()
+
+    return redirect(url_for('listar_pendentes'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)

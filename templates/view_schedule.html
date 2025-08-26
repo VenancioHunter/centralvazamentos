@@ -12,6 +12,9 @@ content %}
 {% if ordens_servico %} {% for os_id, os in ordens_servico.items() %}
 <div class="card mb-3">
   <div class="card-body">
+    <div>
+      <h5 class="badge bg-danger fs-6">Nº {{ os.get('numero_os', 'N/A') }}</h5>
+    </div>
     <h5 class="card-title">{{ os.city }}</h5>
     <div class="my-3" align="end" style="font-weight: bold">
       <div>
@@ -29,7 +32,22 @@ content %}
     </div>
     <ul class="list-group list-group-flush">
       <li class="list-group-item">Nome: {{ os.name }}</li>
-      <li class="list-group-item">Telefone: {{ os.phone }}</li>
+      <li class="list-group-item">
+        Telefone:
+        <span
+          class="telefone-copiavel"
+          data-numero="{{ os.phone }}"
+          style="cursor: pointer; color: blue; text-decoration: underline"
+        >
+          {{ os.phone }}
+        </span>
+        <span
+          class="copiado-msg"
+          style="color: green; margin-left: 10px; display: none"
+        >
+          Copiado!
+        </span>
+      </li>
       <li class="list-group-item">Serviço: {{ os.service }}</li>
     </ul>
     <div class="p-4 my-4" style="background-color: rgb(219, 219, 219)">
@@ -66,7 +84,7 @@ content %}
       style="width: 80%"
       data-bs-toggle="modal"
       data-bs-target="#paymentModal"
-      onclick="setOsId('{{ os_id }}', '{{ os.city }}', '{{ date }}', '{{ os.newprice }}', '{{ os.service }}', '{{ os.tecnico_id }}')"
+      onclick="setOsId('{{ os_id }}', '{{ os.city }}', '{{ date }}', '{{ os.newprice }}', '{{ os.service }}', '{{ os.tecnico_id }}', '{{ os.numero_os }}')"
     >
       Finalizar Serviço
     </button>
@@ -75,14 +93,12 @@ content %}
 </div>
 {% endfor %} {% if costs_day == False %}
 <div class="my-4" align="end">
-  <button
-    class="btn btn-danger"
-    style="width: 50%"
-    data-bs-toggle="modal"
-    data-bs-target="#fechamentoModal"
-  >
-    Fechar Dia
-  </button>
+  <form action="{{ url_for('fechar_dia_tecnico') }}" method="post">
+    <input name="date" value="{{date}}" hidden />
+    <button type="submit" class="btn btn-danger" style="width: 50%">
+      Fechar Dia
+    </button>
+  </form>
 </div>
 {% endif %}
 
@@ -126,7 +142,7 @@ content %}
         <div id="payment-options">
           <!-- Dinheiro / PIX -->
           <div id="input-amount" class="form-group mt-3 d-none">
-            <label for="amount">Valor</label>
+            <label for="amount">Valor Total Recebido</label>
             <input
               type="tel"
               class="form-control"
@@ -160,7 +176,7 @@ content %}
           </div>
           <!-- Cartão de Crédito -->
           <div id="credit-card-options" class="form-group mt-3 d-none">
-            <label for="card-valor">Valor</label>
+            <label for="card-valor">Valor Total Recebido</label>
             <input
               type="tel"
               class="form-control"
@@ -185,48 +201,25 @@ content %}
               <label style="font-size: small; font-weight: bold"
                 >Confirmação de Recebimento</label
               >
-              <div style="display: flex; gap: 10px; margin-top: 10px">
-                <label
-                  for="received"
-                  style="
-                    flex: 1;
-                    padding: 12px;
-                    border: 1px solid #ccc;
-                    border-radius: 5px;
-                    text-align: center;
-                    cursor: pointer;
-                  "
-                >
-                  <input
-                    type="radio"
-                    id="received"
-                    name="paymentStatus"
-                    value="received"
-                    required
-                    style="display: none"
-                  />
-                  Recebido
-                </label>
-                <label
-                  for="not-received"
-                  style="
-                    flex: 1;
-                    padding: 12px;
-                    border: 1px solid #ccc;
-                    border-radius: 5px;
-                    text-align: center;
-                    cursor: pointer;
-                  "
-                >
-                  <input
-                    type="radio"
-                    id="not-received"
-                    name="paymentStatus"
-                    value="notreceived"
-                    style="display: none"
-                  />
-                  Não Recebido
-                </label>
+
+              <div>
+                <input
+                  type="radio"
+                  id="received-cartao"
+                  name="paymentStatus"
+                  value="received"
+                  required
+                />
+                <label for="received-cartao">Recebido</label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="not-received-cartao"
+                  name="paymentStatus"
+                  value="notreceived"
+                />
+                <label for="not-received-cartao">Não Recebido</label>
               </div>
             </div>
           </div>
@@ -243,14 +236,38 @@ content %}
             <input type="date" class="form-control" id="boleto-date" required />
           </div>
         </div>
-        <div class="form-group mt-3">
-          <label for="observacao-service">Observação</label>
+
+        <div>
+          <label for="taxa-service">Taxa do pix ou cartão de crédito</label>
           <input
-            type="text"
+            type="tel"
             class="form-control"
-            id="observacao-service"
-            placeholder="Insira uma observação"
+            id="taxa"
+            placeholder="Insira o valor"
           />
+        </div>
+
+        <div class="mt-4 p-2" style="background-color: rgb(255, 240, 240)">
+          <div>
+            <label for="outros-custos-service"
+              ><strong>Custos do Serviço </strong></label
+            >
+            <input
+              type="tel"
+              class="form-control"
+              id="outros-custos-service"
+              placeholder="Insira o valor"
+            />
+          </div>
+          <div class="form-group mt-3">
+            <label for="observacao-service"><strong>Observação</strong></label>
+            <input
+              type="text"
+              class="form-control"
+              id="observacao-service"
+              placeholder="Insira uma observação"
+            />
+          </div>
         </div>
         <div class="modal-footer">
           <button
@@ -511,6 +528,7 @@ content %}
   let currentOsValueService = null;
   let currentOSTypeService = null;
   let currentOsIdTecnico = null;
+  let currentOSNumero = null;
 
   function getSelectedPaymentStatus() {
     var selectedOption = document.querySelector(
@@ -523,13 +541,22 @@ content %}
     }
   }
 
-  function setOsId(osId, city, osDate, valueService, typeService, tecnicoId) {
+  function setOsId(
+    osId,
+    city,
+    osDate,
+    valueService,
+    typeService,
+    tecnicoId,
+    numeroOs
+  ) {
     currentOsId = osId; // Armazena o ID do serviço atual
     currentOsCity = city;
     currentOsDate = osDate;
     currentOsValueService = valueService;
     currentOSTypeService = typeService;
     currentOsIdTecnico = tecnicoId;
+    currentOSNumero = numeroOs;
   }
   function togglePaymentOptions() {
     var method = document.getElementById("payment-method").value;
@@ -554,9 +581,13 @@ content %}
     var method = document.getElementById("payment-method").value;
     var amount = document.getElementById("amount").value;
     var cardValor = document.getElementById("card-valor").value;
+    var taxa = document.getElementById("taxa").value;
     var installments = document.getElementById("installments").value;
     var boletoValor = document.getElementById("boleto-valor").value;
     var boletoDate = document.getElementById("boleto-date").value;
+    var outrosCustosService = document.getElementById(
+      "outros-custos-service"
+    ).value;
     var observacaoService = document.getElementById("observacao-service").value;
     var status = getSelectedPaymentStatus();
 
@@ -578,8 +609,34 @@ content %}
       alert("Erro: Confirme o RECEBIMENTO.");
       return;
     }
+
+    const toNum = (v) => parseFloat(String(v).replace(",", "."));
+
+    if (
+      toNum(amount) > toNum(currentOsValueService) ||
+      toNum(cardValor) > toNum(currentOsValueService) ||
+      toNum(boletoValor) > toNum(currentOsValueService)
+    ) {
+      console.log(cardValor, currentOsValueService);
+      alert("O valor informado não pode ser maior que o valor da OS.");
+      return;
+    }
+
+    if (toNum(outrosCustosService) > toNum(currentOsValueService)) {
+      alert(
+        "O valor dos custos do serviço não pode ser maior que o valor da OS."
+      );
+      return;
+    }
+
+    if (toNum(outrosCustosService) > 0 && !observacaoService) {
+      alert("Informe destalhes dos custos no campo OBSERVAÇÃO.");
+      return;
+    }
+
     // Exemplo de coleta de dados
     var paymentData = {
+      os_numero: currentOSNumero,
       os_id: currentOsId,
       os_id_tecnico: currentOsIdTecnico,
       os_city: currentOsCity,
@@ -588,10 +645,12 @@ content %}
       os_type_serve: currentOSTypeService,
       method: method,
       amount: amount,
+      taxa: taxa,
       cardValor: cardValor,
       installments: installments,
       boletoValor: boletoValor,
       boletoDate: boletoDate,
+      outrosCustosService: outrosCustosService,
       observacaoService: observacaoService,
       statusPaymment: status,
     };
@@ -633,6 +692,8 @@ content %}
   document.addEventListener("DOMContentLoaded", function () {
     configurarFormatacaoValor("amount");
 
+    configurarFormatacaoValor("taxa");
+    configurarFormatacaoValor("outros-custos-service");
     configurarFormatacaoValor("card-valor");
     configurarFormatacaoValor("boleto-valor");
     configurarFormatacaoValor("manutencao");
@@ -642,4 +703,26 @@ content %}
     configurarFormatacaoValor("outros");
   });
 </script>
+<script>
+  document.querySelectorAll(".telefone-copiavel").forEach(function (elemento) {
+    elemento.addEventListener("click", function () {
+      const numero = this.dataset.numero;
+      const copiadoMsg = this.nextElementSibling;
+
+      navigator.clipboard
+        .writeText(numero)
+        .then(() => {
+          copiadoMsg.style.display = "inline";
+
+          setTimeout(() => {
+            copiadoMsg.style.display = "none";
+          }, 2000);
+        })
+        .catch((err) => {
+          console.error("Erro ao copiar:", err);
+        });
+    });
+  });
+</script>
+
 {% endblock %}

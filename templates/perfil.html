@@ -1,0 +1,154 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}Perfil{% endblock %} {% block
+content %}
+<h2 class="text-center">Perfil</h2>
+
+<link href="../static/css/dashboard.css" rel="stylesheet" />
+<div class="mb-4">
+  <h4>{{data_user.name}}</h4>
+</div>
+<div class="row">
+  <div class="col-lg-6 col-md-6 col-sm-12">
+    <div
+      class="mb-3"
+      style="background-color: rgb(201, 201, 201); padding: 10px"
+    >
+      <select class="form-select" id="city-select-add" name="city" required>
+        {% for city_id, city_name in cities.items() %}
+        <option value="{{ city_name }}">{{ city_name }}</option>
+        {% endfor %}
+      </select>
+      <button
+        class="btn btn-primary mt-2"
+        type="button"
+        onclick="addCity('{{ id_user }}')"
+        style="width: 100%"
+      >
+        Adicionar Cidade
+      </button>
+    </div>
+
+    <ul class="list-group">
+      {% for city in data_user.cities %}
+      <li class="list-group-item">
+        <span>{{city}}</span>
+        <a
+          class="btn btn-danger btn-sm float-end"
+          onclick="removeCity({{ loop.index0 }}, '{{ id_user }}', '{{ city }}')"
+          >Remover</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-lg-6 col-md-6 col-sm-12">
+    <span>Porcentagem atual</span>
+    <span>{{data_user.porcentagem}}%</span>
+
+    <div style="background-color: rgb(201, 201, 201); padding: 10px">
+      <div class="input-group mb-3">
+        <input
+          type="text"
+          class="form-control"
+          aria-describedby="basic-addon1"
+        />
+      </div>
+      <button
+        class="btn btn-primary"
+        type="button"
+        onclick="updatePercentage('{{ id_user }}')"
+        style="width: 100%"
+      >
+        Alterar Porcentagem
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  function removeCity(index, id, city) {
+    if (!confirm(`Tem certeza que deseja remover a cidade "${city}"?`)) return;
+
+    fetch("/user_remove_city", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ index: index, id: id, city: city }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload(); // Atualiza a página
+        } else {
+          alert(data.error || "Erro ao remover cidade.");
+        }
+      })
+      .catch((error) => {
+        console.error("Erro:", error);
+        alert("Ocorreu um erro ao tentar remover a cidade.");
+      });
+  }
+</script>
+<script>
+  function addCity(id) {
+    const selectedCity = document.getElementById("city-select-add").value;
+    console.log(id);
+    console.log(selectedCity);
+    fetch("/user_add_city", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ city: selectedCity, id: id }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Cidade adicionada com sucesso!");
+          location.reload(); // recarrega para atualizar a lista
+        } else {
+          alert(data.error || "Erro ao adicionar cidade.");
+        }
+      })
+      .catch((error) => {
+        console.error("Erro:", error);
+        alert("Erro ao adicionar cidade.");
+      });
+  }
+</script>
+<script>
+  function updatePercentage(id) {
+    const input = document.querySelector(".form-control"); // ou use um ID se quiser mais precisão
+    const value = input.value.trim();
+
+    if (!value || isNaN(value)) {
+      alert("Por favor, insira uma porcentagem válida.");
+      return;
+    }
+
+    fetch("/user_update_percentage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: id,
+        percentage: parseFloat(value),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Porcentagem atualizada com sucesso.");
+          location.reload(); // opcional: recarrega a página para atualizar visualmente
+        } else {
+          alert(data.error || "Erro ao atualizar a porcentagem.");
+        }
+      })
+      .catch((error) => {
+        console.error("Erro:", error);
+        alert("Erro ao conectar com o servidor.");
+      });
+  }
+</script>
+{% endblock %}

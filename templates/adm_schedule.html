@@ -12,6 +12,7 @@ content %}
       <button id="fetch-data" class="btn btn-primary w-100">Buscar</button>
     </div>
   </div>
+  <div id="resumo-financeiro"></div>
   <div id="results">
     <!-- Resultados serão inseridos aqui -->
   </div>
@@ -251,6 +252,19 @@ content %}
   });
 
   function reloadTechnicianSchedules() {
+    let totalGeral = 0;
+    let totalRecebido = 0;
+    let totalPendente = 0;
+    let totalAguardando = 0;
+
+    function parseToNumber(value) {
+      if (typeof value === "string") {
+        return (
+          parseFloat(value.replace("R$", "").replace(",", ".").trim()) || 0
+        );
+      }
+      return Number(value) || 0;
+    }
     const date = document.getElementById("date").value;
 
     if (!date) {
@@ -285,6 +299,19 @@ content %}
             <ul class="list-group">
               ${schedules
                 .map((schedule) => {
+                  const status = (
+                    schedule.status_paymment || "aguardando"
+                  ).toLowerCase();
+                  const valor = parseToNumber(schedule.newprice);
+                  totalGeral += valor;
+
+                  if (status === "recebido") {
+                    totalRecebido += valor;
+                  } else if (status === "pendente") {
+                    totalPendente += valor;
+                  } else {
+                    totalAguardando += valor;
+                  }
                   const hasPaymentStatus = !!schedule.status_paymment;
                   return `
                     <li class="schedule-item list-group-item list-group-item-action ${
@@ -308,15 +335,56 @@ content %}
                             : 'data-toggle="modal" data-target="#paymentModal"'
                         }
                     >
+                    Cidade: ${schedule.city},
                       Nome: ${schedule.name}, Serviço: ${
                     schedule.service
-                  }, Telefone: ${schedule.phone}, Hora: ${schedule.newprice}
+                  }, Telefone: ${schedule.phone}, Valor: ${schedule.newprice}
+                  <span class="badge ${
+                    schedule.status_paymment?.toLowerCase() === "recebido"
+                      ? "bg-success"
+                      : schedule.status_paymment?.toLowerCase() === "pendente"
+                      ? "bg-primary"
+                      : "bg-warning"
+                  }" style="text-transform: capitalize;">
+                  ${schedule.status_paymment || "Aguardando"}
+                  </span>
+
                     </li>`;
                 })
                 .join("")}
             </ul>
           </div>
         `;
+          const resumoHTML = `
+        <div class="card p-3 mb-4">
+          <h5>Resumo Financeiro</h5>
+          <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Total Geral</span>
+              <strong>R$ ${totalGeral.toFixed(2).replace(".", ",")}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Recebido</span>
+              <strong class="text-success">R$ ${totalRecebido
+                .toFixed(2)
+                .replace(".", ",")}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Pendente</span>
+              <strong class="text-primary">R$ ${totalPendente
+                .toFixed(2)
+                .replace(".", ",")}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Aguardando</span>
+              <strong class="text-warning">R$ ${totalAguardando
+                .toFixed(2)
+                .replace(".", ",")}</strong>
+            </li>
+          </ul>
+        </div>
+      `;
+          document.getElementById("resumo-financeiro").innerHTML = resumoHTML;
 
           technicianDiv.innerHTML = cardBody;
           resultsDiv.appendChild(technicianDiv);

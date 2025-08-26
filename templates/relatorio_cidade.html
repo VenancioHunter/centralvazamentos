@@ -111,6 +111,35 @@
             </div>
         </div>
     </div>
+    <div class="mt-4">
+        <h5>Valor Médio por Serviço Agendado</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Serviço</th>
+                    <th>Valor Médio</th>
+                </tr>
+            </thead>
+            <tbody id="average-service-values">
+                <!-- Conteúdo será preenchido via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div>
+        <table class="table table-bordered mt-4" id="scheduled-services-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Telefone</th>
+                <th>Serviço</th>
+                <th>Valor</th>
+                <th>Observação</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    </div>
 </div>
 <script>
     async function fetchAttendances() {
@@ -148,17 +177,17 @@
                 const serviceScheduledDetails = document.getElementById("service-scheduled-details");
                 serviceScheduledDetails.innerHTML = ""; // Limpa a lista existente
 
-                for (const [service, percentage] of Object.entries(data.service_agendado_percentages)) {
-                    const agendadoCount = data.service_counts_agendado[service] || 0;
-                    const totalCount = data.service_counts[service] || 0;
+                const valueTotals = data.service_value_totals_agendado || {};
+
+                for (const [service, agendadoCount] of Object.entries(data.service_counts_agendado)) {
                     const percentageTotal = data.service_percentages_agendado[service] || 0;
+                    const totalValue = valueTotals[service] || 0;
+
                     const listItem = document.createElement("li");
                     listItem.className = "list-group-item";
 
-                    // Formata a mensagem
-                    listItem.innerText = `
-                    ${service}: ${agendadoCount} ( Participação ${percentageTotal}%) | Agendado ${percentage}% 
-                `.trim();
+                    // Formata a mensagem com valor total
+                    listItem.innerText = `${service}: ${agendadoCount} (Participação ${percentageTotal}%) | Total: R$ ${parseFloat(totalValue).toFixed(2)}`;
 
                     serviceScheduledDetails.appendChild(listItem);
                 }
@@ -180,25 +209,43 @@
 
                     channelDetails.appendChild(listItem);
                 }
+                const scheduledServicesTableBody = document.querySelector("#scheduled-services-table tbody");
+                scheduledServicesTableBody.innerHTML = ""; // Limpa a tabela
 
-                // Atualiza os detalhes de canais "Agendado"
-                const channelScheduledDetails = document.getElementById("channel-scheduled-details");
-                channelScheduledDetails.innerHTML = ""; // Limpa a lista existente
+                if (data.service_schedule_list && data.service_schedule_list.length > 0) {
+                    data.service_schedule_list.forEach(item => {
+                        const row = document.createElement("tr");
 
-                for (const [channel, percentage] of Object.entries(data.channel_percentages_agendado)) {
-                    const totalCountAgendado = data.channel_counts_agendado[channel] || 0;
-                    const totalValueChannel = data.value_total_channel[channel] || 0; // Obtém o valor total do canal
+                        row.innerHTML = `
+                            <td>${item.date || '-'}</td>
+                            <td>${item.phone || '-'}</td>
+                            <td>${item.service || '-'}</td>
+                            <td>R$ ${parseFloat(item.price).toFixed(2)}</td>
+                            <td>${item.obs || ''}</td>
+                        `;
 
-                    const listItem = document.createElement("li");
-                    listItem.className = "list-group-item";
-
-                    // Formata a mensagem
-                    listItem.innerText = `
-                        ${channel}: ${totalCountAgendado} atendimentos (${percentage}%) | Total: R$ ${parseFloat(totalValueChannel).toFixed(2)}
-                    `.trim();
-
-                    channelScheduledDetails.appendChild(listItem);
+                        scheduledServicesTableBody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td colspan="5" class="text-center">Nenhum serviço agendado encontrado.</td>`;
+                    scheduledServicesTableBody.appendChild(row);
                 }
+
+                // Atualiza a tabela de valores médios por serviço agendado
+                const avgValuesBody = document.getElementById("average-service-values");
+                avgValuesBody.innerHTML = ""; // Limpa a tabela anterior
+
+                const averages = data.service_value_averages_agendado || {};
+                for (const [service, avg] of Object.entries(averages)) {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${service}</td>
+                        <td>R$ ${parseFloat(avg).toFixed(2).replace('.', ',')}</td>
+                    `;
+                    avgValuesBody.appendChild(row);
+                }
+
 
             } else {
                 alert(data.error || "Erro ao buscar os dados.");

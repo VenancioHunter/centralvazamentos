@@ -1,0 +1,470 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %}
+
+{% block title %}Orcamento Cliente{% endblock %}
+
+{% block content %}
+<script src="../static/js/formatarValor.js"></script>
+<div class="container">
+<form class="p-2" id="laudo-form" style="background-color: white;">
+
+    <div class="mt-5 mb-3" align="center">
+        <h2>Orçamento</h2>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body" style="background-color: rgba(222, 184, 135, 0.39);">
+            <div class="mb-3">
+                <label for="nome" style="font-size: small; font-weight: bold;">Nome</label>
+                <input class="form-control" type="text" id="nome" name="nome" style="text-transform: capitalize;" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="cpf" style="font-size: small; font-weight: bold;">CPF/CNPJ</label>
+                <input class="form-control" type="tel" id="cpf" name="cpf" oninput="formatarCpfCnpj(this)" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="endereco" style="font-size: small; font-weight: bold;">Endereço</label>
+                <input class="form-control" type="text" id="endereco" style="text-transform: capitalize;" name="endereco" required>
+            </div class="mb-3">
+
+            <div class="mb-3">
+                <label for="bairro" style="font-size: small; font-weight: bold;">Bairro</label>
+                <input class="form-control" type="text" id="bairro" style="text-transform: capitalize;" name="bairro" required>
+            </div>
+            
+            <div class="mb-3">
+                <Label style="font-size: small; font-weight: bold;">Estado</Label>
+                <select id="estado" class="form-select" name="estado" required>
+                    <option>Selecionar</option>
+                    <option value="AL">Alagoas</option>
+                    <option value="BA">Bahia</option>
+                    <option value="GO">Goiás</option>
+                    <option value="SP">São Paulo</option>
+                    <option value="SC">Santa Catarina</option>
+                    <option value="RS">Rio Grande do Sul</option>
+                    <option value="PR">Paraná</option>
+                    <option value="MG">Minas Gerais</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="especie" style="font-size: small; font-weight: bold;">Cidade</label>
+                <select id="cidade" class="form-select" name="cidade">
+                    <option value="">Selecione um ESTADO primeiro</option>
+                </select>
+            </div>
+
+            <!--<div class="mb-3">
+                <label for="cidade" style="font-size: small; font-weight: bold;">Cidade</label>
+                <input class="form-control" type="text" id="cidade" name="cidade" style="text-transform: capitalize;" required>
+            </div>-->
+
+        </div>
+    </div>
+    <div>
+        <div class="">
+            <h5 align="center">ORÇAMENTO</h5>
+        </div>
+    </div>
+    <div id="relatorioVistoria" >
+        
+       <!-- <div class="my-4">
+            <label>Serviço</label>
+            <select class="form-select" id="tipodeservicoVistoria" onchange="exibirRevisaoDeConta()">
+                <option value="">Selecionar</option>
+                <option value="Conta Alta">Conta Alta</option>
+                <option value="Infiltração">Infiltração</option>
+                <option value="Rede de Incêndio">Rede de Incêndio</option>
+                <option value="Piscina">Piscina</option>
+            </select>
+        
+
+        <div class=" mb-3" id="verificacao-conta-alta" style="display: none; background-color: #f0f0f0; padding: 10px;">
+            <div class="container my-2 p-2" style="background-color: rgb(202, 241, 202);">
+                <label style="font-size: small; font-weight: bold;">Possui vazamento?</label>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="possui-vazamento" id="sim-vazamento" value="sim">
+                    <label class="form-check-label" for="sim-vazamento">
+                    Sim, possui vazamento.
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="possui-vazamento" id="nao-vazamento" value="nao">
+                    <label class="form-check-label" for="nao-vazamento">
+                        Não possui vazamento.
+                    </label>
+                </div>
+            </div>
+            <div class="container my-2 p-2" style="background-color: rgb(241, 202, 202);">
+                <label style="font-size: small; font-weight: bold;">As contas precisam ser revisadas pelas empresa de Saneamento?</label>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="revisar-conta" id="sim-conta-revisada" value="sim" checked>
+                    <label class="form-check-label" for="sim-conta-revisada">
+                        Sim, precisa ser revisada.
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="revisar-conta" id="nao-conta-revisada" value="nao" disabled>
+                    <label class="form-check-label" for="nao-conta-revisada">
+                        Não precisa ser revisada.
+                    </label>
+                </div>
+            </div>
+        </div></div>-->
+        <div class="my-4">
+            <div>
+                <h5>Serviço Executado</h5>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="geofone" id="geofonamentoCheckbox">
+                <label class="form-check-label" for="geofonamentoCheckbox">
+                    Geofonamento
+                </label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="pressurizacao" id="pressurizacaoCheckbox">
+                <label class="form-check-label" for="pressurizacaoCheckbox">
+                    Pressurização
+                </label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="cameratermografica" id="cameraTermograficaCheckbox">
+                <label class="form-check-label" for="cameraTermograficaCheckbox">
+                    Camêra Termográfica
+                </label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="sensordeumidade" id="sensorDeUmidadeCheckbox">
+                <label class="form-check-label" for="sensorDeUmidadeCheckbox">
+                    Sensor de Umidade
+                </label>
+            </div>
+        </div>
+
+        <div class="container mb-3">
+            <div>
+                <label for="valorlocalizacao" style="font-size: small; font-weight: bold;">Valor Vistoria</label>
+                <input class="form-control" type="tel" id="valorlocalizacao" style="text-transform: capitalize;" name="valorlocalizacao">
+            </div>
+            <div>
+                <!--<label for="valorreparo" style="font-size: small; font-weight: bold;">Valor Reparo</label>-->
+                <input class="form-control" type="tel" id="valorreparo" style="text-transform: capitalize;" name="valorreparo" hidden>
+            </div>
+        </div>
+
+        <div class="container mb-3">
+            <div class="row" style="background-color: #f0f0f0; padding: 10px;">
+                <div class="mb-3">
+                    <label for="observacao" style="font-size: small; font-weight: bold;">Observação</label>
+                    <textarea class="form-control" id="observacao" name="observacao" rows="4"></textarea>
+                </div>
+            </div>
+        
+        </div>
+
+        <div class="mb-3">
+            <label for="tecnico" style="font-size: small; font-weight: bold;">Responsável</label>
+            <select class="form-select" id="tecnico">
+                <option value="">Selecionar Técnico</option>
+                <option value="Venancio Benevides" data-cnpj="98.765.432/0001-45" data-imagem="assinaturavenancio.png" >Venancio Benevides</option>
+                <option value="Alan Honorato" data-cnpj="43.973.146/0001-26" data-imagem="assinaturaalanhonorato.png" selected> Alan Honorato </option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="data" style="font-size: small; font-weight: bold;">Data</label>
+            <input class="form-control" type="date" id="data" name="data" required>
+        </div>
+
+        <div class="my-4">
+            <br>
+            <button type="button" onclick="gerarPDF()" style="width: 100%;">Baixar como PDF</button>
+            <br>
+            <br>
+        </div>
+    </div>
+</form>
+</div>
+
+<script>
+    function exibirRevisaoDeConta() {
+        const tipoRelatorio = document.getElementById("tipodeservicoVistoria").value;
+
+        // Oculta todas as divs
+        document.getElementById("verificacao-conta-alta").style.display = "none";
+
+        // Exibe a div correspondente
+        if (tipoRelatorio === "Conta Alta") {
+            document.getElementById("verificacao-conta-alta").style.display = "block";
+        } 
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script>
+    const DateTime = luxon.DateTime;
+        const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
+        const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
+        const dateInput = document.getElementById('data');
+        dateInput.value = formattedDate;
+
+        const dateInputReparo = document.getElementById('data-reparo');
+            dateInputReparo.value = formattedDate;
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script>
+    function formatarCpfCnpj(input) {
+            let valor = input.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+
+            if (valor.length <= 11) {
+                // Formatar como CPF: 123.456.789-09
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else if (valor.length > 11 && valor.length <= 14) {
+                // Formatar como CNPJ: 112.345.678/0001-23 ou 12.345.678/0001-23
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');      // Exemplo: 112.345
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');      // Exemplo: 112.345.678
+                valor = valor.replace(/(\d{3})(\d)/, '$1/$2');      // Exemplo: 112.345.678/0001
+                valor = valor.replace(/(\d{4})(\d{1,2})$/, '$1-$2'); // Exemplo: 112.345.678/0001-23
+            } else if (valor.length > 14) {
+                // Adaptar CNPJs maiores que 14 dígitos
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');      // Exemplo: 123.456
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');      // Exemplo: 123.456.789
+                valor = valor.replace(/(\d{3})(\d)/, '$1/$2');      // Exemplo: 123.456.789/0012
+                valor = valor.replace(/(\d{4})(\d{2})$/, '$1-$2');   // Exemplo: 123.456.789/0012-34
+            }
+
+            input.value = valor; // Atualiza o valor do campo
+        }
+
+</script>
+<script src="../static/js/orcamento.js"></script>
+
+<script>
+    const geofonamentoCheckbox = document.getElementById("geofonamentoCheckbox");
+    const geofonamentoInfo = document.getElementById("geofonamentoInfo");
+
+    geofonamentoCheckbox.addEventListener("change", function () {
+        // Verifica se o checkbox está marcado
+        if (this.checked) {
+            geofonamentoInfo.style.display = "block"; // Mostra as informações
+        } else {
+            geofonamentoInfo.style.display = "none"; // Oculta as informações
+        }
+    });
+</script>
+<script>
+    const maxWords = 15; // Limite máximo de palavras
+
+        // Seleciona apenas os inputs que têm o atributo data-limit="true"
+        const inputFields = document.querySelectorAll('input[data-limit="true"]');
+
+        // Adiciona o evento a cada input de texto com o atributo data-limit="true"
+        inputFields.forEach(input => {
+                input.addEventListener("input", function () {
+                    const words = this.value.split(/\s+/).filter(word => word.length > 0); // Divide em palavras e remove vazias
+                    if (words.length > maxWords) {
+                        this.value = words.slice(0, maxWords).join(" "); // Limita ao número máximo de palavras
+                    }
+                });
+
+                input.addEventListener("keydown", function (event) {
+                    const words = this.value.split(/\s+/).filter(word => word.length > 0); // Conta as palavras atuais
+                    if (words.length >= maxWords && event.key !== "Backspace" && event.key !== "Delete") {
+                        event.preventDefault(); // Bloqueia novas entradas
+                    }
+                });
+            });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        configurarFormatacaoValor("valorlocalizacao");
+        configurarFormatacaoValor("valorreparo");
+        configurarFormatacaoValor("valortotal");
+    });
+</script>
+<script>
+    // Função para remover a formatação do valor formatado
+    function removerFormatacao(valorFormatado) {
+
+        let valor = valorFormatado.replace(/\D/g, '');
+
+        // Limita o valor ao menos a 3 dígitos (2 para decimais)
+        valor = valor.padStart(3, "0");
+
+        // Mantém as últimas 2 casas para as decimais
+        const parteInteira = valor.slice(0, -2).replace(/^0+(?=\d)/, ""); // Remove zeros extras à esquerda
+        const parteDecimal = valor.slice(-2);
+
+        const parteInteiraFormatada = parteInteira.replace(/\./g, '').replace(',', '.'); // Remove pontos e troca vírgula por ponto
+        
+        //const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        // Atualiza o valor no campo de entrada
+        const valorNumerico = `${parteInteiraFormatada}.${parteDecimal}`;
+        console.log(valorNumerico)
+        const t = parseFloat(valorNumerico);
+        console.log(t)
+        return parseFloat(valorNumerico) || 0; // Converte para número
+    }
+
+    // Seleciona os campos de entrada
+    const valorLocalizacaoInput = document.getElementById("valorlocalizacao");
+    const valorReparoInput = document.getElementById("valorreparo");
+    const valorTotalDiv = document.getElementById("valortotal");
+
+    // Função para calcular a soma e atualizar o total
+    function atualizarValorTotal() {
+        const valorLocalizacao = removerFormatacao(valorLocalizacaoInput.value);
+        const valorReparo = removerFormatacao(valorReparoInput.value);
+   
+        const valorTotal = valorLocalizacao + valorReparo;
+
+        valorTotalDiv.textContent = valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Adiciona eventos para atualizar o total ao digitar nos campos
+    valorLocalizacaoInput.addEventListener("input", atualizarValorTotal);
+    valorReparoInput.addEventListener("input", atualizarValorTotal);
+
+</script>
+
+<script>
+    const selectEstado = document.getElementById("estado");
+    const selectCidade = document.getElementById("cidade");
+
+    // Objeto que mapeia as opções
+    const optionsMap = {
+        "AL": [
+            { value: "Maceió", text: "Maceió" },
+            { value: "Satuba", text: "Satuba" },
+            { value: "Santa Luzia do Norte", text: "Santa Luzia do Norte" },
+            { value: "Coqueiro Seco", text: "Coqueiro Seco" },
+            { value: "Cadoz", text: "Cadoz" },
+            { value: "Rio Largo", text: "Rio Largo" },
+            { value: "Marechal Deodoro", text: "Marechal Deodoro" },
+            { value: "Santa Luzia", text: "Santa Luzia" },
+            { value: "Barra de São Miguel", text: "Barra de São Miguel" },
+            { value: "Pilar", text: "Pilar" },
+            { value: "Atalaia", text: "Atalaia" },
+            { value: "Murici", text: "Murici" },
+            { value: "Messias", text: "Messias" },
+            { value: "Barra de Santo Antônio", text: "Barra de Santo Antônio" },
+            { value: "Paripueira", text: "Paripueira" },
+            
+        ],
+        "BA": [
+            { value: "Salvador", text: "Salvador" },
+            { value: "Camaçari", text: "Camaçari" },
+            { value: "Feira de Santana", text: "Feira de Santana" },
+            { value: "Lauro de Freitas", text: "Lauro de Freitas" },
+            { value: "Simões Filho", text: "Simões Filho" },
+            { value: "Gamboa", text: "Gamboa" },
+            { value: "Vera Cruz", text: "Vera Cruz" },
+            { value: "Itaparica", text: "Itaparica" },
+            { value: "Mata de São João", text: "Mata de São João" },
+            { value: "Alagoinhas", text: "Alagoinhas" },
+            { value: "Madre De Deus", text: "Madre De Deus" },
+        ],
+        "GO": [
+            { value: "Goiânia", text: "Goiânia" },
+            { value: "Aparecida de Goiânia", text: "Aparecida de Goiânia" },
+            { value: "Senador Canedo", text: "Senador Canedo" },
+            { value: "Trindade", text: "Trindade" },
+            { value: "Anápolis", text: "Anápolis" },
+            { value: "Goianira", text: "Goianira" },
+        ],
+        "SP": [
+            { value: "São Paulo", text: "São Paulo" },
+            { value: "Osasco", text: "Osasco" },
+            { value: "Barueri", text: "Barueri" },
+            { value: "Campinas", text: "Campinas" },
+            { value: "Itupeva", text: "Itupeva" },
+            { value: "Franco Da Rocha", text: "Franco Da Rocha" },
+            { value: "Jundiaí", text: "Jundiaí" },
+            { value: "Campo Limpo Paulista", text: "Campo Limpo Paulista" },
+            { value: "Louveira", text: "Louveira" },
+            { value: "Várzea Paulista", text: "Várzea Paulista" },
+            { value: "Vinhedo", text: "Vinhedo" },
+            { value: "Valinhos", text: "Valinhos" },
+            { value: "Hortolândia", text: "Hortolândia" },
+            { value: "Paulínia", text: "Paulínia" },
+            { value: "Itatiba", text: "Itatiba" },
+            { value: "Indaiatuba", text: "Indaiatuba" },
+            { value: "Jaguariúna", text: "Jaguariúna" },
+            { value: "Sumaré", text: "Sumaré" },
+            { value: "Diadema", text: "Diadema" },
+            { value: "São Bernardo do Campo", text: "São Bernardo do Campo" },
+            { value: "São Caetano do Sul", text: "São Caetano do Sul" },
+            { value: "Santo André", text: "Santo André" },
+            { value: "Nova Odessa", text: "Nova Odessa" },
+            { value: "Atibaia", text: "Atibaia" },
+            { value: "Americana", text: "Americana" },
+            { value: "Guarulhos", text: "Guarulhos" },
+            {value: "Poa", text: "Poa"},
+            {value: "Mogi das Cruzes", text: "Mogi das Cruzes"},
+            {value: "Itaquacetuba", text: "Itaquacetuba"},
+            {value: "Cajamar", text: "Cajamar"},
+            {value: "Amparo", text: "Amparo"},
+            {value: "Capivari", text: "Capivari"},
+            {value: "Sorocaba", text: "Sorocaba"},
+            
+        ],
+        "SC": [
+            { value: "Florianópolis", text: "Florianópolis" },
+            { value: "São José", text: "São José" },
+            { value: "Palhoça", text: "Palhoça" },
+            { value: "Biguaçu", text: "Biguaçu" },
+            ],
+
+        "RS": [
+            { value: "Porto Alegre", text: "Porto Alegre" },
+            { value: "Canoas", text: "Canoas" },
+            { value: "Glorinha", text: "Glorinha" },
+            { value: "Guaíba", text: "Guaíba" },
+            { value: "São Leopoldo", text: "São Leopoldo" },
+            ],
+        "PR": [
+            { value: "Curitiba", text: "Curitiba" },
+            { value: "São José dos Pinhais", text: "São José dos Pinhais" },
+            { value: "Pinhais", text: "Pinhais" },
+            { value: "Colombo", text: "Colombo" },
+            { value: "Araucária", text: "Araucária" },
+            { value: "Campo Largo", text: "Campo Largo" },
+            { value: "Almirante Tamandaré", text: "Almirante Tamandaré" },
+        ],
+        "MG": [
+            { value: "Belo Horizonte", text: "Belo Horizonte" },
+            { value: "Contagem", text: "Contagem" },
+            { value: "Betim", text: "Betim" },
+            { value: "Sabará", text: "Sabará" },
+            { value: "Santa Luzia", text: "Santa Luzia" },
+            { value: "Ibirité", text: "Ibirité" },
+            { value: "Nova Lima", text: "Nova Lima" },
+        ]
+    };
+
+    // Função que atualiza o segundo select com base na seleção do primeiro
+    selectEstado.addEventListener("change", function () {
+        const selectedValue = selectEstado.value;
+
+        // Limpa o segundo select
+        selectCidade.innerHTML = "<option value=''>Selecione uma Cidade</option>";
+
+        // Se houver uma opção válida no primeiro select
+        if (optionsMap[selectedValue]) {
+            // Adiciona as novas opções no segundo select
+            optionsMap[selectedValue].forEach(option => {
+                const newOption = document.createElement("option");
+                newOption.value = option.value;
+                newOption.text = option.text;
+                selectCidade.appendChild(newOption);
+            });
+        }
+    });
+</script>
+
+{% endblock %}

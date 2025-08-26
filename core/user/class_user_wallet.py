@@ -14,10 +14,15 @@ class User_Wallet:
         day = f"{date.day:02d}"
 
         transation ={
+            'numero_os': data['numero_os'],
             'os_id': data['os_id'],
             'os_date': data['os_date'],
             'method': data['method'],
             'amount': data['amount'],
+            'taxa': data['taxa'],
+            'valor_bruto': data['valor_bruto'],
+            'outros_custos_service': data['outros_custos_service'],
+            'observacoes_service': data['observacoes_service'],
         }
 
         # Salva os dados no Firebase com o novo ID gerado automaticamente
@@ -74,4 +79,10 @@ class User_Wallet:
     
         data = db.child("users").child(id).child("porcentagem").get().val()
 
+        return data
+    
+    def get_percentagem_tecnico(id_tecnico):
+        
+        data = db.child("users").child(id_tecnico).child("porcentagem").get().val()
+        
         return data

@@ -1,0 +1,33 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<h2>Transações Pendentes</h2>
+<table class="table table-dark table-striped">
+  <tr>
+    <th>Usuário</th>
+    <th>Tipo</th>
+    <th>Valor</th>
+    <th>Descrição</th>
+    <th>Data</th>
+    <th>Ação</th>
+  </tr>
+  {% for id, p in pendentes.items() %}
+  <tr>
+    <td>{{ p.user }}</td>
+    <td>{{ p.amount }}</td>
+    <td>{{ p.category }}</td>
+    <td>{{ p.especie }}</td>
+    <td>{{ p.destinatario }}</td>
+    <td>{{ p.timestamp | datetimeformat }}</td>
+    <td>
+      <a
+        href="{{ url_for('confirmar_transacao', ano=p.ano, mes=p.mes, dia=p.dia, pendente_id=id) }}"
+        class="btn btn-success btn-sm"
+        >Confirmar</a
+      >
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
