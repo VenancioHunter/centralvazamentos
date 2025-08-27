@@ -1223,29 +1223,29 @@ def extrato_tecnico():
                     grouped_transactions[dia]['total_amount'] += amount
 
     # Buscar os custos do dia específico
-    costs_path = f"users/{session['user']}/wallet/costs/{ano}/{mes}"
-    month_costs_data = db.child(costs_path).get().val() or {}
+    #costs_path = f"users/{session['user']}/wallet/costs/{ano}/{mes}"
+    #month_costs_data = db.child(costs_path).get().val() or {}
 
     # Garantir que o dia está nos custos recuperados
-    costs_data = month_costs_data.get(dia, {})  # Retorna um dicionário vazio se o dia não existir
+    #costs_data = month_costs_data.get(dia, {})  # Retorna um dicionário vazio se o dia não existir
     
  
 
-    if costs_data:
+    #if costs_data:
         # Acessar diretamente a única chave no dicionário
-        daily_costs = list(costs_data.values())[0]  # Acessa o primeiro (e único) valor do dicionário
+        #daily_costs = list(costs_data.values())[0]  # Acessa o primeiro (e único) valor do dicionário
 
         # Extrair os valores dos custos, assumindo 0.0 se o campo não existir
-        combustivel = float(daily_costs.get('combustivel', 0.0))
-        manutencao = float(daily_costs.get('manutencao', 0.0))
-        pedagio = float(daily_costs.get('pedagio', 0.0))
-        reparo = float(daily_costs.get('reparo', 0.0))
-        outros = float(daily_costs.get('outros', 0.0))
-        total_costs = combustivel + manutencao + pedagio + reparo + outros
+    combustivel = 0.0
+    manutencao = 0.0
+    pedagio = 0.0
+    reparo = 0.0
+    outros = 0.0
+    total_costs = combustivel + manutencao + pedagio + reparo + outros
 
 
         # Atribuir os valores ao dicionário de transações agrupadas
-        if dia in grouped_transactions:
+    if dia in grouped_transactions:
             grouped_transactions[dia]['combustivel'] = combustivel
             grouped_transactions[dia]['manutencao'] = manutencao
             grouped_transactions[dia]['pedagio'] = pedagio
