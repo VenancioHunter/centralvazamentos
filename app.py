@@ -809,7 +809,6 @@ def finalizar_os():
     taxa = convert_monetary_value(data.get('taxa') or "0.00")
     outros_custos_service = convert_monetary_value(data.get('outrosCustosService') or "0.00")
     observacoes_service = data.get('observacaoService') or ""
-    print(outros_custos_service)
     
     create_paymment = {}
 
@@ -866,13 +865,13 @@ def finalizar_os():
 
                 try: 
 
-                    Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service,observacoes_service=observacoes_service)
-
-                    Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
-
+                    id_create_transaction_wallet = Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
+                    
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
-                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
+                    id_create_transaction_user = User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
+
+                    Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service,observacoes_service=observacoes_service, id_create_transaction_user=id_create_transaction_user, id_create_transaction_wallet=id_create_transaction_wallet)
 
                     #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=amount_financeiro, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
                     
@@ -911,13 +910,15 @@ def finalizar_os():
 
                 try:
 
-                    Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service,observacoes_service=observacoes_service)
-
-                    Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
+                    
+                    id_create_transaction_wallet = Wallet.create_paymment_success(data=create_paymment, date=os_date, city=os_city)
 
                     Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
-                    User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
+                    id_create_transaction_user = User_Wallet.create_transaction_success(data=create_paymment, date=os_date, city=os_city, id_tecnico=os_id_tecnico)
+
+                    Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=os_date, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service,observacoes_service=observacoes_service, id_create_transaction_user=id_create_transaction_user, id_create_transaction_wallet=id_create_transaction_wallet)
+
                     
                     #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=amount_financeiro, description=f'', method_payment=method_payment, origem=name, destinatario='', id_origem=os_id_tecnico)
 
@@ -1257,6 +1258,8 @@ def extrato_tecnico():
             grouped_transactions[dia]['tecnico_total'] = grouped_transactions[dia]['tecnico']
             grouped_transactions[dia]['empresa'] = (grouped_transactions[dia]['balance'] / 100) * participation_empresa
             # Passar a variável 'now' para o template
+
+    print(grouped_transactions)
     return render_template('extrato_tecnico.html', grouped_transactions=grouped_transactions, data=data, now=now)
 
 

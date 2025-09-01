@@ -28,7 +28,9 @@ class Wallet():
         month = f"{date.month:02d}"
         day = f"{date.day:02d}"
 
-        db.child("wallet").child(city).child(year).child(month).child(day).child('transactions').child('success').push(data)
+        result = db.child("wallet").child(city).child(year).child(month).child(day).child('transactions').child('success').push(data)
+
+        return result['name']  # Retorna o ID gerado automaticamente
 
     def create_paymment_pendding(data, date, city):
         try:

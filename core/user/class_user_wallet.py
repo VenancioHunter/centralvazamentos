@@ -26,7 +26,9 @@ class User_Wallet:
         }
 
         # Salva os dados no Firebase com o novo ID gerado automaticamente
-        db.child("users").child(id_tecnico).child('wallet').child('cities').child(city).child(year).child(month).child(day).child('transactions').child('success').push(transation)
+        result = db.child("users").child(id_tecnico).child('wallet').child('cities').child(city).child(year).child(month).child(day).child('transactions').child('success').push(transation)
+
+        return result['name']  # Retorna o ID gerado automaticamente
 
     def create_costs(id, date, data):
         try:

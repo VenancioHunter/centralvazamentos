@@ -82,7 +82,7 @@ class Financeiro:
 
 
 
-    def post_transaction_pendente( numero_os, id_os, os_city, os_date, date_payment, metodo_pagamento, valor_recebido, valor_liquido, taxa, outros_custos_service, observacoes_service):
+    def post_transaction_pendente( numero_os, id_os, os_city, os_date, date_payment, metodo_pagamento, valor_recebido, valor_liquido, taxa, outros_custos_service, observacoes_service, id_create_transaction_user, id_create_transaction_wallet):
 
         try:
             date = datetime.datetime.strptime(os_date, '%Y-%m-%d')
@@ -94,7 +94,6 @@ class Financeiro:
         day = f"{date.day:02d}"
 
         get_os = db.child("ordens_servico").child(os_city).child(year).child(month).child(day).child(id_os).get().val()
-        print(get_os)
         nome_tecnico = User.get_name(get_os['tecnico_id'])
         nome_atendente = User.get_name(get_os['user_id'])
 
@@ -134,7 +133,8 @@ class Financeiro:
             'taxa': taxa,
             'outros_custos_service': outros_custos_service,
             'observacoes_service': observacoes_service,
-            
+            'id_create_transaction_user': id_create_transaction_user,
+            'id_create_transaction_wallet': id_create_transaction_wallet,
             }
         
         try:

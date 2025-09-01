@@ -241,6 +241,7 @@ async function gerarPDF() {
             "Nova Lima": "(31) 93300-6395",
             "Santa Luzia": "(31) 93300-6395",
             "Ibirité": "(31) 93300-6395",
+            "Itabirito": "(31) 93300-6395",
 
         };
 
