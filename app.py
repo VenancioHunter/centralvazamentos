@@ -480,6 +480,7 @@ def vincular_tecnico():
     # Carregar todos os técnicos e cidades disponíveis
     all_users = db.child("users").get().val() or {}
     tecnicos = {uid: user for uid, user in all_users.items() if user['role'] == 'tecnico'}
+    
     all_cities = db.child("cities").get().val() or {}
 
     return render_template('vincular_tecnico.html', tecnicos=tecnicos, all_cities=all_cities)
@@ -889,7 +890,7 @@ def finalizar_os():
                 detalhes_pagamento["valor"] = data.get("cardValor")
                 detalhes_pagamento["parcelas"] = data.get("installments")
 
-                amount = "{:.2f}".format(float(convert_monetary_value(data.get('cardValor'))) - float(convert_monetary_value(taxa)))
+                amount = "{:.2f}".format(float(convert_monetary_value(data.get('cardValor'))) - (float(convert_monetary_value(taxa)) + float(convert_monetary_value(outros_custos_service))))
                 amount_financeiro = convert_monetary_value(data.get('cardValor'))
                 name = session['name']
                 method_payment = data.get("method")
