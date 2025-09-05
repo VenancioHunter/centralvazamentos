@@ -1605,16 +1605,15 @@ def update_pendding():
 
 
     try:
-        Wallet.create_paymment_success(data=paymment_pendding, date=date_paymment, city=os_city)
+        id_create_transaction_wallet = Wallet.create_paymment_success(data=paymment_pendding, date=date_paymment, city=os_city)
 
         Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
 
-        User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=id_tecnico)
-
+        id_create_transaction_user = User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=id_tecnico)
+        
+        Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=date_paymment, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service, observacoes_service=observacoes_service,  id_create_transaction_user=id_create_transaction_user, id_create_transaction_wallet=id_create_transaction_wallet)
+        
         db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).remove()
-
-        Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=date_paymment, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service, observacoes_service=observacoes_service)
-
         #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name_tecnico, id_origem=id_tecnico)
 
         #if os_value_service != amount:
