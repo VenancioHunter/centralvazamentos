@@ -49,6 +49,11 @@
                     <li class="list-group-item">
                         <!--<strong>Transação ID:</strong> {{ trans_data.transaction_id }}<br>
                         <strong>Transação ID OS:</strong> {{ trans_data.os_id }}<br>-->
+                        <div>
+                            <h5 class="badge bg-danger fs-6">
+                            Nº {{ trans_data.get('numero_os', 'N/A') }}
+                            </h5>
+                        </div>
                         <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
                         <strong>Método:</strong> {{ trans_data.method }}<br>
                         <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
@@ -66,7 +71,7 @@
                 </div>
                 <div class="col">
                     <div class="col">
-                        <button type="button" id="buttonconfirmarpaymment" class="btn btn-success float-end" data-toggle="modal" data-target="#confirmarpaymment" data-transactionid="{{ trans_data.transaction_id }}" data-osdate="{{ trans_data.os_date }}" data-vencimento="{{ trans_data.vencimento }}" data-idos="{{ trans_data.os_id }}" data-city="{{ trans_data.os_city }}" data-nametecnicoos="{{trans_data.name_tecnico}}" data-numeroos>Confirmar Pagamento</button>
+                        <button type="button" id="buttonconfirmarpaymment" class="btn btn-success float-end" data-toggle="modal" data-target="#confirmarpaymment" data-transactionid="{{ trans_data.transaction_id }}" data-osdate="{{ trans_data.os_date }}" data-vencimento="{{ trans_data.vencimento }}" data-idos="{{ trans_data.os_id }}" data-city="{{ trans_data.os_city }}" data-nametecnicoos="{{trans_data.name_tecnico}}" data-numeroos="{{trans_data.numero_os}}">Confirmar Pagamento</button>
                     </div>
                 </div>
             </div>
