@@ -42,42 +42,55 @@
     {% if transactions %}
 
     
-        {% for  trans_data in transactions %}
-        <div class="card mb-3">
-        <div class="card-body ">
-            <ul class="list-group">
-                    <li class="list-group-item">
-                        <!--<strong>Transação ID:</strong> {{ trans_data.transaction_id }}<br>
-                        <strong>Transação ID OS:</strong> {{ trans_data.os_id }}<br>-->
-                        <div>
-                            <h5 class="badge bg-danger fs-6">
-                            Nº {{ trans_data.get('numero_os', 'N/A') }}
-                            </h5>
-                        </div>
-                        <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
-                        <strong>Método:</strong> {{ trans_data.method }}<br>
-                        <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
-                        <strong>Técnico:</strong> {{ trans_data.name_tecnico }}<br>
-                        <strong>Cidade:</strong> {{ trans_data.os_city }}<br>
-                    </li>
-            </ul>
-        </div>
-        <div class="card-footer" align="center">
-            <div class="row">
-                <div class="col">
-                    {% set year, month, day = trans_data.os_date.split('-') %}
-                    <a class="btn btn-primary" href="/os/{{trans_data.os_city}}/{{year}}/{{month}}/{{day}}/{{trans_data.os_id}}"
-                        style="width: 80%;">Ver OS</a>
-                </div>
-                <div class="col">
-                    <div class="col">
-                        <button type="button" id="buttonconfirmarpaymment" class="btn btn-success float-end" data-toggle="modal" data-target="#confirmarpaymment" data-transactionid="{{ trans_data.transaction_id }}" data-osdate="{{ trans_data.os_date }}" data-vencimento="{{ trans_data.vencimento }}" data-idos="{{ trans_data.os_id }}" data-city="{{ trans_data.os_city }}" data-nametecnicoos="{{trans_data.name_tecnico}}" data-numeroos="{{trans_data.numero_os}}">Confirmar Pagamento</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
+        <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Nº OS</th>
+            <th>Valor</th>
+            <th>Método</th>
+            <th>Vencimento</th>
+            <th>Técnico</th>
+            <th>Cidade</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for trans_data in transactions %}
+        <tr>
+            <td>
+                <span class="badge bg-danger fs-6">
+                    Nº {{ trans_data.get('numero_os', 'N/A') }}
+                </span>
+            </td>
+            <td>R$ {{ trans_data.amount }}</td>
+            <td>{{ trans_data.method }}</td>
+            <td>{{ trans_data.vencimento }}</td>
+            <td>{{ trans_data.name_tecnico }}</td>
+            <td>{{ trans_data.os_city }}</td>
+            <td>
+                {% set year, month, day = trans_data.os_date.split('-') %}
+                <a class="btn btn-primary btn-sm" 
+                   href="/os/{{trans_data.os_city}}/{{year}}/{{month}}/{{day}}/{{trans_data.os_id}}">
+                   Ver OS
+                </a>
+                <button type="button" id="buttonconfirmarpaymment" 
+                        class="btn btn-success btn-sm" 
+                        data-toggle="modal" 
+                        data-target="#confirmarpaymment"
+                        data-transactionid="{{ trans_data.transaction_id }}" 
+                        data-osdate="{{ trans_data.os_date }}" 
+                        data-vencimento="{{ trans_data.vencimento }}" 
+                        data-idos="{{ trans_data.os_id }}" 
+                        data-city="{{ trans_data.os_city }}" 
+                        data-nametecnicoos="{{trans_data.name_tecnico}}" 
+                        data-numeroos="{{trans_data.numero_os}}">
+                        Confirmar
+                </button>
+            </td>
+        </tr>
         {% endfor %}
+    </tbody>
+</table>
     <!-- Modal para gerar OS -->
     <div class="modal fade" id="confirmarpaymment" tabindex="-1" role="dialog" aria-labelledby="paymmentModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
