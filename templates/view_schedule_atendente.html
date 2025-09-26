@@ -1,286 +1,418 @@
 <!-- templates/dashboard.html -->
-{% extends "layout.html" %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
-    <div class="my-4" align="center">
-        <h1>Agenda</h1>
-        <div>
-            <h5>{{ date }}</h5>
-        </div>
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<div class="my-4" align="center">
+  <h1>Agenda</h1>
+  <div>
+    <h5>{{ date }}</h5>
+  </div>
+</div>
+{% if ordens_servico %} {% for os_id, os in ordens_servico.items() %}
+<div class="card mb-3">
+  <div class="card-body" id="os-card-{{ os_id }}">
+    <h5 class="card-title">{{ os.city }}</h5>
+    <div class="my-3" align="end" style="font-weight: bold">
+      <div>
+        <span
+          >Início {{ os.start_datetime | datetimeformathour('%H:%M') }}
+          horas</span
+        >
+      </div>
+      <div>
+        <span
+          >Término {{ os.end_datetime | datetimeformathour('%H:%M') }}
+          horas</span
+        >
+      </div>
     </div>
-        {% if ordens_servico %}
-        {% for os_id, os in ordens_servico.items() %}
-        <div class="card mb-3" >
-            <div class="card-body" id="os-card-{{ os_id }}">
-                <h5 class="card-title">{{ os.city }}</h5>
-                <div class="my-3" align="end" style="font-weight: bold;">
-                    <div>
-                        <span>Início {{ os.start_datetime | datetimeformathour('%H:%M') }} horas</span>
-                    </div>
-                    <div>
-                        <span>Término {{ os.end_datetime | datetimeformathour('%H:%M') }} horas</span>
-                    </div>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Nome: {{ os.name }}</li>
-                    <li class="list-group-item">Telefone: {{ os.phone }}</li>
-                    <li class="list-group-item">Serviço: {{ os.service }}</li>
-                </ul>
-                <div class="p-4 my-4" style="background-color: rgb(219, 219, 219);">
-                    <label>Endereço</label>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Bairro/Setor: {{ os.address.bairro }}</li>
-                        <li class="list-group-item">Rua: {{ os.address.rua }}</li>
-                        <li class="list-group-item">Nº: {{ os.address.numero }}</li>
-                        <li class="list-group-item">Complemento: {{ os.address.complemento }}</li>
-                        <li class="list-group-item">Localização: <a href="{{ os.address.localizacao }}">{{
-                                os.address.localizacao }}</a></li>
-                    </ul>
-                </div>
-                <div align="end">
-                    <h5>Valor R$ {{ os.newprice }}</h5>
-                </div>
-        
-            </div>
-            <div class="card-footer">
-                <div class="row">
-                    <div class="col">
-                    <button type="button" id="cancelaros" class="btn btn-danger float-start" data-toggle="modal"
-                        data-target="#deletaOsModal" data-city="{{ os.city }}" data-idrecord="{{ os_id }}">Cancelar OS</button>
-                    </div>
-                    <div class="col">
-                        <button type="button" id="reagendar" class="btn btn-secondary float-end" data-toggle="modal"
-                            data-target="#osModal" data-city="{{ os.city }}" data-idrecord="{{ os_id }}">Reagendar</button>
-                    </div>
-                </div>
-                <div class="mt-3" align="center">
-                    <button type="button" class="btn btn-primary" onclick="copyCardContent('{{ os_id }}')">Copiar
-                            Informações</button>
-                </div>
-            </div>
-        </div>
-       {% endfor %}
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">Nome: {{ os.name }}</li>
+      <li class="list-group-item">Telefone: {{ os.phone }}</li>
+      <li class="list-group-item">Serviço: {{ os.service }}</li>
+    </ul>
+    <div class="p-4 my-4" style="background-color: rgb(219, 219, 219)">
+      <label>Endereço</label>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Bairro/Setor: {{ os.address.bairro }}</li>
+        <li class="list-group-item">Rua: {{ os.address.rua }}</li>
+        <li class="list-group-item">Nº: {{ os.address.numero }}</li>
+        <li class="list-group-item">
+          Complemento: {{ os.address.complemento }}
+        </li>
+        <li class="list-group-item">
+          Localização:
+          <a href="{{ os.address.localizacao }}"
+            >{{ os.address.localizacao }}</a
+          >
+        </li>
+      </ul>
+    </div>
+    <div align="end">
+      <h5>Valor R$ {{ os.newprice }}</h5>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="row">
+      <div class="col">
+        {% if os.status_paymment == "recebido" or os.status_paymment ==
+        "pendente"%}
+        <span class="badge text-bg-secondary fs-6"
+          >Status {{ os.status_paymment }}</span
+        >
+        {% else %}
+        <button
+          type="button"
+          id="cancelaros"
+          class="btn btn-danger float-start"
+          data-toggle="modal"
+          data-target="#deletaOsModal"
+          data-city="{{ os.city }}"
+          data-idrecord="{{ os_id }}"
+        >
+          Cancelar OS
+        </button>
+        {% endif %}
+      </div>
+      <div class="col">
+        {% if os.status_paymment == "recebido" or os.status_paymment ==
+        "pendente"%} {% else %}
+        <button
+          type="button"
+          id="reagendar"
+          class="btn btn-secondary float-end"
+          data-toggle="modal"
+          data-target="#osModal"
+          data-city="{{ os.city }}"
+          data-idrecord="{{ os_id }}"
+        >
+          Reagendar
+        </button>
 
-        <!-- Modal para gerar OS -->
-        <div class="modal fade" id="osModal" tabindex="-1" role="dialog" aria-labelledby="osModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="osModalLabel">Reagendar Serviço</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="osForm" method="post" action="/reagendar_os">
-                            <input type="date" value="{{ date }}" id="osOldDate" name="osOldDate" hidden>
-                            <input id="osIdRecord" name="idRecord" hidden>
-                            <input type="text" class="form-control" id="osCity" name="city" hidden>
-                            <div class="form-group">
-                                <label for="osDate">Data</label>
-                                <input type="date" class="form-control" id="osDate" name="dateos" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="osStartTime">Hora de Início</label>
-                                <input type="time" class="form-control" id="osStartTime" name="start_time" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="osEndTime">Hora de Término</label>
-                                <input type="time" class="form-control" id="osEndTime" name="end_time" required>
-                            </div>
-        
-                            <div class="my-4">
-                                <select class="form-select" aria-label="Default select example" id="osTechnician"
-                                    name="tecnico">
-                                    <option selected>Selecionar Técnico</option>
-                                    {% for tecnico_id, tecnico in tecnicos.items() %}
-                                    <option value="{{ tecnico_id }}">{{ tecnico.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <input type="text" value="{{date}}" name="date" hidden>
-        
-                            <div align="center">
-                                <button type="submit" id="confirmaros" class="btn btn-primary" style="width: 80%;">Confirmar OS</button>
-                            </div>
-                            
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="deletaOsModal" tabindex="-1" role="dialog" aria-labelledby="osModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="osModalLabel">Reagendar Serviço</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="osForm" method="post" action="/deletar_os">
-                            <input id="deletaOsIdRecord" name="idRecord" hidden>
-                            <input type="text" class="form-control" id="deletaOsCity" name="city" hidden>
-        
-                            <div class="form-group">
-                                <label for="deletaOsMotivo">Motivo</label>
-                                <textarea type="text" class="form-control" id="deletaOsMotivo" name="deleteOsMotivo"
-                                    required></textarea>
-                            </div>
-                            <input type="text" value="{{date}}" name="deletaOsdate" hidden>
-        
-                            <div align="center">
-                                <button type="submit" id="deletaos" class="btn btn-danger" style="width: 80%;">Apagar
-                                    OS</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="mt-3" align="center">
+      <button
+        type="button"
+        class="btn btn-primary"
+        onclick="copyCardContent('{{ os_id }}')"
+      >
+        Copiar Informações
+      </button>
+    </div>
+  </div>
+</div>
+{% endfor %}
 
-    {% else %}
-    <p class="no-records">Nenhum serviço agendado para essa data.</p>
-    {% endif %}
+<!-- Modal para gerar OS -->
+<div
+  class="modal fade"
+  id="osModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="osModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="osModalLabel">Reagendar Serviço</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="osForm" method="post" action="/reagendar_os">
+          <input
+            type="date"
+            value="{{ date }}"
+            id="osOldDate"
+            name="osOldDate"
+            hidden
+          />
+          <input id="osIdRecord" name="idRecord" hidden />
+          <input
+            type="text"
+            class="form-control"
+            id="osCity"
+            name="city"
+            hidden
+          />
+          <div class="form-group">
+            <label for="osDate">Data</label>
+            <input
+              type="date"
+              class="form-control"
+              id="osDate"
+              name="dateos"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="osStartTime">Hora de Início</label>
+            <input
+              type="time"
+              class="form-control"
+              id="osStartTime"
+              name="start_time"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="osEndTime">Hora de Término</label>
+            <input
+              type="time"
+              class="form-control"
+              id="osEndTime"
+              name="end_time"
+              required
+            />
+          </div>
 
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <script>
-            function copyCardContent(os_id) {
-                    // Selecionar o elemento do card com o ID correspondente
-                    var card = document.getElementById('os-card-' + os_id);
+          <div class="my-4">
+            <select
+              class="form-select"
+              aria-label="Default select example"
+              id="osTechnician"
+              name="tecnico"
+            >
+              <option selected>Selecionar Técnico</option>
+              {% for tecnico_id, tecnico in tecnicos.items() %}
+              <option value="{{ tecnico_id }}">{{ tecnico.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <input type="text" value="{{date}}" name="date" hidden />
 
-                    // Verificar se o card existe
-                    if (card) {
-                        // Capturar o texto do card
-                        var cardText = card.innerText;
+          <div align="center">
+            <button
+              type="submit"
+              id="confirmaros"
+              class="btn btn-primary"
+              style="width: 80%"
+            >
+              Confirmar OS
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="modal fade"
+  id="deletaOsModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="osModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="osModalLabel">Reagendar Serviço</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="osForm" method="post" action="/deletar_os">
+          <input id="deletaOsIdRecord" name="idRecord" hidden />
+          <input
+            type="text"
+            class="form-control"
+            id="deletaOsCity"
+            name="city"
+            hidden
+          />
 
-                        // Usar o clipboard API para copiar o texto para a área de transferência
-                        navigator.clipboard.writeText(cardText).then(function () {
-                            alert('Informações copiadas com sucesso!');
-                        }).catch(function (error) {
-                            console.error('Erro ao copiar as informações: ', error);
-                        });
-                    } else {
-                        alert('Card não encontrado!');
-                    }
-                }
+          <div class="form-group">
+            <label for="deletaOsMotivo">Motivo</label>
+            <textarea
+              type="text"
+              class="form-control"
+              id="deletaOsMotivo"
+              name="deleteOsMotivo"
+              required
+            ></textarea>
+          </div>
+          <input type="text" value="{{date}}" name="deletaOsdate" hidden />
 
-        </script>
+          <div align="center">
+            <button
+              type="submit"
+              id="deletaos"
+              class="btn btn-danger"
+              style="width: 80%"
+            >
+              Apagar OS
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <!-- Script -->
-        <script>
-            // Preencher os dados do modal quando o botão é clicado
-            $('#deletaOsModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget); // Botão que acionou o modal
-                var city = button.data('city');
-                var idRecord = button.data('idrecord');
+{% else %}
+<p class="no-records">Nenhum serviço agendado para essa data.</p>
+{% endif %}
 
-                var modal = $(this);
-                modal.find('#deletaOsCity').val(city);
-                modal.find('#deletaOsIdRecord').val(idRecord);
-            });
-        </script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  function copyCardContent(os_id) {
+    // Selecionar o elemento do card com o ID correspondente
+    var card = document.getElementById("os-card-" + os_id);
 
-        <script>
-            // Preencher os dados do modal quando o botão é clicado
-            $('#osModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget); // Botão que acionou o modal
-                var city = button.data('city');
-                var idRecord = button.data('idrecord');
+    // Verificar se o card existe
+    if (card) {
+      // Capturar o texto do card
+      var cardText = card.innerText;
 
-                var modal = $(this);
-                modal.find('#osCity').val(city);
-                modal.find('#osIdRecord').val(idRecord);
-            });
-        </script>
+      // Usar o clipboard API para copiar o texto para a área de transferência
+      navigator.clipboard
+        .writeText(cardText)
+        .then(function () {
+          alert("Informações copiadas com sucesso!");
+        })
+        .catch(function (error) {
+          console.error("Erro ao copiar as informações: ", error);
+        });
+    } else {
+      alert("Card não encontrado!");
+    }
+  }
+</script>
 
-        <script>
-            function handleSwitchChange(date1, startTime1, endTime1, technician1, city1, oldDate1) {
-                const oldDate = oldDate1
-                const date = date1;
-                const startTime = startTime1;
-                const endTime = endTime1;
-                const technician = technician1;
-                const city = city1;
+<!-- Script -->
+<script>
+  // Preencher os dados do modal quando o botão é clicado
+  $("#deletaOsModal").on("show.bs.modal", function (event) {
+    var button = $(event.relatedTarget); // Botão que acionou o modal
+    var city = button.data("city");
+    var idRecord = button.data("idrecord");
 
-                const data = {
-                    date: date,
-                    startTime: startTime,
-                    endTime: endTime,
-                    technician: technician,
-                    city: city,
-                    oldDate: oldDate
-                };
+    var modal = $(this);
+    modal.find("#deletaOsCity").val(city);
+    modal.find("#deletaOsIdRecord").val(idRecord);
+  });
+</script>
 
-                console.log(data)
+<script>
+  // Preencher os dados do modal quando o botão é clicado
+  $("#osModal").on("show.bs.modal", function (event) {
+    var button = $(event.relatedTarget); // Botão que acionou o modal
+    var city = button.data("city");
+    var idRecord = button.data("idrecord");
 
-                fetch('/verifica_agenda', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            document.getElementById('confirmaros').disabled = false;
-                            return response.json();
-                        } else {
-                            // Se a resposta não for 200, trate como erro
-                            return response.json().then(errorData => {
-                                throw new Error(errorData.message);
-                            });
-                        }
-                    })
-                    .then(responseData => {
-                        console.log(responseData);
-                        // Se a resposta foi bem-sucedida (status 200), não faça nada adicional
-                    })
-                    .catch(error => {
-                        console.error('Erro ao enviar os dados:', error);
-                        // Exibir um pop-up com a mensagem de erro
-                        document.getElementById('confirmaros').disabled = true;
-                        alert(error.message);
-                    });
-            }
+    var modal = $(this);
+    modal.find("#osCity").val(city);
+    modal.find("#osIdRecord").val(idRecord);
+  });
+</script>
 
-            function onFieldsChange() {
-                const oldDate = document.getElementById('osOldDate').value;
-                const date = document.getElementById('osDate').value;
-                const startTime = document.getElementById('osStartTime').value;
-                const endTime = document.getElementById('osEndTime').value;
-                const technician = document.getElementById('osTechnician').value;
-                const city = document.getElementById('osCity').value;
+<script>
+  function handleSwitchChange(
+    date1,
+    startTime1,
+    endTime1,
+    technician1,
+    city1,
+    oldDate1
+  ) {
+    const oldDate = oldDate1;
+    const date = date1;
+    const startTime = startTime1;
+    const endTime = endTime1;
+    const technician = technician1;
+    const city = city1;
 
-                handleSwitchChange(date, startTime, endTime, technician, city, oldDate);
-            }
+    const data = {
+      date: date,
+      startTime: startTime,
+      endTime: endTime,
+      technician: technician,
+      city: city,
+      oldDate: oldDate,
+    };
 
-            document.getElementById('osTechnician').addEventListener('change', onFieldsChange);
-        </script>
+    console.log(data);
 
-        <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', (event) => {
-                // Usando Luxon para lidar com o fuso horário
-                const DateTime = luxon.DateTime;
+    fetch("/verifica_agenda", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (response.ok) {
+          document.getElementById("confirmaros").disabled = false;
+          return response.json();
+        } else {
+          // Se a resposta não for 200, trate como erro
+          return response.json().then((errorData) => {
+            throw new Error(errorData.message);
+          });
+        }
+      })
+      .then((responseData) => {
+        console.log(responseData);
+        // Se a resposta foi bem-sucedida (status 200), não faça nada adicional
+      })
+      .catch((error) => {
+        console.error("Erro ao enviar os dados:", error);
+        // Exibir um pop-up com a mensagem de erro
+        document.getElementById("confirmaros").disabled = true;
+        alert(error.message);
+      });
+  }
 
-                // Obtenha a data atual no fuso horário de São Paulo
-                const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
+  function onFieldsChange() {
+    const oldDate = document.getElementById("osOldDate").value;
+    const date = document.getElementById("osDate").value;
+    const startTime = document.getElementById("osStartTime").value;
+    const endTime = document.getElementById("osEndTime").value;
+    const technician = document.getElementById("osTechnician").value;
+    const city = document.getElementById("osCity").value;
 
-                // Formate a data para 'YYYY-MM-DD'
-                const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
+    handleSwitchChange(date, startTime, endTime, technician, city, oldDate);
+  }
 
-                // Obtenha o elemento de entrada da data
-                const dateInput = document.getElementById('osDate');
+  document
+    .getElementById("osTechnician")
+    .addEventListener("change", onFieldsChange);
+</script>
 
-                // Defina o valor do campo de data para a data atual em São Paulo
-                dateInput.value = formattedDate;
-            });
-        </script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Usando Luxon para lidar com o fuso horário
+    const DateTime = luxon.DateTime;
+
+    // Obtenha a data atual no fuso horário de São Paulo
+    const nowInSaoPaulo = DateTime.now().setZone("America/Sao_Paulo");
+
+    // Formate a data para 'YYYY-MM-DD'
+    const formattedDate = nowInSaoPaulo.toFormat("yyyy-MM-dd");
+
+    // Obtenha o elemento de entrada da data
+    const dateInput = document.getElementById("osDate");
+
+    // Defina o valor do campo de data para a data atual em São Paulo
+    dateInput.value = formattedDate;
+  });
+</script>
 {% endblock %}

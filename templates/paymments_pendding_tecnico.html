@@ -4,6 +4,7 @@
 {% block title %}Listar Transações Pendentes{% endblock %}
 
 {% block content %}
+<script src="../static/js/formatarValor.js"></script>
 <div class="container mt-5">
     <h2>Filtrar Transações Pendentes</h2>
     <form method="POST" action="{{ url_for('listar_pendentes_tecnico') }}">
@@ -38,24 +39,210 @@
 
     <h3 class="mt-5">Pagamento Pendente</h3>
     {% if transactions %}
-    <ul class="list-group">
-        {% for trans_id, trans_data in transactions.items() %}
-        <li class="list-group-item">
-            <strong>Transação ID:</strong> {{ trans_id }}<br>
-            <strong>Data do Serviço:</strong> {{ trans_data.os_date }}<br>
-            <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
-            <strong>Método:</strong> {{ trans_data.method }}<br>
-            <strong>Vencimento:</strong> {{ trans_data.vencimento }}<br>
-        </li>
-        <li class="list-group-item" align="center">
-            {% set year, month, day = trans_data.os_date.split('-') %}
-            <a class="btn btn-primary" href="/os/{{trans_data.os_city}}/{{year}}/{{month}}/{{day}}/{{trans_data.os_id}}"
-                style="width: 80%;">Ver OS</a>
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="row">
+  {% for trans_id, trans_data in transactions.items() %}
+  <div class="col-md-6 col-lg-4 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">
+          <span class="badge bg-danger fs-6">
+            Nº {{ trans_data.get('numero_os', 'N/A') }}
+          </span>
+        </h5>
+        <p class="card-text">
+          <!--<strong>Transação ID:</strong> {{ trans_id }}<br>-->
+          <strong>Data do Serviço:</strong> {{ trans_data.os_date }}<br>
+          <strong>Valor:</strong> R$ {{ trans_data.amount }}<br>
+          <strong>Método:</strong> {{ trans_data.method }}<br>
+          <strong>Vencimento:</strong> {{ trans_data.vencimento }}
+        </p>
+      </div>
+      <div class="card-footer d-flex justify-content-between">
+        {% set year, month, day = trans_data.os_date.split('-') %}
+        <a class="btn btn-primary btn-sm"
+           href="/os/{{ trans_data.os_city }}/{{ year }}/{{ month }}/{{ day }}/{{ trans_data.os_id }}">
+          Ver OS
+        </a>
+        <button type="button" 
+                id="buttonconfirmarpaymment" 
+                class="btn btn-success btn-sm" 
+                data-toggle="modal" 
+                data-target="#confirmarpaymment"
+                data-transactionid="{{ trans_id }}" 
+                data-osdate="{{ trans_data.os_date }}" 
+                data-vencimento="{{ trans_data.vencimento }}" 
+                data-idos="{{ trans_data.os_id }}" 
+                data-city="{{ trans_data.os_city }}" 
+                data-nametecnicoos="{{ trans_data.name_tecnico }}" 
+                data-numeroos="{{ trans_data.numero_os }}">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+     <!-- Modal para gerar OS -->
+    <div class="modal fade" id="confirmarpaymment" tabindex="-1" role="dialog" aria-labelledby="paymmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymmentModalLabel">Confirmar Pagamento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymmentPenddingForm" method="post" action="/update_pendding_tecnico">
+                        <input id="paymmentIdOs" name="paymmentIdOs" hidden>
+                        <input id="paymmentCity" name="paymmentCity" hidden>
+                        <input id="osnametecnico" name="osnametecnico" hidden>
+                        <input id="osDate" name="osDate" hidden>
+                        <input id="transactionId" name="transactionId" hidden>
+                        <input id="numeroos" name="numeroos" hidden>
+                        <div class="form-group">
+                            <label for="paymentDate" style="font-size: small;"><b>Data Recebimento</b></label>
+                            <input type="date" class="form-control" id="osDatePaymment" name="datePaymment" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount" style="font-size: small;">Valor Recebido (R$)</label>
+                            <input type="tel" class="form-control" id="osAmount" name="amountAtualizado" value="0,00" required>
+                        </div>
+                        <div>
+                            <label for="taxa-service">Taxa</label>
+                            <input
+                                type="tel"
+                                class="form-control"
+                                id="taxa"
+                                name="taxa"
+                                placeholder="Insira o valor"
+                            />
+                        </div>
+                        <div class="mt-4 p-2" style="background-color: rgb(255, 240, 240)">
+                        <div>
+                            <label for="outros-custos-service"
+                            ><strong>Custos do Serviço </strong></label
+                            >
+                            <input
+                            type="tel"
+                            class="form-control"
+                            id="outros-custos-service"
+                            name="outrosCustosService"
+                            placeholder="Insira o valor"
+                            />
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="observacao-service"><strong>Observação</strong></label>
+                            <input
+                            type="text"
+                            class="form-control"
+                            id="observacao-service"
+                            name="observacaoService"
+                            placeholder="Insira uma observação"
+                            />
+                        </div>
+                        </div>
+                        <div align="center">
+                            <button type="submit" id="confirmaros" class="btn btn-primary" style="width: 80%;">Confirmar Pagamento</button>
+                        </div>
+    
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     {% else %}
     <p>Nenhuma transação pendente encontrada.</p>
     {% endif %}
+    <script>
+        const toNum = (v) => parseFloat(String(v).replace(",", "."));
+
+        document.getElementById("paymmentPenddingForm").addEventListener("submit", function (e) {
+        const outrosCustosService = document.getElementById("outros-custos-service").value.trim();
+        const observacaoService = document.getElementById("observacao-service").value.trim();
+
+        if (toNum(outrosCustosService) > 0 && !observacaoService) {
+        e.preventDefault(); // impede envio do form
+        alert("Informe detalhes dos custos no campo OBSERVAÇÃO.");
+        document.getElementById("observacao-service").focus();
+        }
+    });
+</script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Script -->
+    <script>
+        // Preencher os dados do modal quando o botão é clicado
+        $('#confirmarpaymment').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Botão que acionou o modal
+            var idOs = button.data('idos');
+            var city = button.data('city');
+            var osdate = button.data('osdate');
+            var vencimento = button.data('vencimento'); 
+            var transactionId = button.data('transactionid');
+            var osnametecnico = button.data('nametecnicoos');
+            var numeroos = button.data('numeroos');
+
+            var modal = $(this);
+            modal.find('#paymmentIdOs').val(idOs);
+            modal.find('#paymmentCity').val(city);
+            modal.find('#paymmentVencimento').val(vencimento);
+            modal.find('#osDate').val(osdate);
+            modal.find('#transactionId').val(transactionId);
+            modal.find('#osnametecnico').val(osnametecnico);
+            modal.find('#numeroos').val(numeroos);
+
+        });
+    </script>
+    <!--<script>
+        const inputValor = document.getElementById('osAmount');
+
+        inputValor.addEventListener('input', formatarValor);
+
+        function formatarValor() {
+            // Remove qualquer caracter que não seja um dígito numérico
+            let valor = inputValor.value.replace(/\D/g, '');
+
+            // Divide o valor em duas partes: a parte inteira e a parte decimal
+            const parteInteira = valor.slice(0, -2);
+            const parteDecimal = valor.slice(-2);
+
+            // Adiciona um ponto para separar os milhares
+            const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            // Atualiza o valor do input com a string formatada como um valor em reais (R$)
+            inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
+        }
+    </script>-->
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                configurarFormatacaoValor("osAmount");
+                configurarFormatacaoValor("taxa");
+                configurarFormatacaoValor("outros-custos-service");
+            });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Usando Luxon para lidar com o fuso horário
+            const DateTime = luxon.DateTime;
+
+            // Obtenha a data atual no fuso horário de São Paulo
+            const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
+
+            // Formate a data para 'YYYY-MM-DD'
+            const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
+
+            // Obtenha o elemento de entrada da data
+            const dateInput = document.getElementById('osDatePaymment');
+
+            // Defina o valor do campo de data para a data atual em São Paulo
+            dateInput.value = formattedDate;
+        });
+    </script>
 </div>
 {% endblock %}
