@@ -1424,7 +1424,7 @@ def os(city, year, month, day, id):
     
     get_os = db.child("ordens_servico").child(city).child(year).child(month).child(day).child(id).get().val()
 
-
+    print(get_os)
     return render_template('os.html', os=get_os)
 
 @app.route('/users', methods=['GET', 'POST'])
@@ -1624,6 +1624,73 @@ def update_pendding():
     except:
         return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
     return redirect(url_for('adm_lista_paymments_pendentes'))
+
+
+@app.route('/update_pendding_tecnico', methods=['POST', 'GET'])
+def update_pendding_tecnico():
+
+    numero_os = request.form.get('numeroos')
+    os_id = request.form.get('paymmentIdOs')
+    os_city = request.form.get('paymmentCity')
+    os_date = request.form.get('osDate')
+    transaction_id = request.form.get('transactionId')
+    name_tecnico = request.form.get('osnametecnico')
+    amount = convert_monetary_value(request.form.get('amountAtualizado'))
+    taxa = convert_monetary_value( request.form.get('taxa') or "0.00")
+    outros_custos_service = convert_monetary_value( request.form.get('outrosCustosService') or "0.00")
+    observacoes_service =  request.form.get('observacaoService') or ""
+   
+    date_paymment = request.form.get('datePaymment')
+
+    # Tenta converter a nova data para ano, mês e dia
+    try:
+        date_firebase = datetime.strptime(os_date, '%Y-%m-%d')
+    except ValueError:
+        return "Formato de data inválido."
+
+    year = str(date_firebase.year)
+    month = f"{date_firebase.month:02d}"
+    day = f"{date_firebase.day:02d}"
+
+    
+
+    paymment_pendding = dict(db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).get().val())
+    
+    os_value_service = paymment_pendding['amount']
+    method_payment = paymment_pendding['method']
+    status_pagamento = "recebido"
+    id_tecnico = paymment_pendding['tecnico_id']
+
+    
+
+
+    amount = "{:.2f}".format(float(convert_monetary_value(amount)) - (float(convert_monetary_value(taxa)) + float(convert_monetary_value(outros_custos_service))))
+    amount_financeiro = convert_monetary_value(request.form.get('amountAtualizado'))
+    
+
+    paymment_pendding['numero_os'] = numero_os
+    paymment_pendding['amount'] = amount
+    paymment_pendding['taxa'] = taxa
+    paymment_pendding['outros_custos_service'] = outros_custos_service
+    paymment_pendding['observacoes_service'] = observacoes_service
+    paymment_pendding['valor_bruto'] = os_value_service
+
+
+    try:
+       
+        id_create_transaction_wallet = Wallet.create_paymment_success(data=paymment_pendding, date=date_paymment, city=os_city)
+
+        Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
+
+        id_create_transaction_user = User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=id_tecnico)
+        
+        Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=date_paymment, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service, observacoes_service=observacoes_service,  id_create_transaction_user=id_create_transaction_user, id_create_transaction_wallet=id_create_transaction_wallet)
+        
+        db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).remove()
+
+    except:
+        return jsonify({'status': 'conflict', 'message': 'Erro.'}), 400
+    return redirect(url_for('listar_pendentes_tecnico'))
 
 
 @app.route('/adm_lista_os', methods=['GET', 'POST'])
