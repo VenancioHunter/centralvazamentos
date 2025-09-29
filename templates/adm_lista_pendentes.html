@@ -86,6 +86,17 @@
                         data-numeroos="{{trans_data.numero_os}}">
                         Confirmar
                 </button>
+                <button
+                  class="btn btn-danger btn-sm btn-cancelar"
+                  data-mes="{{ mes }}"
+                  data-ano="{{ ano }}"
+                  data-id-transaction="{{ trans_data.transaction_id }}"
+                  data-date-os="{{trans_data.os_date}}"
+                  data-id-os="{{trans_data.os_id}}"
+                  data-city="{{ trans_data.os_city }}"
+                >
+                  Cancelar
+                </button>
             </td>
         </tr>
         {% endfor %}
@@ -161,6 +172,18 @@
             </div>
         </div>
     </div>
+    <!-- Overlay para bloquear a tela de fundo -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Pop-up -->
+    <div class="popup" id="popup" align="center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div>
+        <span>Salvando...</span>
+      </div>
+    </div>
     {% else %}
     <p>Nenhuma transação pendente encontrada.</p>
     {% endif %}
@@ -208,6 +231,21 @@
 
         });
     </script>
+    <script>
+      function mostrarPopup() {
+        var overlay = document.getElementById("overlay");
+        var popup = document.getElementById("popup");
+
+        overlay.style.display = "block";
+        popup.style.display = "block";
+
+        // Bloqueia a interação com a tela de fundo
+        overlay.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      }
+    </script>
     <!--<script>
         const inputValor = document.getElementById('osAmount');
 
@@ -253,6 +291,58 @@
             // Defina o valor do campo de data para a data atual em São Paulo
             dateInput.value = formattedDate;
         });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const deleteButtons = document.querySelectorAll(".btn-cancelar");
+
+
+        deleteButtons.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const dataMes = this.getAttribute("data-mes");
+            const dataAno = this.getAttribute("data-ano");
+            const idTransaction = this.getAttribute("data-id-transaction");
+            const dateOs = this.getAttribute("data-date-os");
+            const idOs = this.getAttribute("data-id-os");
+            const city = this.getAttribute("data-city");
+
+
+            if (confirm("Deseja realmente deletar esta transação?")) {
+              mostrarPopup();
+              fetch("/cancel_transaction_pendding", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    dataMes: dataMes,
+                    dataAno: dataAno,
+                    idTransaction: idTransaction,
+                    dateOs: dateOs,
+                    idOs: idOs,
+                    city: city,
+
+                }),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    alert("Transação deletada com sucesso!");
+                    window.location.reload(); // Atualiza tabela
+                  } else {
+                    alert("Erro ao deletar: " + data.message);
+                  }
+                })
+                .catch((error) => {
+                  console.error("Erro:", error);
+                })
+                .finally(() => {
+              window.location.reload();
+            });
+            }
+          });
+        });
+      });
     </script>
 </div>
 {% endblock %}
