@@ -2300,6 +2300,37 @@ def confirmar_transacao(pendente_id):
 
     return redirect(url_for('listar_pendentes'))
 
+@app.route("/cancel_transaction_pendding", methods=["POST", "GET"])
+def cancel_transaction_pendding():
+    data = request.get_json()
+    data_mes = data.get("dataMes")
+    data_ano = data.get("dataAno")
+    id_transaction = data.get("idTransaction")
+    date_os = data.get("dateOs")
+    id_os = data.get("idOs")
+    city = data.get("city")
+    print(data)
+
+    try:
+        date = datetime.strptime(date_os, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({"error": "Formato de data inválido."}), 400
+
+    year = str(date.year)
+    month = f"{date.month:02d}"
+    day = f"{date.day:02d}"
+
+    try:
+        print(data)
+        #db.child("ordens_servico").child(city).child(year).child(month).child(day).child(id_os).child("status_paymment").remove()
+
+        #db.child("wallet").child(city).child(year).child(month).child(day).child('transactions').child('pendding').child(id_transaction).remove()
+       
+    except Exception as e:
+        return jsonify({'status': 'conflict', 'message': 'Erro ao cancelar a transação.'}), 400
+
+    return redirect(url_for('listar_pendentes'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5036)
