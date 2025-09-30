@@ -1584,6 +1584,8 @@ def update_pendding():
 
     paymment_pendding = dict(db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).get().val())
     
+    print(paymment_pendding)
+
     os_value_service = paymment_pendding['amount']
     method_payment = paymment_pendding['method']
     status_pagamento = "recebido"
@@ -1606,13 +1608,14 @@ def update_pendding():
 
     try:
         id_create_transaction_wallet = Wallet.create_paymment_success(data=paymment_pendding, date=date_paymment, city=os_city)
-
+        print('1')
         Wallet.update_status_os(id=os_id, city=os_city, date=os_date, status_paymment=status_pagamento)
-
+        print('2')
         id_create_transaction_user = User_Wallet.create_transaction_success(data=paymment_pendding, date=date_paymment, city=os_city, id_tecnico=id_tecnico)
+        print('3')
         
         Financeiro.post_transaction_pendente( numero_os=numero_os, id_os=os_id, os_city=os_city, os_date=os_date, date_payment=date_paymment, metodo_pagamento=method_payment, valor_recebido=amount_financeiro, valor_liquido=amount, taxa=taxa, outros_custos_service=outros_custos_service, observacoes_service=observacoes_service,  id_create_transaction_user=id_create_transaction_user, id_create_transaction_wallet=id_create_transaction_wallet)
-        
+        print('4')
         db.child("wallet").child(os_city).child(year).child(month).child(day).child('transactions').child('pendding').child(transaction_id).remove()
         #Financeiro.post_transaction_credito_tecnico(user=session['name'], date=os_date, amount=os_value_service, description=f'', method_payment=method_payment, origem=name_tecnico, id_origem=id_tecnico)
 
@@ -2255,9 +2258,14 @@ def orcamentos():
    
     return render_template('orcamentos.html')
 
-@app.template_filter('datetimeformat')
+'''@app.template_filter("datetimeformat")
 def datetimeformat(value):
-    return datetime.fromtimestamp(value).strftime('%d/%m/%Y %H:%M')
+    if not value:
+        return ""  # ou "Sem data"
+    try:
+        return datetime.fromtimestamp(int(value)).strftime('%d/%m/%Y %H:%M')
+    except Exception:
+        return str(value)  # fallback
 
 
 @app.route("/financeiro/pendentes")
@@ -2278,7 +2286,7 @@ def listar_pendentes():
                         "id": pendente_id
                     }
 
-    return render_template("pendentes.html", pendentes=pendentes) 
+    return render_template("pendentes.html", pendentes=pendentes) '''
 
 
 @app.route("/financeiro/confirmar/<pendente_id>")
@@ -2322,9 +2330,9 @@ def cancel_transaction_pendding():
 
     try:
         print(data)
-        #db.child("ordens_servico").child(city).child(year).child(month).child(day).child(id_os).child("status_paymment").remove()
+        db.child("ordens_servico").child(city).child(year).child(month).child(day).child(id_os).child("status_paymment").remove()
 
-        #db.child("wallet").child(city).child(year).child(month).child(day).child('transactions').child('pendding').child(id_transaction).remove()
+        db.child("wallet").child(city).child(year).child(month).child(day).child('transactions').child('pendding').child(id_transaction).remove()
        
     except Exception as e:
         return jsonify({'status': 'conflict', 'message': 'Erro ao cancelar a transação.'}), 400
