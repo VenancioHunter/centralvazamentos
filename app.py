@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import pyrebase
 from config import firebase_config
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import json
 from core.attendance.class_attendance import Attendance
@@ -159,18 +159,19 @@ def attendance():
 @check_roles(['admin'])
 def add_city():
     if request.method == 'POST':
+        uf_name = request.form['uf']
         city_name = request.form['city']
 
         # Verifique se a cidade já existe
         cities = db.child("cities").get().val() or {}
         if city_name not in cities.values():
             db.child("cities").push(city_name)
+            db.child("uf").child(uf_name).push(city_name)
             return redirect(url_for('add_city'))
         else:
             return "Cidade já existe"
 
     return render_template('add_city.html')
-
 
 @app.route('/list_cities')
 @check_roles(['admin'])
@@ -2338,6 +2339,107 @@ def cancel_transaction_pendding():
         return jsonify({'status': 'conflict', 'message': 'Erro ao cancelar a transação.'}), 400
 
     return redirect(url_for('listar_pendentes'))
+
+
+@app.route('/data_analysis', methods=['GET', 'POST'])
+def data_analysis():
+   
+    return render_template('data_analysis.html')
+
+@app.route("/get_cidades")
+def get_cidades():
+    # pega os dados no firebase
+    cidades = db.child("uf").get().val() or {}
+    # retorna como JSON
+    return jsonify(cidades)
+
+@app.route("/buscar_dados", methods=["POST"])
+def buscar_dados():
+    dados = request.get_json()
+    cidades = dados.get("cidades", [])
+    data_inicio = dados.get("data_inicio")
+    data_fim = dados.get("data_fim")
+
+    if not cidades or not data_inicio or not data_fim:
+        return jsonify({"erro": "Parâmetros incompletos"}), 400
+
+    # 🔹 Converte as datas em objetos datetime
+    inicio = datetime.strptime(data_inicio, "%Y-%m-%d")
+    fim = datetime.strptime(data_fim, "%Y-%m-%d")
+
+    resultados = {}
+
+    # 🔹 Loop sobre as datas
+    dia_atual = inicio
+    while dia_atual <= fim:
+        ano = str(dia_atual.year)
+        mes = f"{dia_atual.month:02d}"
+        dia = f"{dia_atual.day:02d}"
+
+        for cidade in cidades:
+            caminho = f"ordens_servico/{cidade}/{ano}/{mes}/{dia}"
+            os_dia = db.child(caminho).get().val()
+
+            if os_dia:
+                if cidade not in resultados:
+                    resultados[cidade] = {}
+                resultados[cidade][f"{dia}/{mes}/{ano}"] = os_dia
+
+        dia_atual += timedelta(days=1)
+
+    return jsonify(resultados)
+
+
+@app.route('/comissoes', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def comissoes():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+
+    return render_template('comissoes.html')
+
+
+@app.route("/buscar_ordens", methods=["POST"])
+def buscar_ordens():
+    data = request.get_json()
+    ano = str(data.get("ano"))
+    mes = f"{int(data.get('mes')):02d}"
+
+    ordens = []
+    tecnicos_cache = {} 
+
+    try:
+        # Buscar em todas as cidades (ativas)
+        cidades_ativas = db.child("ordens_servico").get()
+        if cidades_ativas.each():
+            for cidade in cidades_ativas.each():
+                cidade_nome = cidade.key()
+                dados_mes = db.child("ordens_servico").child(cidade_nome).child(ano).child(mes).get()
+                if dados_mes.each():
+                    for dia in dados_mes.each():
+                        for chave, item in dia.val().items():
+                            item["status"] = item.get("status_paymment", "aguardando")
+                            item["cidade"] = cidade_nome
+                            item["id_os"] = chave
+                            
+                            tecnico_id = item.get("user_id")
+                            if tecnico_id:
+                                # Se ainda não está no cache, busca no servidor
+                                if tecnico_id not in tecnicos_cache:
+                                    tecnico_data = db.child("users").child(tecnico_id).child("name").get().val()
+                                    tecnicos_cache[tecnico_id] = tecnico_data
+                                # adiciona o nome do técnico ao item
+                                item["tecnico_nome"] = tecnicos_cache[tecnico_id]
+
+                            ordens.append(item)
+
+
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+    return jsonify({"success": True, "ordens": ordens})
 
 
 if __name__ == '__main__':
