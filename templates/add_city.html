@@ -1,17 +1,49 @@
 <!-- templates/dashboard.html -->
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<h1>Adicionar Cidade</h1>
+<form method="POST" action="/add_city">
+  <div class="mb-3">
+    <label class="form-label" for="uf">UF</label>
 
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
-    <h1>Adicionar Cidade</h1>
-    <form method="POST" action="/add_city">
-        <div class="mb-3">
-            <label class="form-label" for="city">Nome da Cidade:</label>
-            <input class="form-control" type="text" id="city" name="city" required>
-        </div>
-        <div align="center">
-            <button class="btn btn-primary" type="submit" style="width: 80%;">Adicionar</button>
-        </div>
-    </form>
+    <select class="form-select" id="uf" name="uf" required>
+      <option value="AC">Acre</option>
+      <option value="AL">Alagoas</option>
+      <option value="AP">Amapá</option>
+      <option value="AM">Amazonas</option>
+      <option value="BA">Bahia</option>
+      <option value="CE">Ceará</option>
+      <option value="DF">Distrito Federal</option>
+      <option value="ES">Espírito Santo</option>
+      <option value="GO">Goiás</option>
+      <option value="MA">Maranhão</option>
+      <option value="MT">Mato Grosso</option>
+      <option value="MS">Mato Grosso do Sul</option>
+      <option value="MG">Minas Gerais</option>
+      <option value="PA">Pará</option>
+      <option value="PB">Paraíba</option>
+      <option value="PR">Paraná</option>
+      <option value="PE">Pernambuco</option>
+      <option value="PI">Piauí</option>
+      <option value="RJ">Rio de Janeiro</option>
+      <option value="RN">Rio Grande do Norte</option>
+      <option value="RS">Rio Grande do Sul</option>
+      <option value="RO">Rondônia</option>
+      <option value="RR">Roraima</option>
+      <option value="SC">Santa Catarina</option>
+      <option value="SP">São Paulo</option>
+      <option value="SE">Sergipe</option>
+      <option value="TO">Tocantins</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="city">Nome da Cidade:</label>
+    <input class="form-control" type="text" id="city" name="city" required />
+  </div>
+  <div align="center">
+    <button class="btn btn-primary" type="submit" style="width: 80%">
+      Adicionar
+    </button>
+  </div>
+</form>
 {% endblock %}
