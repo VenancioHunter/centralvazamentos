@@ -257,9 +257,11 @@ async function gerarPDF() {
         const telefone = telefonesMap[cidade] || "Telefone não disponível";
         
         pdf.setFont("helvetica", "bold");
-        pdf.text(`Central Vazamentos`, 160, 20);
+        pdf.text(`Central Caça Vazamentos`, 150, 20);
         pdf.setFont("helvetica", "normal");
-        pdf.text(`Tel: ${telefone}`, 160, 25);
+        pdf.text(`CNPJ 43.973.146/0001-26`, 150, 25);
+        pdf.setFont("helvetica", "normal");
+        pdf.text(`Tel: ${telefone}`, 150, 30);
 
 
         const selectedTechniques = [];
