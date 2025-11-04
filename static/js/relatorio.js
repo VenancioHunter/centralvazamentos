@@ -149,6 +149,7 @@ async function gerarPDF() {
             "Messias": "(82) 92001-4853",
             "Barra de Santo Antônio": "(82) 92001-4853",
             "Paripueira": "(82) 92001-4853",
+            "Arapiraca": "(82) 92001-4853",
 
 
             "Salvador": "(71) 93300-1134",
@@ -294,42 +295,7 @@ async function gerarPDF() {
         } else {
             techniquesText = "Nenhuma técnica foi selecionada.";
         }
-        /*
-        if(geofonamentoCheckbox.checked){
-            let primeiroSetorVerificacao = ''; 
-            const primeiroSetor = document.querySelector('input[name="primeirosetor"]:checked')?.value;
-
-            
-
-            if (primeiroSetor === 'vazamento') {
-                primeiroSetorVerificacao = '1º Setor - Com o uso do geofone eletrônico identificamos um VAZAMENTO não aparente no solo nas instalações hidráulicas, conforme às fotos em anexo.';
-                solicitacaoUM = true;
-            } else {
-                primeiroSetorVerificacao = '1º Setor - Com o uso do geofone eletrônico foi realizado uma vistoria nas instalações hidráulicas e não foi identificado vazamentos.';
-                solicitacaoUM = false;
-            }
-
-            const linhasTextoPrimeiroSetor = pdf.splitTextToSize(primeiroSetorVerificacao, larguraMaximaLinha);
-            pdf.text(linhasTextoPrimeiroSetor, 10, 117);
-
-            const segundoSetor = document.querySelector('input[name="segundosetor"]:checked')?.value;
-            let segundoSetorVerificacao = ''; 
-
-            
-            if (segundoSetor == 'vazamento') {
-                segundoSetorVerificacao = '2º Setor - Com o uso do geofone eletrônico identificamos um VAZAMENTO não aparente no solo nas instalações hidráulicas, conforme às fotos em anexo.';
-                solicitacaoDois = true;
-            }
-            else {
-                segundoSetorVerificacao = '2º Setor - Com o uso do geofone eletrônico foi realizado uma vistoria nas instalações hidráulicas e não foi identificado vazamentos.';
-                solicitacaoDois = false;
-            }
-
-            const linhasTextoSegundoSetor = pdf.splitTextToSize(segundoSetorVerificacao, larguraMaximaLinha);
-            pdf.text(linhasTextoSegundoSetor, 10, 129);
-                
-        };*/
-
+     
         
         // Função para formatar os itens
         function formatarLocalizacao(nome, valor) {
