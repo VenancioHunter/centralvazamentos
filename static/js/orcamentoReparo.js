@@ -1,158 +1,66 @@
 function validarCamposObrigatorios() {
-    // IDs dos campos obrigatórios
-    const camposObrigatorios = [
-        "nome",
-        "cpf",
-        "endereco",
-        "bairro", 
-        "cidade",
-        "estado",
-        "tecnico",
-        "data"
-    ];
+  const camposObrigatorios = [
+    "nome",
+    "cpf",
+    "endereco",
+    "bairro",
+    "cidade",
+    "estado",
+    "tecnico",
+    "data",
+  ];
 
-    // Lista de mensagens de erro para campos vazios
-    const mensagensErro = [];
+  const mensagensErro = [];
 
-    // Verifica cada campo
-    camposObrigatorios.forEach(id => {
-        const campo = document.getElementById(id);
-        if (!campo.value.trim()) {
-            mensagensErro.push(`O campo "${campo.previousElementSibling.textContent}" está vazio.`);
-        }
-    });
-
-    // Exibe mensagens de erro, se houver
-    if (mensagensErro.length > 0) {
-        alert(mensagensErro.join("\n")); // Exibe os erros em um único alerta
-        return false; // Interrompe o processo
+  camposObrigatorios.forEach((id) => {
+    const campo = document.getElementById(id);
+    if (!campo.value.trim()) {
+      mensagensErro.push(`O campo "${campo.previousElementSibling.textContent}" está vazio.`);
     }
+  });
 
-    return true; // Todos os campos estão preenchidos
+  if (mensagensErro.length > 0) {
+    alert(mensagensErro.join("\n"));
+    return false;
+  }
+
+  return true;
 }
-
 
 async function gerarPDF() {
+  if (!validarCamposObrigatorios()) return;
 
-     // Primeiro, valida os campos obrigatórios
-    if (!validarCamposObrigatorios()) {
-        return; // Interrompe a geração do PDF se houver campos vazios
-    }
-    
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-    let nome;
+  try {
+    // SHAPE SUPERIOR
+    const shapeTop = new Image();
+    shapeTop.src = "../static/img/shape_superior.png";
+    await new Promise((resolve, reject) => {
+      shapeTop.onload = resolve;
+      shapeTop.onerror = reject;
+    });
+    pdf.addImage(shapeTop, "PNG", 0, 0, 210, 55);
+  } catch (e) {
+    console.warn("Shape superior não carregado:", e);
+  }
 
-     // SHAPE SUPERIOR
-     try {
-        const shapeTop = new Image();
-        shapeTop.src = "../static/img/shape_superior.png"; // Caminho do seu shape superior
+  // =============================
+  // DADOS DO FORMULÁRIO
+  // =============================
+  const nome = document.getElementById("nome").value;
+  const cpf = document.getElementById("cpf").value;
+  const endereco = document.getElementById("endereco").value;
+  const bairro = document.getElementById("bairro").value;
+  const cidade = document.getElementById("cidade").value;
+  const data = document.getElementById("data").value;
+  const observacao = document.getElementById("observacao").value;
 
-        await new Promise((resolve, reject) => {
-            shapeTop.onload = resolve;
-            shapeTop.onerror = reject;
-        });
-
-        // Adiciona o shape no topo (ajuste X, Y, largura e altura conforme necessário)
-        pdf.addImage(shapeTop, "PNG", 0, 0, 210, 55); // 210 = largura A4, 30 = altura do shape
-    } catch (e) {
-        console.warn("Shape superior não carregado:", e);
-        }
-    try {
-        // Definir logo
-        const logoURL = "../static/img/logowhite.png";
-        let imgLogo = new Image();
-        imgLogo.src = logoURL;
-
-        // Esperar o carregamento da logo
-        await new Promise((resolve, reject) => {
-            imgLogo.onload = resolve;
-            imgLogo.onerror = reject;
-        });
-
-        // Adicionar logo no PDF
-        pdf.addImage(imgLogo, "PNG", 1, 1, 45, 45);
-    } catch (error) {
-        console.warn("Logo não carregada. Continuando sem logo.");
-    }
-  // Função para carregar imagens selecionadas no input e retornar um array de DataURLs
-    const carregarImagensDoInput = async (inputId) => {
-        const input = document.getElementById(inputId);
-        const files = input.files;
-        const dataUrls = [];
-
-        for (const file of files) {
-            const dataUrl = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (event) => resolve(event.target.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-            dataUrls.push(dataUrl);
-        }
-        return dataUrls;
-    };
-
-   
-    
-
-    try {
-
-        // Primeira página: conteúdo textual do relatório
-        //pdf.setFontSize(16);
-        //pdf.text("CLIENTE", 90, 45);
-
-        // Exemplo de conteúdo da primeira página
-        nome = document.getElementById("nome").value;
-        const cpf = document.getElementById("cpf").value;
-        const endereco = document.getElementById("endereco").value;
-        const bairro = document.getElementById("bairro").value;
-        const cidade = document.getElementById("cidade").value;
-        const data = document.getElementById("data").value;
-        const observacao = document.getElementById("observacao").value;
-        function formatarValor(valor) {
-    // Remove pontos (milhar) e substitui vírgula decimal por ponto
-    return parseFloat(valor.replace(/\./g, "").replace(",", "."));
-}
-
-// Obtém os valores dos inputs
-const valorLocalizacao = formatarValor(document.getElementById("valorlocalizacao").value || "0");
-const valorReparo = formatarValor(document.getElementById("valorreparo").value || "0");
-
-// Soma os valores
-const total = valorLocalizacao + valorReparo;
-
-// Formata o total como moeda brasileira (R$)
-        const totalFormatado = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        const formatLocalizacao = valorLocalizacao.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        const formatReparo = valorReparo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        //const totalFormatado = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        //const total = document.getElementById("total").value;
-        //const formaPagamento = document.getElementById("forma-pagamento").value;
-        //const empresaSolicitacao = document.getElementById("empresaSolicitacao").value;
-
-        
-        
-
-        const larguraMaximaLinha = 180; // Ajuste conforme necessário
-
-        pdf.setFontSize(14);
-        pdf.text(`${nome}`, 10, 55);
-        pdf.setFontSize(10);
-        pdf.text(`CPF/CNPJ: ${cpf}`, 10, 62);
-        pdf.text(`Endereço: ${endereco}`, 10, 69);
-        pdf.text(`Bairro: ${bairro}`, 10, 76);
-        pdf.text(`Cidade: ${cidade}`, 10, 83);
-        pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 87);
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(16);
-        pdf.text("ORÇAMENTO", 85, 95);
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(10);
-
-
-        const telefonesMap = {
+  // =============================
+  // TELEFONES POR CIDADE
+  // =============================
+  const telefonesMap = {
             "Maceió": "(82) 92001-4853",
             "Satuba": "(82) 92001-4853",
             "Santa Luzia do Norte": "(82) 92001-4853",
@@ -168,6 +76,7 @@ const total = valorLocalizacao + valorReparo;
             "Messias": "(82) 92001-4853",
             "Barra de Santo Antônio": "(82) 92001-4853",
             "Paripueira": "(82) 92001-4853",
+            "Arapiraca": "(82) 92001-4853",
 
 
             "Salvador": "(71) 93300-1134",
@@ -181,6 +90,7 @@ const total = valorLocalizacao + valorReparo;
             "Mata de São João": "(71) 93300-1134",
             "Alagoinhas": "(71) 93300-1134",
             "Madre De Deus": "(71) 93300-1134",
+            "Salinas das Margaridas": "(71) 93300-1134",
 
 
             "Goiânia": "(62) 93300-6961",
@@ -189,6 +99,15 @@ const total = valorLocalizacao + valorReparo;
             "Trindade": "(62) 93300-6961",
             "Anápolis": "(62) 93300-6961",
             "Goianira": "(62) 93300-6961",
+            "Rio Verde": "(62) 93300-6961",
+            "Bela Vista": "(62) 93300-6961",
+            "Hidrolândia": "(62) 93300-6961",
+            "Nerópolis": "(62) 93300-6961",
+            "Cesarina": "(62) 93300-6961",
+            "Guapó": "(62) 93300-6961",
+            "Aragoiânia": "(62) 93300-6961",
+            "Maripotaba": "(62) 93300-6961",
+            "Palmeiras": "(62) 93300-6961",
 
             "São Paulo": "(11) 93300-3231",
             "Osasco": "(11) 93300-3231",
@@ -224,6 +143,8 @@ const total = valorLocalizacao + valorReparo;
             "Cajamar": "(19) 92001-6371",
             "Amparo": "(19) 92001-6371",
             "Capivari": "(19) 92001-6371",
+            "Limeira": "(19) 92001-6371",
+            "Sorocaba": "(11) 92015-4693",
 
             "Florianópolis": "(48) 93300-4291",
             "São José": "(48) 93300-4291",
@@ -234,201 +155,229 @@ const total = valorLocalizacao + valorReparo;
             "Canoas": "(51) 92001-5474",
             "Glorinha": "(51) 92001-5474",
             "Guaíba": "(51) 92001-5474",
+            "Gravataí": "(51) 92001-5474",
+            "Novo Hamburgo": "(51) 92001-5474",
+            "Viamão": "(51) 92001-5474",
+            "Esteio": "(51) 92001-5474",
+            "Alvorada": "(51) 92001-5474",
+            "São Leopoldo": "(51) 92001-5474",
+            "Barra do Ribeiro": "(51) 92001-5474",
+            "Eldorado do Sul": "(51) 92001-5474",
+            
+            
+            "Curitiba": "(41) 92001-6421",
+            "São José dos Pinhais": "(41) 92001-6421",
+            "Pinhais": "(41) 92001-6421",
+            "Araucária": "(41) 92001-6421",
+            "Colombo": "(41) 92001-6421",
+            "Campo Largo": "(41) 92001-6421",
+            "Almirante Tamandaré": "(41) 92001-6421",
 
+            "Belo Horizonte": "(31) 93300-6395",
+            "Contagem": "(31) 93300-6395",
+            "Betim": "(31) 93300-6395",
+            "Sabará": "(31) 93300-6395",
+            "Nova Lima": "(31) 93300-6395",
+            "Santa Luzia": "(31) 93300-6395",
+            "Ibirité": "(31) 93300-6395",
+            "Itabirito": "(31) 93300-6395",
         };
 
-        const telefone = telefonesMap[cidade] || "Telefone não disponível";
-        
-        pdf.setFontSize(14);
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFont("helvetica", "bold");
-        pdf.text(`Central Vazamentos`, 130, 20);
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(10);
-        pdf.text(`CNPJ: 43.973.146/0001-26`, 130, 25);
-        pdf.text(`Tel: ${telefone}`, 130, 30);
-        pdf.text(`E-mail: comercial@centralvazamentos.com.br`, 130, 35);
+  const telefone = telefonesMap[cidade] || "Telefone não disponível";
 
+  // =============================
+  // CABEÇALHO DO CLIENTE
+  // =============================
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(14);
+  pdf.text(`${nome}`, 10, 55);
+  pdf.setFontSize(10);
+  pdf.text(`CPF/CNPJ: ${cpf}`, 10, 62);
+  pdf.text(`Endereço: ${endereco}`, 10, 69);
+  pdf.text(`Bairro: ${bairro}`, 10, 76);
+  pdf.text(`Cidade: ${cidade}`, 10, 83);
+  pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 87);
 
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(10);
+  // =============================
+  // TÍTULO
+  // =============================
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(16);
+  pdf.text("ORÇAMENTO", 85, 95);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
 
-        const selectedTechniques = [];
-        const allTechniques = {
-    "geofonamentoCheckbox": "Geofonamento com o geofone eletrônico",
-    "pressurizacaoCheckbox": "Pressurização da Rede",
-    "cameraTermograficaCheckbox": "Inspeção com câmera termográfica",
-    "sensorDeUmidadeCheckbox": "Verificação de umidade com o sensor de umidade"
-};
+  // =============================
+  // INFORMAÇÕES DA EMPRESA
+  // =============================
+  pdf.setFontSize(14);
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont("helvetica", "bold");
+  pdf.text(`Central Vazamentos`, 130, 20);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  pdf.text(`CNPJ: 43.973.146/0001-26`, 130, 25);
+  pdf.text(`Tel: ${telefone}`, 130, 30);
+  pdf.text(`E-mail: comercial@centralvazamentos.com.br`, 130, 35);
 
-        
-pdf.setFont("helvetica", "bold"); 
-            pdf.text("Descrição:", 10, 110);
-            pdf.setFont("helvetica", "normal");        
-        
-// Verifica quais técnicas foram selecionadas
-const checkboxes = Object.keys(allTechniques);
-checkboxes.forEach(id => {
+  pdf.setTextColor(0, 0, 0);
+
+  // =============================
+  // DESCRIÇÃO DOS SERVIÇOS
+  // =============================
+  const selectedTechniques = [];
+  const allTechniques = {
+    geofonamentoCheckbox: "Geofonamento com o geofone eletrônico",
+    pressurizacaoCheckbox: "Pressurização da Rede",
+    cameraTermograficaCheckbox: "Inspeção com câmera termográfica",
+    sensorDeUmidadeCheckbox: "Verificação de umidade com o sensor de umidade",
+  };
+
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Descrição:", 10, 110);
+  pdf.setFont("helvetica", "normal");
+
+  const checkboxes = Object.keys(allTechniques);
+  checkboxes.forEach((id) => {
     if (document.getElementById(id).checked) {
-        selectedTechniques.push(allTechniques[id]);
+      selectedTechniques.push(allTechniques[id]);
     }
-});
+  });
 
-// Construção da frase final
-let techniquesText = "";
+  let techniquesText = "";
 
-if (selectedTechniques.length > 0) {
-    // Remove a última técnica da lista para formatação correta
+  if (selectedTechniques.length > 0) {
     const lastSelected = selectedTechniques.pop();
     let mainText = `Será realizado o serviço de vistoria na rede hidráulica utilizando a técnica de ${selectedTechniques.join(", ")}${selectedTechniques.length > 0 ? " e " : ""}${lastSelected}`;
 
-    // Calcula as técnicas NÃO selecionadas
     const unselectedTechniques = checkboxes
-        .map(id => allTechniques[id])
-        .filter(tech => !selectedTechniques.includes(tech) && tech !== lastSelected);
+      .map((id) => allTechniques[id])
+      .filter((tech) => !selectedTechniques.includes(tech) && tech !== lastSelected);
 
     if (unselectedTechniques.length > 0) {
-        const lastOptional = unselectedTechniques.pop();
-        mainText += `, se necessário será realizado ${unselectedTechniques.join(", ")}${unselectedTechniques.length > 0 ? " e " : ""}${lastOptional}`;
+      const lastOptional = unselectedTechniques.pop();
+      mainText += `, se necessário será realizado ${unselectedTechniques.join(", ")}${unselectedTechniques.length > 0 ? " e " : ""}${lastOptional}`;
     }
 
     techniquesText = mainText + ".";
-} else {
-    techniquesText = "Nenhuma técnica foi selecionada.";
-}
+  } else {
+    const outroServicoCheckbox = document.getElementById("outroServicoCheckbox");
+    const descricaoPersonalizada = document.getElementById("descricaoPersonalizada").value.trim();
 
-// Geração do PDF com o texto formatado
-const techniquesTextLinhas = pdf.splitTextToSize(techniquesText, larguraMaximaLinha);
-pdf.text(techniquesTextLinhas, 10, 117);
-
-        let verifica_detalhes_existe = false;
-
-        
-        
-        
-        // OBSERVAÇÃO
-        const linhasTextoObservacao = pdf.splitTextToSize(observacao, larguraMaximaLinha);
-        
-
-        if (verifica_detalhes_existe == true) {
-            pdf.setFont("helvetica", "bold"); 
-            pdf.text("Observação:", 10, 220);
-            pdf.setFont("helvetica", "normal");
-
-            if (observacao.length === 0) {
-            pdf.text(`Nenhuma observação`, 10, 227);
-            }
-            else {
-                pdf.text(linhasTextoObservacao, 10, 227);
-            }
-        }
-        else {
-            pdf.setFont("helvetica", "bold"); 
-            pdf.text("Observação:", 10, 140);
-            pdf.setFont("helvetica", "normal");
-
-            if (observacao.length === 0) {
-            pdf.text(`Nenhuma observação`, 10, 147);
-            }
-            else {
-                pdf.text(linhasTextoObservacao, 10, 147);
-            }
-        }
-
-        // Define a cor do fundo (por exemplo, cinza claro)
-        pdf.setFillColor(13, 85, 144); // RGB: 220, 220, 220
-
-        // Desenha o fundo retangular antes do texto
-        pdf.rect(10, 174, 190, 9, "F"); // x, y, largura, altura, modo 'F' = filled
-        
-        //pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 177);
-        pdf.setTextColor(255, 255, 255); // Define a cor do texto (RGB)
-
-        // Texto em negrito e colorido
-        pdf.setFont("helvetica", "bold"); 
-        pdf.text("SERVIÇO", 15, 180);
-        pdf.text("VALOR", 175, 180);
-
-        // Restaura a cor para preto e fonte normal após o título
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFont("helvetica", "normal");
-
-        //pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 183);
-        pdf.text(`Vistoria`, 15, 187);
-        pdf.text(`${formatLocalizacao}`, 170, 187);
-        //pdf.text(`Reparo`, 15, 192);
-        //pdf.text(`${formatReparo}`, 170, 192);
-        pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, 195);
-        pdf.text(`${totalFormatado}`, 170, 198);
-        pdf.text(`TOTAL`, 15, 198);
-        
-
-        // Obter o técnico selecionado e o CNPJ
-        const selectTecnico = document.getElementById('tecnico');
-        const tecnicoSelecionado = selectTecnico.options[selectTecnico.selectedIndex];
-        const tecnicoNome = tecnicoSelecionado.value; // Nome do técnico
-        const imagemAssinatura = tecnicoSelecionado.getAttribute('data-imagem');
-
-        if (imagemAssinatura) {
-            const imagemAssinaturaURL = `../static/img/${imagemAssinatura}`;
-            const imgAssinatura = new Image();
-            imgAssinatura.src = imagemAssinaturaURL;
-
-            // Esperar o carregamento da imagem
-            await new Promise((resolve, reject) => {
-                imgAssinatura.onload = resolve;
-                imgAssinatura.onerror = reject;
-            });
-
-            // Adicionar a assinatura no PDF
-            pdf.addImage(imgAssinatura, "PNG", 24, 262, 45, 20); // Ajuste as dimensões conforme necessário
-        }
-        // Adicionar informações do técnico
-        pdf.text(`-----------------------------------`, 24, 280);    
-        pdf.text(`${tecnicoNome}`, 32, 285);
-        pdf.text(`Gerente Comercial`, 29, 290);
-
-
-        // SHAPE INFERIOR
-        try {
-            const shapeBottom = new Image();
-            shapeBottom.src = "../static/img/shape_inferior.png"; // Caminho do seu shape inferior
-    
-            await new Promise((resolve, reject) => {
-                shapeBottom.onload = resolve;
-                shapeBottom.onerror = reject;
-            });
-    
-            // Adiciona o shape no rodapé (posição Y geralmente no fim da página A4)
-            pdf.addImage(shapeBottom, "PNG", 0, 285, 210, 17); // 280 = quase final da página
-        } catch (e) {
-            console.warn("Shape inferior não carregado:", e);
-        }
-
-        pdf.setTextColor(255, 255, 255);
-
-        //pdf.setTextColor(255, 255, 255); // Define a cor do texto (RGB)
-        if (data) {
-            // Dividindo a string no formato ISO
-            const [ano, mes, dia] = data.split('-');
-            
-            // Montando a data no formato dd/mm/yyyy
-            const dataFormatada = `${dia}/${mes}/${ano}`;
-            
-            // Inserindo no PDF
-            pdf.text(`${dataFormatada}, ${cidade}`, 140, 292);
-        }
-
-        
-
-
-    } catch (error) {
-        console.warn("Erro ao carregar uma ou mais imagens:", error);
+    if (outroServicoCheckbox.checked && descricaoPersonalizada) {
+      techniquesText = descricaoPersonalizada;
+    } else if (outroServicoCheckbox.checked && !descricaoPersonalizada) {
+      techniquesText = "Outro serviço informado, mas sem descrição detalhada.";
+    } else {
+      techniquesText = "Nenhuma técnica foi selecionada.";
     }
+  }
 
-        
-    // Salvar PDF
-    pdf.save(`Orcamento_${nome}.pdf`);
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Descrição:", 10, 110);
+  pdf.setFont("helvetica", "normal");
+  const techniquesTextLinhas = pdf.splitTextToSize(techniquesText, 180);
+  pdf.text(techniquesTextLinhas, 10, 117);
+
+  // =============================
+  // OBSERVAÇÃO
+  // =============================
+  pdf.setFont("helvetica", "bold");
+  pdf.text("Observação:", 10, 140);
+  pdf.setFont("helvetica", "normal");
+  const linhasTextoObservacao = pdf.splitTextToSize(observacao || "Nenhuma observação", 180);
+  pdf.text(linhasTextoObservacao, 10, 147);
+
+  // =============================
+  // ITENS DO ORÇAMENTO
+  // =============================
+  let posY = 174;
+  let totalOrcamento = 0;
+
+  pdf.setFillColor(13, 85, 144);
+  pdf.rect(10, posY, 190, 9, "F");
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont("helvetica", "bold");
+  pdf.text("ITENS", 15, posY + 6);
+  pdf.text("VALOR (R$)", 175, posY + 6);
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(0, 0, 0);
+
+  posY += 15;
+
+  if (typeof itensOrcamento !== "undefined" && itensOrcamento.length > 0) {
+    itensOrcamento.forEach((item) => {
+      const valorFormatado = item.valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      pdf.text(item.nome, 15, posY);
+      pdf.text(valorFormatado, 195, posY, { align: "right" });
+      posY += 7;
+      totalOrcamento += item.valor;
+    });
+  } else {
+    pdf.text("Nenhum item adicionado ao orçamento.", 15, posY);
+    posY += 7;
+  }
+
+  // LINHA FINAL
+  pdf.text(`-------------------------------------------------------------------------------------------------------------------------------------------------------------------`, 10, posY);
+  posY += 4;
+
+  // TOTAL FINAL
+  const totalFormatado = totalOrcamento.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  pdf.setFont("helvetica", "bold");
+  pdf.text("TOTAL", 15, posY + 1);
+  pdf.text(`R$ ${totalFormatado}`, 195, posY + 1, { align: "right" });
+
+  // =============================
+  // ASSINATURA
+  // =============================
+  const tecnicoSelect = document.getElementById("tecnico");
+  const tecnicoSelecionado = tecnicoSelect.options[tecnicoSelect.selectedIndex];
+  const tecnicoNome = tecnicoSelecionado.value;
+  const imagemAssinatura = tecnicoSelecionado.getAttribute("data-imagem");
+
+  if (imagemAssinatura) {
+    const imagemAssinaturaURL = `../static/img/${imagemAssinatura}`;
+    const imgAssinatura = new Image();
+    imgAssinatura.src = imagemAssinaturaURL;
+    await new Promise((resolve, reject) => {
+      imgAssinatura.onload = resolve;
+      imgAssinatura.onerror = reject;
+    });
+    pdf.addImage(imgAssinatura, "PNG", 24, 262, 45, 20);
+  }
+
+  pdf.text(`-----------------------------------`, 24, 280);
+  pdf.text(`${tecnicoNome}`, 29, 285);
+  pdf.text(`Gerente Comercial`, 29, 290);
+
+  // SHAPE INFERIOR
+  try {
+    const shapeBottom = new Image();
+    shapeBottom.src = "../static/img/shape_inferior.png";
+    await new Promise((resolve, reject) => {
+      shapeBottom.onload = resolve;
+      shapeBottom.onerror = reject;
+    });
+    pdf.addImage(shapeBottom, "PNG", 0, 285, 210, 17);
+  } catch (e) {
+    console.warn("Shape inferior não carregado:", e);
+  }
+
+  pdf.setTextColor(255, 255, 255);
+  if (data) {
+    const [ano, mes, dia] = data.split("-");
+    const dataFormatada = `${dia}/${mes}/${ano}`;
+    pdf.text(`${dataFormatada}, ${cidade}`, 140, 292);
+  }
+
+  pdf.save(`Orcamento_${nome}.pdf`);
 }
 
 
