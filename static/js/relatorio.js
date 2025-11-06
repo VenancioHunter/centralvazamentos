@@ -237,6 +237,7 @@ async function gerarPDF() {
             "Barra do Ribeiro": "(51) 92001-5474",
             "Eldorado do Sul": "(51) 92001-5474",
             
+            
             "Curitiba": "(41) 92001-6421",
             "São José dos Pinhais": "(41) 92001-6421",
             "Pinhais": "(41) 92001-6421",
@@ -253,6 +254,15 @@ async function gerarPDF() {
             "Santa Luzia": "(31) 93300-6395",
             "Ibirité": "(31) 93300-6395",
             "Itabirito": "(31) 93300-6395",
+
+            "Brasília": "(61) 92004-8488",
+            "Taguatinga": "(61) 92004-8488",
+            "Ceilândia": "(61) 92004-8488",
+            "Samambaia": "(61) 92004-8488",
+            "Águas Claras": "(61) 92004-8488",
+            "Sobradinho": "(61) 92004-8488",
+            "Planaltina": "(61) 92004-8488",
+            "Gama": "(61) 92004-8488",
         };
 
         const telefone = telefonesMap[cidade] || "Telefone não disponível";
