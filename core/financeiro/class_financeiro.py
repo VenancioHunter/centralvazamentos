@@ -108,6 +108,10 @@ class Financeiro:
         participacao_taxa_empresa = "{:.2f}".format((float(valor_liquido) * porcentagem_empresa) / 100)
 
         valor_empresa = "{:.2f}".format(float(participacao_taxa_empresa), 2)
+
+        sao_paulo_tz = pytz.timezone('America/Sao_Paulo')
+        now_in_sao_paulo = datetime.datetime.now(sao_paulo_tz)
+        horario_fechamento = now_in_sao_paulo.strftime("%d/%m/%Y %H:%M")
       
         create_transation = {}
 
@@ -135,6 +139,7 @@ class Financeiro:
             'observacoes_service': observacoes_service,
             'id_create_transaction_user': id_create_transaction_user,
             'id_create_transaction_wallet': id_create_transaction_wallet,
+            'horario_fechamento': horario_fechamento
             }
         
         try:
