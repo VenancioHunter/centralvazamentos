@@ -1,7 +1,7 @@
 const tecnicos = [
   // --- GOIÂNIA ---
   {
-    nome: "Roberto Rodrigues dos Santos",
+    nome: "Roberto Rodrigues",
     cnpj: "45.782.998/0001-61",
     imagem: "assinaturaroberto.png",
     cidade: "Goiânia"
@@ -82,7 +82,7 @@ const tecnicos = [
     imagem: "assinaturaalanhonorato.png"
   },
   {
-    nome: "Gildson",
+    nome: "Gildson Dos Santos",
     cnpj: "43.973.146/0001-26",
     imagem: "assinaturagildson.png"
   },
