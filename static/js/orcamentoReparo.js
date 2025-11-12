@@ -27,6 +27,24 @@ function validarCamposObrigatorios() {
   return true;
 }
 
+// =============================
+// FUNÇÃO PARA GERAR ASSINATURA MANUSCRITA
+// =============================
+function gerarAssinatura(nome) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 400;
+  canvas.height = 100;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "italic 38px 'Great Vibes', cursive";
+  ctx.fillStyle = "#000";
+  ctx.fillText(nome, 10, 60);
+
+  return canvas.toDataURL("image/png");
+}
+
 async function gerarPDF() {
   if (!validarCamposObrigatorios()) return;
 
@@ -163,7 +181,6 @@ async function gerarPDF() {
             "São Leopoldo": "(51) 92001-5474",
             "Barra do Ribeiro": "(51) 92001-5474",
             "Eldorado do Sul": "(51) 92001-5474",
-            
             
             "Curitiba": "(41) 92001-6421",
             "São José dos Pinhais": "(41) 92001-6421",
@@ -336,7 +353,8 @@ async function gerarPDF() {
 
   // =============================
   // ASSINATURA
-  // =============================
+    // =============================
+   /*
   const tecnicoSelect = document.getElementById("tecnico");
   const tecnicoSelecionado = tecnicoSelect.options[tecnicoSelect.selectedIndex];
   const tecnicoNome = tecnicoSelecionado.value;
@@ -355,8 +373,25 @@ async function gerarPDF() {
 
   pdf.text(`-----------------------------------`, 24, 280);
   pdf.text(`${tecnicoNome}`, 29, 285);
-  pdf.text(`Gerente Comercial`, 29, 290);
+  pdf.text(`Gerente Comercial`, 29, 290);*/
+    
+    
+  const tecnicoSelect = document.getElementById("tecnico");
+  const tecnicoSelecionado = tecnicoSelect.options[tecnicoSelect.selectedIndex];
+  const tecnicoNome = tecnicoSelecionado.value;
 
+  const assinaturaImagem = gerarAssinatura(tecnicoNome);
+  pdf.addImage(assinaturaImagem, "PNG", 24, 266, 45, 20);
+
+  // Criação do hash digital
+  //const hash = btoa(`${nome}-${cpf}-${data}-${totalOrcamento}`).slice(0, 12).toUpperCase();
+
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`-----------------------------------`, 24, 280);
+  pdf.text(`${tecnicoNome}`, 29, 285);
+  pdf.text(`Gerente Comercial`, 29, 290);
+  //pdf.text(`ID de Verificação: CVZ-${hash}`, 24, 295);
+  //pdf.text(`Verifique em: centralvazamentos.com.br/verificar/${hash}`, 24, 300);
   // SHAPE INFERIOR
   try {
     const shapeBottom = new Image();
