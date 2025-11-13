@@ -265,6 +265,7 @@ async function gerarPDF() {
             "São José": "(48) 93300-4291",
             "Palhoça": "(48) 93300-4291",
             "Biguaçu": "(48) 93300-4291",
+            "Joinville": "(47) 92003-8280",
 
             "Porto Alegre": "(51) 92001-5474",
             "Canoas": "(51) 92001-5474",

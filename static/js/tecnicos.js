@@ -115,6 +115,11 @@ const tecnicos = [
     nome: "Thaian Bispo",
     cnpj: "43.973.146/0001-26",
     imagem: "assinaturathaian.png"
+  },
+  {
+    nome: "Rodrigo Bannak",
+    cnpj: "45.415.919/0001-84",
+    imagem: "assinaturawellington.png"
   }
 ];
 
