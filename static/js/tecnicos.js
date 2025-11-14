@@ -120,6 +120,12 @@ const tecnicos = [
     nome: "Rodrigo Bannak",
     cnpj: "45.415.919/0001-84",
     imagem: "assinaturawellington.png"
+  },
+  {
+    nome: "Marcio Soares",
+    cnpj: "44.979.624/0001-78",
+    imagem: "assinaturawellington.png",
+    cidade: "Belo Horizonte"
   }
 ];
 
