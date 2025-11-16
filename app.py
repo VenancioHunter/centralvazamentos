@@ -2525,8 +2525,10 @@ def buscar_ordens():
 def upload_pdf():
 
     # Receber PDF
-    if "pdf" not in request.files:
-        return jsonify({"status": "error", "message": "PDF ausente"}), 400
+    file = request.files.get("pdf")
+    if not file or file.filename == "":
+        return jsonify({"status": "error", "message": "PDF não recebido"}), 400
+
 
     pdf_file = request.files["pdf"]
 
@@ -2556,6 +2558,8 @@ def upload_pdf():
     relatorio_id = db.child("relatorios").push(relatorio_data)
 
     return jsonify({"status": "ok", "url": pdf_url})
+
+
 @app.template_filter('datetime')
 def datetime_filter(ts):
     return datetime.fromtimestamp(ts).strftime("%d/%m/%Y %H:%M")
