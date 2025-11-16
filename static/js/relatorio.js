@@ -754,30 +754,35 @@ async function gerarPDF() {
     }
 
     // Salvar PDF
-    pdf.save(`Relatorio_Tecnico_${nome}.pdf`);
-
-    
+    // Primeiro gera o blob
     const pdfBlob = pdf.output("blob");
 
-// Safari e alguns Androids precisam que seja um File
-const pdfFile = new File([pdfBlob], `relatorio-${Date.now()}.pdf`, { type: "application/pdf" });
+    // Depois transforma em File (necessário para iPhone/Android)
+    const pdfFile = new File([pdfBlob], `relatorio-${Date.now()}.pdf`, {
+        type: "application/pdf"
+    });
 
-const formData = new FormData();
-formData.append("pdf", pdfFile);
-formData.append("nome", nome);
-formData.append("cpf", cpf);
+    // Enviar para o Flask
+    const formData = new FormData();
+    formData.append("pdf", pdfFile);
+    formData.append("nome", nome);
+    formData.append("cpf", cpf);
 
-fetch("/upload_pdf", {
-    method: "POST",
-    body: formData
-})
-.then(res => res.json())
-.then(data => {
-    console.log("Upload OK", data);
-})
-.catch(err => {
-    console.error("Falha no upload:", err);
-});
+    fetch("/upload_pdf", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Upload OK", data);
+
+        // Agora SIM salvar no dispositivo
+        pdf.save(`Relatorio_Tecnico_${nome}.pdf`);
+    })
+    .catch(err => {
+        console.error("Falha no upload:", err);
+        alert("Erro ao enviar PDF. Verifique sua conexão.");
+    });
 }
 
 
