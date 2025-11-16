@@ -68,9 +68,96 @@
     </table>
     
     <h4>Saldo Total: R$ {{ total_balance }}</h4>
+    <div id="transactionsSummary" class="mt-3"></div>
 
     {% else %}
     <p class="mt-4">Nenhuma transação encontrada para o período selecionado.</p>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // tenta pegar a tabela pelo id, senão pega a primeira tabela com as classes
+  const table = document.querySelector('#transactionsTable') || document.querySelector('table.table.table-bordered');
+  if (!table) return;
+
+  const rows = table.querySelectorAll('tbody tr');
+
+  // Converte string pra número tratando formatos 'R$ 1.234,56', '2.50', '2,50', '4300.00' etc
+  const toNum = (v) => {
+    if (v === null || v === undefined) return 0;
+    let s = String(v).trim();
+    s = s.replace(/\s/g, '');
+    s = s.replace(/R\$/g, '').replace(/\$/g, '');
+    // se contém vírgula, assume formato brasileiro: remove pontos (milhar) e troca vírgula por ponto
+    if (s.indexOf(',') !== -1) {
+      s = s.replace(/\./g, ''); // remove separador de milhar
+      s = s.replace(',', '.');  // 1.234,56 -> 1234.56
+    } else {
+      // remove vírgulas soltas (caso) e mantém pontos decimais
+      s = s.replace(/,/g, '');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  };
+
+  let totalCredit = 0;
+  let qtd250 = 0, qtd30 = 0;
+  let total250 = 0, total30 = 0;
+
+  rows.forEach(tr => {
+    // 1) detecta tipo (prefere data-type)
+    let type = tr.dataset.type;
+    if (!type) {
+      // procura badge verde (bg-success) ou texto "Crédito"
+      if (tr.querySelector('.badge.bg-success')) {
+        type = 'c';
+      } else {
+        const typeCell = tr.querySelector('td:nth-child(3)');
+        type = (typeCell && typeCell.textContent.toLowerCase().includes('crédito')) ? 'c' : 'd';
+      }
+    }
+
+    // 2) detecta valor (prefere data-value), senão pega a 4ª coluna (valor)
+    let rawVal = tr.dataset.value;
+    if (!rawVal) {
+      const valCell = tr.querySelector('td:nth-child(4)');
+      rawVal = valCell ? valCell.textContent : '';
+    }
+    const val = toNum(rawVal);
+
+    if (type === 'c') {
+      totalCredit += val;
+      const fixed = Number(val).toFixed(2); // compara por string '2.50' / '30.00'
+      if (fixed === '2.50') {
+        qtd250 += 1;
+        total250 += val;
+      } else if (fixed === '30.00') {
+        qtd30 += 1;
+        total30 += val;
+      }
+    }
+  });
+
+  // Cria/atualiza área de resumo
+  const summaryEl = document.getElementById('transactionsSummary') || (function () {
+    const d = document.createElement('div');
+    d.id = 'transactionsSummary';
+    table.parentNode.insertBefore(d, table.nextSibling);
+    return d;
+  })();
+
+  const formatBR = n => Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  summaryEl.innerHTML = `
+    <h4>Resumo:</h4>
+    <ul>
+      <li><strong>Total de créditos:</strong> R$ ${formatBR(totalCredit)}</li>
+      <li><strong>Qtd de R$ 2,50:</strong> ${qtd250} (Total: R$ ${formatBR(total250)})</li>
+      <li><strong>Qtd de R$ 30,00:</strong> ${qtd30} (Total: R$ ${formatBR(total30)})</li>
+    </ul>
+  `;
+});
+</script>
+
 {% endblock %}

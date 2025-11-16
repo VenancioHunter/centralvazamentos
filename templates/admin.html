@@ -1,77 +1,124 @@
 <!-- templates/dashboard.html -->
 {% extends "layout.html" %} {% block title %}Admin{% endblock %} {% block
 content %}
-<h2>Bem-vindo ao Dashboard</h2>
-<p>Você está logado como: {{ user_email }}</p>
-<link href="../static/css/dashboard.css" rel="stylesheet" />
-<div>
-  <div class="row text-center mt-4">
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{ url_for('attendance') }}"
-          style="text-decoration: none"
-        >
-          <h5>Painel Atendimentos</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{ url_for('adm_painel_os') }}"
-          style="text-decoration: none"
-        >
-          <h5>Painel OS</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{url_for('adm_relatorios')}}"
-          style="text-decoration: none"
-        >
-          <h5>Relatórios</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{url_for('adm_painel_tecnicos')}}"
-          style="text-decoration: none"
-        >
-          <h5>Técnicos</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{url_for('data_analysis')}}"
-          style="text-decoration: none"
-        >
-          <h5>Análise de Dados</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{url_for('comissoes')}}"
-          style="text-decoration: none"
-        >
-          <h5>Comissões</h5>
-        </a>
-      </div>
-    </div>
+<style>
+  body {
+    background-color: #f5f7fa;
+    font-family: "Helvetica", sans-serif;
+  }
+
+  h2 {
+    color: #0d5590;
+    font-weight: bold;
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  p {
+    text-align: center;
+    color: #555;
+    font-size: 15px;
+  }
+
+  .dashboard-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 15px;
+  }
+
+  .card-presentation {
+    display: block;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .card-presentation h5 {
+    color: #0d5590;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .card-presentation:hover {
+    background-color: #0d5590;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(13, 85, 144, 0.25);
+  }
+
+  .card-presentation:hover h5 {
+    color: #fff;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .dashboard-container {
+      padding: 20px;
+    }
+  }
+</style>
+
+<div class="dashboard-container">
+  <h2>Bem-vindo</h2>
+  <p>Você está logado como: <strong>{{ user_email }}</strong></p>
+
+  <div class="dashboard-grid mt-4">
+    <a
+      href="{{ url_for('attendance') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Painel Atendimentos</h5>
+    </a>
+
+    <a
+      href="{{ url_for('adm_painel_os') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Painel OS</h5>
+    </a>
+
+    <a
+      href="{{ url_for('adm_relatorios') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Relatórios</h5>
+    </a>
+
+    <a
+      href="{{ url_for('adm_painel_tecnicos') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Técnicos</h5>
+    </a>
+
+    <a
+      href="{{ url_for('data_analysis') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Análise de Dados</h5>
+    </a>
+
+    <a
+      href="{{ url_for('comissoes') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Comissões</h5>
+    </a>
+    <a
+      href="{{ url_for('relatorios_lista_pdf') }}"
+      class="card-presentation text-center text-decoration-none"
+    >
+      <h5>Relatórios</h5>
+    </a>
   </div>
 </div>
 {% endblock %}

@@ -1,21 +1,133 @@
 <!-- templates/signup.html -->
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %}Cadastro{% endblock %} {% block
+content %}
+<style>
+  body {
+    background-color: #f5f7fa;
+    font-family: "Helvetica", sans-serif;
+  }
 
-{% block title %}Signup{% endblock %}
+  .signup-container {
+    max-width: 420px;
+    margin: 60px auto;
+  }
 
-{% block content %}
-<h2>Cadastro</h2>
-<form method="POST" action="/signup">
-    <label for="name">Nome:</label>
-    <input type="text" id="name" name="name" required>
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
+  .card-header {
+    background: none;
+    border-bottom: none;
+  }
 
-    <label for="password">Senha:</label>
-    <input type="password" id="password" name="password" required>
+  h2 {
+    color: #0d5590;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
 
-    <button type="submit">Cadastrar</button>
-</form>
-<p>Já tem uma conta? <a href="{{ url_for('login') }}">Faça login</a></p>
+  .card-body {
+    padding: 30px;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .form-control {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+
+  .form-control:focus {
+    border-color: #0d5590;
+    box-shadow: 0 0 0 0.15rem rgba(13, 85, 144, 0.25);
+  }
+
+  .btn-primary {
+    background-color: #0d5590;
+    border-color: #0d5590;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px 20px;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    background-color: #0b497a;
+    border-color: #0b497a;
+  }
+
+  .text-link {
+    color: #0d5590;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .text-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 576px) {
+    .signup-container {
+      margin: 40px 15px;
+    }
+  }
+</style>
+
+<div class="signup-container">
+  <div class="card">
+    <div class="card-header text-center">
+      <h2>Cadastro</h2>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="/signup">
+        <div class="mb-3">
+          <label for="name" class="form-label">Nome</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="mb-4">
+          <label for="password" class="form-label">Senha</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+      </form>
+
+      <p class="text-center mt-3">
+        Já tem uma conta?
+        <a href="{{ url_for('login') }}" class="text-link">Faça login</a>
+      </p>
+    </div>
+  </div>
+</div>
 {% endblock %}

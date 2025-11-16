@@ -1,33 +1,126 @@
 <!-- templates/login.html -->
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %}Login{% endblock %} {% block
+content %}
+<style>
+  body {
+    background-color: #f5f7fa;
+    font-family: "Helvetica", sans-serif;
+  }
 
-{% block title %}Login{% endblock %}
+  .login-container {
+    max-width: 400px;
+    margin: 60px auto;
+  }
 
-{% block content %}
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 
-<div class="py-4" align="center">
-    <img class="rounded-circle" src="../static/img/logo.webp" style="max-width: 200px;" />
-</div>
-<div class="card" style="border: none;">
-<div class="card-header ">
-    <h2 class="text-center" style="color: #124453; font-weight: bold;">LOGIN</h2>
-</div>
-<div class="card-body py-4">
-    <form method="POST" action="{{ url_for('login') }}">
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input class="form-control" type="email" id="email" name="email" required>
+  .card-header {
+    background: none;
+    border-bottom: none;
+  }
+
+  .card-body {
+    padding: 30px;
+  }
+
+  h2 {
+    color: #0d5590;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .form-control {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+
+  .form-control:focus {
+    border-color: #0d5590;
+    box-shadow: 0 0 0 0.15rem rgba(13, 85, 144, 0.25);
+  }
+
+  .btn-primary {
+    background-color: #0d5590;
+    border-color: #0d5590;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px 20px;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    background-color: #0b497a;
+    border-color: #0b497a;
+  }
+
+  .logo img {
+    max-width: 160px;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 576px) {
+    .login-container {
+      margin: 40px 15px;
+    }
+  }
+</style>
+
+<div class="login-container">
+  <div class="text-center mb-4 logo">
+    <img src="../static/img/logo.webp" alt="Logo da Empresa" />
+  </div>
+
+  <div class="card">
+    <div class="card-header text-center">
+      <h2>LOGIN</h2>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input
+            class="form-control"
+            type="email"
+            id="email"
+            name="email"
+            required
+          />
         </div>
-       
-        <div class="form-group">
-            <label for="password">Senha:</label>
-            <input class="form-control" type="password" id="password" name="password" required>
+
+        <div class="mb-4">
+          <label for="password" class="form-label">Senha</label>
+          <input
+            class="form-control"
+            type="password"
+            id="password"
+            name="password"
+            required
+          />
         </div>
+
         <div>
-        <button class="btn btn-primary" type="submit" style="width: 100%;">Login</button>
+          <button class="btn btn-primary" type="submit">Entrar</button>
         </div>
-    </form>
+      </form>
+    </div>
+  </div>
+
+  <p hidden class="text-center mt-3">
+    Não tem uma conta?
+    <a href="{{ url_for('signup') }}" style="color: #0d5590; font-weight: 600"
+      >Cadastre-se aqui</a
+    >
+  </p>
 </div>
-</div>
-<p hidden>Não tem uma conta? <a href="{{ url_for('signup') }}">Cadastre-se aqui</a></p>
 {% endblock %}

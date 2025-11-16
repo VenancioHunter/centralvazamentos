@@ -1,69 +1,241 @@
 <!-- templates/dashboard.html -->
 {% extends "layout.html" %} {% block title %}Perfil{% endblock %} {% block
 content %}
-<h2 class="text-center">Perfil</h2>
 
-<link href="../static/css/dashboard.css" rel="stylesheet" />
-<div class="mb-4">
-  <h4>{{data_user.name}}</h4>
-</div>
-<div class="row">
-  <div class="col-lg-6 col-md-6 col-sm-12">
-    <div
-      class="mb-3"
-      style="background-color: rgb(201, 201, 201); padding: 10px"
-    >
-      <select class="form-select" id="city-select-add" name="city" required>
-        {% for city_id, city_name in cities.items() %}
-        <option value="{{ city_name }}">{{ city_name }}</option>
-        {% endfor %}
-      </select>
-      <button
-        class="btn btn-primary mt-2"
-        type="button"
-        onclick="addCity('{{ id_user }}')"
-        style="width: 100%"
-      >
-        Adicionar Cidade
-      </button>
-    </div>
+<style>
+  .perfil-container {
+    background: white;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+    margin-top: 30px;
+  }
 
-    <ul class="list-group">
-      {% for city in data_user.cities %}
-      <li class="list-group-item">
-        <span>{{city}}</span>
-        <a
-          class="btn btn-danger btn-sm float-end"
-          onclick="removeCity({{ loop.index0 }}, '{{ id_user }}', '{{ city }}')"
-          >Remover</a
+  h2.text-center {
+    color: #0d5590;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+
+  .perfil-nome {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0d5590;
+  }
+
+  .block-box {
+    background: #eef2f4;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+  }
+
+  .list-group-item {
+    background: white !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-color: #e2e2e2 !important;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  .list-group-item span {
+    font-weight: 500;
+  }
+
+  .btn-danger {
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .btn-primary {
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #0d5590;
+    border-color: #0d5590;
+  }
+
+  .btn-primary:hover {
+    background-color: #083a63;
+    border-color: #083a63;
+  }
+
+  .percentage-box {
+    background: #eef2f4;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+
+  .percentage-box span {
+    display: block;
+    font-size: 17px;
+    font-weight: bold;
+    color: #0d5590;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .btn-danger {
+      margin-top: 10px;
+    }
+  }
+</style>
+
+<div class="perfil-container">
+  <h2 class="text-center">Perfil</h2>
+
+  <div class="mb-4">
+    <h4 class="perfil-nome">{{data_user.name}}</h4>
+    <p>{{data_user.email}}</p>
+  </div>
+
+  <div class="row">
+    <!-- LEFT SIDE — CIDADES -->
+    <div class="col-lg-6 col-md-6 col-sm-12">
+      <div class="block-box">
+        <label class="mb-2 fw-bold">Adicionar Cidade</label>
+        <select class="form-select" id="city-select-add" name="city" required>
+          {% for city_id, city_name in cities.items() %}
+          <option value="{{ city_name }}">{{ city_name }}</option>
+          {% endfor %}
+        </select>
+
+        <button
+          class="btn btn-primary mt-3"
+          type="button"
+          onclick="addCity('{{ id_user }}')"
+          style="width: 100%"
         >
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="col-lg-6 col-md-6 col-sm-12">
-    <span>Porcentagem atual</span>
-    <span>{{data_user.porcentagem}}%</span>
-
-    <div style="background-color: rgb(201, 201, 201); padding: 10px">
-      <div class="input-group mb-3">
-        <input
-          type="text"
-          class="form-control"
-          aria-describedby="basic-addon1"
-        />
+          Adicionar Cidade
+        </button>
       </div>
-      <button
-        class="btn btn-primary"
-        type="button"
-        onclick="updatePercentage('{{ id_user }}')"
-        style="width: 100%"
-      >
-        Alterar Porcentagem
-      </button>
+
+      <ul class="list-group shadow-sm">
+        {% for city in data_user.cities %}
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          <span>{{city}}</span>
+          <a
+            class="btn btn-danger btn-sm"
+            onclick="removeCity({{ loop.index0 }}, '{{ id_user }}', '{{ city }}')"
+          >
+            Remover
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- RIGHT SIDE — PORCENTAGEM -->
+    <div class="col-lg-6 col-md-6 col-sm-12">
+      <div class="percentage-box">
+        <span>Porcentagem atual: {{data_user.porcentagem}}%</span>
+
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            class="form-control"
+            aria-describedby="basic-addon1"
+            placeholder="Nova porcentagem"
+          />
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          onclick="updatePercentage('{{ id_user }}')"
+          style="width: 100%"
+        >
+          Alterar Porcentagem
+        </button>
+      </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+      <div class="percentage-box">
+        <span>Tipo: {{data_user.role}}</span>
+
+        <div class="input-group mb-3">
+          <select
+            class="form-control"
+            aria-describedby="basic-addon1"
+            placeholder="Alterar Tipo"
+            id="role"
+          >
+            <option value="" disabled selected>Selecione o tipo</option>
+            <option value="user">Atendente</option>
+            <option value="tecnico">Técnico</option>
+          </select>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          onclick="updateRole('{{ id_user }}')"
+          style="width: 100%"
+        >
+          Alterar Tipo
+        </button>
+      </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+      <div class="percentage-box">
+        <span>CPF/CNPJ: {{data_user.cpf_cnpj}}</span>
+
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            class="form-control"
+            aria-describedby="basic-addon1"
+            placeholder="CPF/CNPJ"
+            id="cpf_cnpj"
+            oninput="formatarCpfCnpj(this)"
+          />
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          onclick="update_cpf_cnpj('{{ id_user }}')"
+          style="width: 100%"
+        >
+          Alterar CPF/CNPJ
+        </button>
+      </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12">
+      <div class="percentage-box">
+        <span>Nome no relatório: {{data_user.nome_relatorio}}</span>
+
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            class="form-control"
+            aria-describedby="basic-addon1"
+            placeholder="Nome no relatório"
+            id="nome_relatorio"
+          />
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          onclick="updateNomeRelatorio('{{ id_user }}')"
+          style="width: 100%"
+        >
+          Alterar Nome
+        </button>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- Scripts originais (não alterados) -->
 <script>
   function removeCity(index, id, city) {
     if (!confirm(`Tem certeza que deseja remover a cidade "${city}"?`)) return;
@@ -77,48 +249,35 @@ content %}
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
-          location.reload(); // Atualiza a página
-        } else {
-          alert(data.error || "Erro ao remover cidade.");
-        }
+        if (data.success) location.reload();
+        else alert(data.error || "Erro ao remover cidade.");
       })
-      .catch((error) => {
-        console.error("Erro:", error);
-        alert("Ocorreu um erro ao tentar remover a cidade.");
-      });
+      .catch(() => alert("Ocorreu um erro ao tentar remover a cidade."));
   }
 </script>
+
 <script>
   function addCity(id) {
     const selectedCity = document.getElementById("city-select-add").value;
-    console.log(id);
-    console.log(selectedCity);
     fetch("/user_add_city", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ city: selectedCity, id: id }),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
           alert("Cidade adicionada com sucesso!");
-          location.reload(); // recarrega para atualizar a lista
-        } else {
-          alert(data.error || "Erro ao adicionar cidade.");
-        }
+          location.reload();
+        } else alert(data.error || "Erro ao adicionar cidade.");
       })
-      .catch((error) => {
-        console.error("Erro:", error);
-        alert("Erro ao adicionar cidade.");
-      });
+      .catch(() => alert("Erro ao adicionar cidade."));
   }
 </script>
+
 <script>
   function updatePercentage(id) {
-    const input = document.querySelector(".form-control"); // ou use um ID se quiser mais precisão
+    const input = document.querySelector(".form-control");
     const value = input.value.trim();
 
     if (!value || isNaN(value)) {
@@ -128,27 +287,127 @@ content %}
 
     fetch("/user_update_percentage", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: id,
-        percentage: parseFloat(value),
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, percentage: parseFloat(value) }),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
           alert("Porcentagem atualizada com sucesso.");
-          location.reload(); // opcional: recarrega a página para atualizar visualmente
+          location.reload();
+        } else alert(data.error || "Erro ao atualizar.");
+      })
+      .catch(() => alert("Erro ao conectar com o servidor."));
+  }
+</script>
+
+<script>
+  function updateRole(id) {
+    const input = document.getElementById("role");
+    const value = input.value;
+
+    if (!value) {
+      alert("Por favor, selecione um tipo.");
+      return;
+    }
+
+    fetch("/user_update_tipo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, role: value }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Tipo atualizado com sucesso!");
+          location.reload();
         } else {
-          alert(data.error || "Erro ao atualizar a porcentagem.");
+          alert(data.error || "Erro ao atualizar.");
         }
       })
-      .catch((error) => {
-        console.error("Erro:", error);
-        alert("Erro ao conectar com o servidor.");
-      });
+      .catch(() => alert("Erro ao conectar com o servidor."));
+  }
+</script>
+
+<script>
+  function update_cpf_cnpj(id) {
+    const input = document.getElementById("cpf_cnpj");
+    const value = input.value;
+
+    if (!value) {
+      alert("Por favor, insira um CPF ou CNPJ.");
+      return;
+    }
+
+    fetch("/user_update_cpf_cnpj", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, cpfcnpj: value }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("CPF/CNPJ atualizado com sucesso.");
+          location.reload();
+        } else alert(data.error || "Erro ao atualizar.");
+      })
+      .catch(() => alert("Erro ao conectar com o servidor."));
+  }
+</script>
+
+<script>
+  function updateNomeRelatorio(id) {
+    const input = document.getElementById("nome_relatorio");
+    const value = input.value;
+
+    if (!value) {
+      alert("Por favor, selecione um tipo.");
+      return;
+    }
+
+    fetch("/user_update_nome_relatorio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, nome_relatorio: value }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Tipo atualizado com sucesso!");
+          location.reload();
+        } else {
+          alert(data.error || "Erro ao atualizar.");
+        }
+      })
+      .catch(() => alert("Erro ao conectar com o servidor."));
+  }
+</script>
+
+<script>
+  function formatarCpfCnpj(input) {
+    let valor = input.value.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+
+    if (valor.length <= 11) {
+      // Formatar como CPF: 123.456.789-09
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    } else if (valor.length > 11 && valor.length <= 14) {
+      // Formatar como CNPJ normal: 12.345.678/0001-23
+      valor = valor.replace(/(\d{2})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1/$2");
+      valor = valor.replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    } else if (valor.length > 14) {
+      // Formatar CNPJ maior, preservando o formato 44.979.624/0001-78
+      valor = valor.substring(0, 14); // garante no máximo 14 dígitos numéricos
+      valor = valor.replace(/(\d{2})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1/$2");
+      valor = valor.replace(/(\d{4})(\d{2})$/, "$1-$2");
+    }
+
+    input.value = valor; // Atualiza o valor do campo
   }
 </script>
 {% endblock %}

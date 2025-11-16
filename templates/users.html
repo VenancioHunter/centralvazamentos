@@ -1,45 +1,123 @@
-<!-- templates/dashboard.html -->
 {% extends "layout.html" %} {% block title %}Técnico{% endblock %} {% block
 content %}
-<div align="center" class="mt-4">
-  <h1>ADM Técnicos</h1>
+
+<style>
+  h1 {
+    color: #0d5590;
+    font-weight: 800;
+    margin-top: 20px;
+  }
+
+  .tecnicos-container {
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .search-box {
+    margin-bottom: 25px;
+  }
+
+  .search-box input {
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+  }
+
+  .tecnico-card {
+    display: block;
+    background: white;
+    text-decoration: none !important;
+    color: #0d5590;
+    padding: 20px;
+    border-radius: 14px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: 0.2s ease;
+    text-align: center;
+  }
+
+  .tecnico-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  }
+
+  .tecnico-card h5 {
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+
+  .tecnico-card span {
+    font-size: 14px;
+    color: #444;
+  }
+
+  .no-users {
+    margin-top: 40px;
+    text-align: center;
+    color: #555;
+    font-size: 18px;
+  }
+</style>
+
+<div class="text-center mt-4">
+  <h1>Usuários</h1>
 </div>
-<link href="../static/css/dashboard.css" rel="stylesheet" />
-<!--<div>
-      <div class="row text-center mt-4">
-        <div class="col-sm-12">
-          <div class="border border-0 m-2">
-            <a
-              class="card-presentation"
-              href="{{url_for('vincular_tecnico')}}"
-              style="text-decoration: none"
-            >
-              <h5>Vincular Técnico</h5>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>-->
-<div>
+
+<div class="tecnicos-container">
+  <!-- CAMPO DE BUSCA -->
+  <div class="search-box">
+    <input
+      type="text"
+      class="form-control"
+      id="search-tecnico"
+      placeholder="Buscar pelo nome ou email..."
+      onkeyup="filtrarTecnicos()"
+    />
+  </div>
+
   {% if users %}
-  <div class="row text-center mt-4">
+  <div class="row mt-3" id="tecnico-list">
     {% for user in users %}
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="perfil/{{user.id}}"
-          style="text-decoration: none"
-        >
-          <h5>{{ user.name }}</h5>
-          {{ user.email }}
-        </a>
-      </div>
+    <div class="col-lg-4 col-md-6 col-sm-12 tecnico-item">
+      <a class="tecnico-card" href="perfil/{{ user.id }}">
+        <h5 class="tecnico-nome">{{ user.name }}</h5>
+        <span class="tecnico-email">{{ user.email }}</span>
+      </a>
     </div>
     {% endfor %}
   </div>
+
   {% else %}
-  <p>Nenhum usuário encontrado.</p>
+  <p class="no-users">Nenhum usuário encontrado.</p>
   {% endif %}
 </div>
+
+<!-- SCRIPT DO FILTRO -->
+<script>
+  function filtrarTecnicos() {
+    const termo = document.getElementById("search-tecnico").value.toLowerCase();
+    const itens = document.getElementsByClassName("tecnico-item");
+
+    for (let i = 0; i < itens.length; i++) {
+      const nome = itens[i]
+        .querySelector(".tecnico-nome")
+        .innerText.toLowerCase();
+      const email = itens[i]
+        .querySelector(".tecnico-email")
+        .innerText.toLowerCase();
+
+      if (nome.includes(termo) || email.includes(termo)) {
+        itens[i].style.display = "";
+      } else {
+        itens[i].style.display = "none";
+      }
+    }
+  }
+</script>
+
 {% endblock %}

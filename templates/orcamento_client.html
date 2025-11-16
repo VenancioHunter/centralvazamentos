@@ -115,7 +115,7 @@
         </div></div>-->
         <div class="my-4">
             <div>
-                <h5>Serviço Executado</h5>
+                <h5>Serviço a Executado</h5>
             </div>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" value="geofone" id="geofonamentoCheckbox">
@@ -140,6 +140,18 @@
                 <label class="form-check-label" for="sensorDeUmidadeCheckbox">
                     Sensor de Umidade
                 </label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="outroservico" id="outroServicoCheckbox">
+                <label class="form-check-label" for="outroServicoCheckbox">
+                    Outro serviço
+                </label>
+            </div>
+
+            <!-- Campo que aparece ao marcar "Outro serviço" -->
+                <div id="descricaoPersonalizadaContainer" class="mb-3" style="display: none;">
+                <label for="descricaoPersonalizada" style="font-size: small; font-weight: bold;">Descrição do Serviço Executado</label>
+                <textarea class="form-control" id="descricaoPersonalizada" rows="3" placeholder="Descreva o serviço executado"></textarea>
             </div>
         </div>
 
@@ -187,6 +199,23 @@
     </div>
 </form>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const outroServicoCheckbox = document.getElementById("outroServicoCheckbox");
+  const descricaoContainer = document.getElementById("descricaoPersonalizadaContainer");
+
+  // Exibe ou oculta o campo de descrição ao marcar o checkbox
+  outroServicoCheckbox.addEventListener("change", function () {
+    if (this.checked) {
+      descricaoContainer.style.display = "block";
+    } else {
+      descricaoContainer.style.display = "none";
+      document.getElementById("descricaoPersonalizada").value = "";
+    }
+  });
+});
+</script>
 
 <script>
     function exibirRevisaoDeConta() {

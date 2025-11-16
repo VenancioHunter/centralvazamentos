@@ -1,68 +1,123 @@
 <!-- templates/dashboard.html -->
 {% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
 content %}
-<h2>Bem-vindo ao Dashboard</h2>
-<!--<p>Você está logado como: {{ user_email }}</p>-->
-<link href="../static/css/dashboard.css" rel="stylesheet" />
-<div>
-  <div class="row text-center mt-4">
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a class="card-presentation" href="{{ url_for('attendance_records') }}">
-          <h5>Registrar Atendimento</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{ url_for('consulta_atendimentos') }}"
-        >
-          <h5>Atendimentos</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{ url_for('consulta_os_atendente') }}"
-        >
-          <h5>Ordens De Serviço</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a class="card-presentation" href="{{ url_for('orcamentos') }}">
-          <h5>Modelos de Orçamento</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a
-          class="card-presentation"
-          href="{{ url_for('attendance_desempenho') }}"
-        >
-          <h5>Desempenho</h5>
-        </a>
-      </div>
-    </div>
-    <div class="col-sm-12">
-      <div class="border border-0 m-2">
-        <a class="card-presentation" href="{{ url_for('bonus_attendant') }}">
-          <h5>Ganhos Por Serviço</h5>
-        </a>
-      </div>
-    </div>
+<style>
+  body {
+    background-color: #f5f7fa;
+    font-family: "Helvetica", sans-serif;
+  }
+
+  h2 {
+    color: #0d5590;
+    font-weight: bold;
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  .dashboard-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 15px;
+  }
+
+  .card-presentation {
+    display: block;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+  }
+
+  .card-presentation h5 {
+    color: #0d5590;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .card-presentation:hover {
+    background-color: #0d5590;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(13, 85, 144, 0.25);
+  }
+
+  .card-presentation:hover h5 {
+    color: #fff;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+  }
+
+  .flashes {
+    list-style: none;
+    padding: 0;
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  .flashes li {
+    display: inline-block;
+    background-color: #e7f3ff;
+    color: #0d5590;
+    padding: 10px 18px;
+    border-radius: 8px;
+    margin: 5px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(13, 85, 144, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-container {
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 22px;
+    }
+  }
+</style>
+
+<div class="dashboard-container">
+  <h2>Bem-vindo ao Dashboard</h2>
+
+  <div class="dashboard-grid text-center">
+    <a class="card-presentation" href="{{ url_for('attendance_records') }}">
+      <h5>Registrar Atendimento</h5>
+    </a>
+
+    <a class="card-presentation" href="{{ url_for('consulta_atendimentos') }}">
+      <h5>Atendimentos</h5>
+    </a>
+
+    <a class="card-presentation" href="{{ url_for('consulta_os_atendente') }}">
+      <h5>Ordens de Serviço</h5>
+    </a>
+
+    <a class="card-presentation" href="{{ url_for('orcamentos') }}">
+      <h5>Modelos de Orçamento</h5>
+    </a>
+
+    <a class="card-presentation" href="{{ url_for('attendance_desempenho') }}">
+      <h5>Desempenho</h5>
+    </a>
+
+    <a class="card-presentation" href="{{ url_for('bonus_attendant') }}">
+      <h5>Ganhos por Serviço</h5>
+    </a>
   </div>
+
+  {% with messages = get_flashed_messages() %} {% if messages %}
+  <ul class="flashes">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %} {% endwith %}
 </div>
-{% with messages = get_flashed_messages() %} {% if messages %}
-<ul class="flashes">
-  {% for message in messages %}
-  <li>{{ message }}</li>
-  {% endfor %}
-</ul>
-{% endif %} {% endwith %} {% endblock %}
+{% endblock %}

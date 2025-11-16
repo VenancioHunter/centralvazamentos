@@ -1,0 +1,326 @@
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}Admin{% endblock %} {% block
+content %}
+<link href="../static/css/dashboard.css" rel="stylesheet" />
+
+<style>
+  .estado-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 10px 14px;
+    margin: 6px 0;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+
+  .estado-header:hover {
+    background: #f0f0f0;
+  }
+
+  .estado-seta {
+    transition: transform 0.3s ease;
+  }
+
+  .estado-seta.aberto {
+    transform: rotate(90deg);
+  }
+
+  .cidades-grid {
+    display: none;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-left: 3px solid #4cafef;
+    background: #fafafa;
+    border-radius: 6px;
+  }
+
+  .cidades-grid label {
+    font-size: 14px;
+    cursor: pointer;
+    display: block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .cidades-grid label:hover {
+    background: #e6f4ff;
+  }
+
+  .select-all {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: normal;
+    cursor: pointer;
+  }
+
+  .container-colunas {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+  }
+  .coluna {
+    flex: 1;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  .cidade {
+    cursor: pointer;
+    color: #0066cc;
+    font-weight: 600;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .close {
+    float: right;
+    font-size: 22px;
+    cursor: pointer;
+  }
+</style>
+
+<div>
+  <div class="row">
+    <div class="col-10">
+      <div id="cidades-container"></div>
+    </div>
+    <div class="col-2">
+      <div>
+        <div class="form-group">
+          <label for="myDateInputInicio" style="font-weight: bold"
+            >Data Início</label
+          >
+          <input type="date" class="form-control" id="myDateInputInicio" />
+        </div>
+
+        <div class="form-group">
+          <label for="myDateInputFim" style="font-weight: bold">Data Fim</label>
+          <input type="date" class="form-control" id="myDateInputFim" />
+        </div>
+      </div>
+      <button id="analyzeButton" class="btn btn-primary" style="width: 100%">
+        Buscar
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <div id="cidades-container"></div>
+
+    <button id="analyzeButton">Analisar</button>
+
+    <hr />
+
+    <div class="container-colunas">
+      <div class="coluna" id="coluna1"></div>
+      <div class="coluna" id="coluna2"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 🔹 Busca e exibe lista de cidades ---
+    fetch("/get_cidades")
+      .then((response) => response.json())
+      .then((ufs) => {
+        const container = document.getElementById("cidades-container");
+        container.innerHTML = "";
+
+        Object.entries(ufs).forEach(([uf, cidades]) => {
+          const header = document.createElement("div");
+          header.className = "estado-header";
+          header.innerHTML = `
+          <span>
+            ${uf}
+            <label class="select-all">
+              <input type="checkbox" class="check-all" data-uf="${uf}"> Selecionar todos
+            </label>
+          </span>
+          <span class="estado-seta">▶</span>
+        `;
+
+          const grid = document.createElement("div");
+          grid.className = "cidades-grid";
+
+          Object.entries(cidades).forEach(([id, nome]) => {
+            const div = document.createElement("div");
+            div.innerHTML = `
+            <label>
+              <input type="checkbox" class="cidade" data-uf="${uf}" value="${nome}">
+              ${nome}
+            </label>
+          `;
+            grid.appendChild(div);
+          });
+
+          // Toggle abre/fecha
+          header.addEventListener("click", (e) => {
+            if (e.target.closest(".select-all")) return;
+            const seta = header.querySelector(".estado-seta");
+            const aberto = grid.style.display === "grid";
+            grid.style.display = aberto ? "none" : "grid";
+            seta.classList.toggle("aberto", !aberto);
+          });
+
+          container.appendChild(header);
+          container.appendChild(grid);
+
+          // Selecionar/Deselecionar todas
+          const checkAll = header.querySelector(".check-all");
+          checkAll.addEventListener("change", () => {
+            const checkboxes = grid.querySelectorAll(".cidade");
+            checkboxes.forEach((cb) => (cb.checked = checkAll.checked));
+          });
+
+          // Atualiza estado do "selecionar todos"
+          grid.addEventListener("change", (e) => {
+            if (!e.target.classList.contains("cidade")) return;
+            const checkboxes = grid.querySelectorAll(".cidade");
+            const checked = grid.querySelectorAll(".cidade:checked");
+            checkAll.checked = checkboxes.length === checked.length;
+            checkAll.indeterminate =
+              checked.length > 0 && checked.length < checkboxes.length;
+          });
+        });
+      })
+      .catch((err) => console.error("Erro ao buscar cidades:", err));
+
+    // --- 🔹 Botão "Analisar" ---
+    document.getElementById("analyzeButton").addEventListener("click", () => {
+      const cidadesSelecionadas = Array.from(
+        document.querySelectorAll(".cidade:checked")
+      ).map((el) => el.value);
+
+      const dataInicio = document.getElementById("myDateInputInicio")?.value;
+      const dataFim = document.getElementById("myDateInputFim")?.value;
+
+      if (!cidadesSelecionadas.length)
+        return alert("Selecione pelo menos uma cidade.");
+      if (!dataInicio || !dataFim) return alert("Informe o período de datas.");
+
+      fetch("/buscar_dados", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cidades: cidadesSelecionadas,
+          data_inicio: dataInicio,
+          data_fim: dataFim,
+        }),
+      })
+        .then((res) => res.json())
+        .then((dados) => {
+          console.log("✅ Dados do Firebase:", dados);
+          renderResultados(dados);
+        });
+    });
+
+    // --- 🔹 Renderização dos resultados ---
+    function renderResultados(dados) {
+      const coluna1 = document.getElementById("coluna1");
+      coluna1.innerHTML = "";
+
+      let totalGeral = 0;
+
+      for (const cidade in dados) {
+        let totalCidade = 0;
+        const cidadeDiv = document.createElement("div");
+        cidadeDiv.classList.add("cidade");
+        cidadeDiv.innerHTML = `<h3>${cidade}</h3>`;
+
+        const listaDias = document.createElement("ul");
+
+        for (const dia in dados[cidade]) {
+          const osDoDia = Object.values(dados[cidade][dia]);
+          totalCidade += osDoDia.length;
+          totalGeral += osDoDia.length;
+
+          const itemDia = document.createElement("li");
+          itemDia.textContent = `Dia ${dia} → Total ${osDoDia.length} OSs`;
+          listaDias.appendChild(itemDia);
+        }
+
+        const totalDiv = document.createElement("p");
+        totalDiv.innerHTML = `<strong>Total em ${cidade}: ${totalCidade} OSs</strong>`;
+        cidadeDiv.appendChild(totalDiv);
+        cidadeDiv.appendChild(listaDias);
+
+        cidadeDiv.addEventListener("click", () =>
+          abrirModal(cidade, dados[cidade])
+        );
+        coluna1.appendChild(cidadeDiv);
+      }
+
+      const totalGeralDiv = document.createElement("h2");
+      totalGeralDiv.textContent = `Total Geral: ${totalGeral} OSs`;
+      coluna1.prepend(totalGeralDiv);
+    }
+
+    // --- 🔹 Modal para exibir detalhes ---
+    function abrirModal(cidade, dadosCidade) {
+      const modal = document.getElementById("modal");
+      const modalBody = document.getElementById("modalBody");
+
+      let html = `<h2>${cidade}</h2>`;
+      for (const dia in dadosCidade) {
+        html += `<h4>${dia}</h4><ul>`;
+        for (const osId in dadosCidade[dia]) {
+          const os = dadosCidade[dia][osId];
+          html += `
+          <li>
+            <strong>OS ${os.numero_os}</strong> - ${os.service} (${os.newprice} R$)<br>
+            Cliente: ${os.name} | ${os.phone}<br>
+            Endereço: ${os.address.rua}, ${os.address.numero} - ${os.address.bairro}
+          </li>
+        `;
+        }
+        html += `</ul>`;
+      }
+
+      modalBody.innerHTML = html;
+      modal.style.display = "flex";
+    }
+
+    document.getElementById("closeModal").onclick = () =>
+      (document.getElementById("modal").style.display = "none");
+    window.onclick = (e) => {
+      if (e.target.id === "modal")
+        document.getElementById("modal").style.display = "none";
+    };
+  </script>
+</div>
+{% endblock %}

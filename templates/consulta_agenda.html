@@ -1,37 +1,96 @@
 <!-- templates/dashboard.html -->
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<style>
+  body {
+    background-color: #f5f7fa;
+    font-family: "Helvetica", sans-serif;
+  }
 
-{% block title %}Dashboard{% endblock %}
+  .agenda-container {
+    max-width: 500px;
+    margin: 40px auto 0 auto;
+    padding: 25px 25px 35px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 
-{% block content %}
-    <div class="text-center my-4">
-        <h1>Consultar Agenda</h1>
+  h1 {
+    color: #0d5590;
+    font-weight: 700;
+    font-size: 26px;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  label {
+    font-weight: 600;
+    color: #0d5590;
+  }
+
+  .form-control {
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .btn-primary {
+    background-color: #0d5590;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: 0.2s ease-in-out;
+  }
+
+  .btn-primary:hover {
+    background-color: #0b456f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(13, 85, 144, 0.25);
+  }
+
+  @media (max-width: 480px) {
+    .agenda-container {
+      margin-top: 20px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 22px;
+    }
+  }
+</style>
+
+<div class="agenda-container">
+  <h1>Consultar Agenda</h1>
+
+  <form action="{{ url_for('view_schedule') }}" method="GET">
+    <label for="date">Data:</label>
+    <input class="form-control" type="date" name="date" id="date" required />
+    <br />
+
+    <div class="text-center">
+      <input
+        class="btn btn-primary"
+        type="submit"
+        value="Consultar"
+        style="width: 100%"
+      />
     </div>
-    <form action="{{ url_for('view_schedule') }}" method="GET">
-        <label for="date">Data:</label>
-        <input class="form-control" type="date" name="date" id="date" required>
-        <br>
-        <div align="center">
-        <input class="btn btn-primary" type="submit" value="Consultar" style="width: 80%;">
-        </div>
-    </form>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            // Usando Luxon para lidar com o fuso horário
-            const DateTime = luxon.DateTime;
+  </form>
+</div>
 
-            // Obtenha a data atual no fuso horário de São Paulo
-            const nowInSaoPaulo = DateTime.now().setZone('America/Sao_Paulo');
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    const DateTime = luxon.DateTime;
+    const nowInSaoPaulo = DateTime.now().setZone("America/Sao_Paulo");
+    const formattedDate = nowInSaoPaulo.toFormat("yyyy-MM-dd");
+    const dateInput = document.getElementById("date");
+    dateInput.value = formattedDate;
+  });
+</script>
 
-            // Formate a data para 'YYYY-MM-DD'
-            const formattedDate = nowInSaoPaulo.toFormat('yyyy-MM-dd');
-
-            // Obtenha o elemento de entrada da data
-            const dateInput = document.getElementById('date');
-
-            // Defina o valor do campo de data para a data atual em São Paulo
-            dateInput.value = formattedDate;
-        });
-    </script>
 {% endblock %}

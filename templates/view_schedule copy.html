@@ -1,167 +1,44 @@
-<!-- templates/view_schedule.html -->
-{% extends "layout.html" %} {% block title %}Agenda{% endblock %} {% block
+<!-- templates/dashboard.html -->
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
 content %}
+<script src="../static/js/formatarValor.js"></script>
 
-<style>
-  body {
-    background-color: #f5f7fa;
-    font-family: "Helvetica", sans-serif;
-  }
-
-  h1 {
-    color: #0d5590;
-    font-weight: 700;
-    margin-top: 30px;
-  }
-
-  h5 {
-    color: #0d5590;
-    font-weight: bold;
-  }
-
-  .card {
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: none;
-  }
-
-  .card-body ul li {
-    background: transparent !important;
-    border: none !important;
-    padding-left: 0 !important;
-  }
-
-  .card-footer {
-    background-color: #f8f9fb;
-    border-top: none;
-    border-radius: 0 0 14px 14px;
-    padding: 15px;
-  }
-
-  .btn-success {
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  .btn-danger {
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  .no-records {
-    text-align: center;
-    color: #777;
-    font-size: 18px;
-    margin-top: 20px;
-  }
-
-  /* Modal */
-  .modal-content {
-    border-radius: 14px;
-  }
-
-  .modal-header {
-    background-color: #0d5590;
-    color: white;
-    border-radius: 14px 14px 0 0;
-  }
-
-  .modal-footer button {
-    border-radius: 10px !important;
-  }
-
-  /* Popup */
-  .overlay {
-    backdrop-filter: blur(3px);
-  }
-
-  .popup {
-    background: white;
-    padding: 30px;
-    border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  }
-
-  /* Copiado telefone */
-  .telefone-copiavel {
-    font-weight: bold;
-    color: #0d5590 !important;
-    text-decoration: underline;
-  }
-
-  .badge {
-    padding: 8px 15px;
-    font-size: 14px;
-    border-radius: 8px;
-  }
-
-  .list-group-item {
-    border-bottom: 1px solid #ececec !important;
-    background-color: transparent !important;
-  }
-
-  .address-box {
-    background-color: #eef2f4;
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 15px;
-  }
-</style>
-
-<!-- Título -->
-<div class="text-center my-4">
-  <h1>Consultar Agenda</h1>
-</div>
-
-<!-- Formulário de seleção de data -->
-<div class="form-container">
-  <form action="{{ url_for('view_schedule') }}" method="GET">
-    <label for="date" class="mb-2" style="font-weight: bold"
-      >Selecione uma data:</label
-    >
-    <input class="form-control" type="date" name="date" id="date" required />
-
-    <div class="text-center mt-3">
-      <input
-        class="btn btn-primary"
-        type="submit"
-        value="Consultar"
-        style="width: 80%"
-      />
-    </div>
-  </form>
-</div>
-
-<div class="my-4 text-center">
+<div class="my-4" align="center">
   <h1>Agenda</h1>
-  <h5>{{ date }}</h5>
+  <div>
+    <h5>{{ date }}</h5>
+  </div>
 </div>
-
 {% if ordens_servico %} {% for os_id, os in ordens_servico.items() %}
-
-<div class="card mb-4">
+<div class="card mb-3">
   <div class="card-body">
-    <div class="mb-2">
-      <span class="badge bg-danger">Nº {{ os.get('numero_os', 'N/A') }}</span>
+    <div>
+      <h5 class="badge bg-danger fs-6">Nº {{ os.get('numero_os', 'N/A') }}</h5>
     </div>
-
-    <h4 class="card-title" style="color: #0d5590; font-weight: bold">
-      {{ os.city }}
-    </h4>
-
-    <div class="my-3 text-end" style="font-weight: bold">
-      <div>Início: {{ os.start_datetime | datetimeformathour('%H:%M') }}h</div>
-      <div>Término: {{ os.end_datetime | datetimeformathour('%H:%M') }}h</div>
+    <h5 class="card-title">{{ os.city }}</h5>
+    <div class="my-3" align="end" style="font-weight: bold">
+      <div>
+        <span
+          >Início {{ os.start_datetime | datetimeformathour('%H:%M') }}
+          horas</span
+        >
+      </div>
+      <div>
+        <span
+          >Término {{ os.end_datetime | datetimeformathour('%H:%M') }}
+          horas</span
+        >
+      </div>
     </div>
-
     <ul class="list-group list-group-flush">
-      <li class="list-group-item"><strong>Nome:</strong> {{ os.name }}</li>
-
+      <li class="list-group-item">Nome: {{ os.name }}</li>
       <li class="list-group-item">
-        <strong>Telefone:</strong>
-        <span class="telefone-copiavel" data-numero="{{ os.phone }}">
+        Telefone:
+        <span
+          class="telefone-copiavel"
+          data-numero="{{ os.phone }}"
+          style="cursor: pointer; color: blue; text-decoration: underline"
+        >
           {{ os.phone }}
         </span>
         <span
@@ -171,46 +48,36 @@ content %}
           Copiado!
         </span>
       </li>
-
-      <li class="list-group-item">
-        <strong>Serviço:</strong> {{ os.service }}
-      </li>
+      <li class="list-group-item">Serviço: {{ os.service }}</li>
     </ul>
-
-    <div class="address-box mt-3">
-      <h5 class="mb-3">Endereço</h5>
+    <div class="p-4 my-4" style="background-color: rgb(219, 219, 219)">
+      <label>Endereço</label>
       <ul class="list-group list-group-flush">
+        <li class="list-group-item">Bairro/Setor {{ os.address.bairro }}</li>
+        <li class="list-group-item">Rua {{ os.address.rua }}</li>
+        <li class="list-group-item">Nº {{ os.address.numero }}</li>
         <li class="list-group-item">
-          <strong>Bairro:</strong> {{ os.address.bairro }}
+          Complemento {{ os.address.complemento }}
         </li>
         <li class="list-group-item">
-          <strong>Rua:</strong> {{ os.address.rua }}
-        </li>
-        <li class="list-group-item">
-          <strong>Nº:</strong> {{ os.address.numero }}
-        </li>
-        <li class="list-group-item">
-          <strong>Complemento:</strong> {{ os.address.complemento }}
-        </li>
-
-        <li class="list-group-item">
-          <strong>Localização:</strong>
-          <a href="{{ os.address.localizacao }}" target="_blank">
-            {{ os.address.localizacao }}
-          </a>
+          Localização
+          <a href="{{ os.address.localizacao }}"
+            >{{ os.address.localizacao }}</a
+          >
         </li>
       </ul>
     </div>
-
-    <div class="text-end mt-3">
-      <h4 style="font-weight: bold; color: #0d5590">R$ {{ os.newprice }}</h4>
+    <div align="end">
+      <h5>R$ {{ os.newprice }}</h5>
     </div>
   </div>
 
-  <div class="card-footer text-center">
+  <div class="card-footer" align="center">
     {% if os.status_paymment == "recebido" or os.status_paymment == "pendente"
     %}
-    <div><span style="color: green; font-weight: bold">Recebido</span></div>
+    <div>
+      <span>Recebido</span>
+    </div>
     {% else %}
     <button
       class="btn btn-success"
@@ -224,9 +91,8 @@ content %}
     {% endif %}
   </div>
 </div>
-
 {% endfor %} {% if costs_day == False %}
-<div class="my-4 text-end">
+<div class="my-4" align="end">
   <form action="{{ url_for('fechar_dia_tecnico') }}" method="post">
     <input name="date" value="{{date}}" hidden />
     <button type="submit" class="btn btn-danger" style="width: 50%">
@@ -235,6 +101,7 @@ content %}
   </form>
 </div>
 {% endif %}
+
 <!-- Modal -->
 <div
   class="modal fade"
