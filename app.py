@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pyrebase
-from config import firebase_config
 from functools import wraps
 from datetime import datetime, timedelta
 import time
@@ -11,7 +10,7 @@ from core.user.class_user_wallet import User_Wallet
 from core.user.class_user_attendant_wallet import User_Wallet_Attendant
 from core.user.class_user import User
 import pytz
-from config import db, auth
+from config import db, auth, storage
 from collections import defaultdict
 from core.cities.class_cities import Cities
 from core.financeiro.class_financeiro import Financeiro
@@ -629,41 +628,43 @@ def consulta_agenda():
 @check_roles(['tecnico'])
 def view_schedule():
     date_str = request.args.get('date')
-    # Converter a data fornecida para ano, mês e dia
-    try:
-        date = datetime.strptime(date_str, '%Y-%m-%d')
-    except ValueError:
-        return "Formato de data inválido."
 
-    
-    year = str(date.year)
-    month = f"{date.month:02d}"
-    day = f"{date.day:02d}"
-    
-    # Obtenha o ID do técnico logado
-    tecnico_id = session['user']
-    
-    cities = db.child('users').child(session['user']).child('cities').get().val()
+    ordens_servico_ordenadas = {}
+    costs_day = None
 
-    all_ordens_servico = {}
-    
-    # Buscar ordens de serviço para cada cidade
-    for city in cities:
-        ordens_servico_path = f"ordens_servico/{city}/{year}/{month}/{day}"
-        os_agendadas = db.child(ordens_servico_path).get().val() or {}
-        all_ordens_servico.update(os_agendadas)
-    
-    # Filtrar as ordens de serviço para o técnico logado
-    ordens_servico_tecnico = {os_id: os for os_id, os in all_ordens_servico.items() if os.get('tecnico_id') == tecnico_id}
-    
-    ordens_servico_ordenadas = dict(sorted(
-        ordens_servico_tecnico.items(),
-        key=lambda item: datetime.strptime(item[1]['start_datetime'], '%Y-%m-%d %H:%M')
-    ))
+    if date_str:
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            return "Formato de data inválido."
 
-    costs_day = User_Wallet.verify_costs(id=tecnico_id, date=date)
+        year = str(date.year)
+        month = f"{date.month:02d}"
+        day = f"{date.day:02d}"
 
-    return render_template('view_schedule.html', ordens_servico=ordens_servico_ordenadas, cities=cities, date=date_str, costs_day=costs_day)
+        tecnico_id = session['user']
+        cities = db.child('users').child(session['user']).child('cities').get().val()
+        all_ordens_servico = {}
+
+        for city in cities:
+            path = f"ordens_servico/{city}/{year}/{month}/{day}"
+            os_agendadas = db.child(path).get().val() or {}
+            all_ordens_servico.update(os_agendadas)
+
+        ordens_servico_tecnico = {
+            os_id: os
+            for os_id, os in all_ordens_servico.items()
+            if os.get('tecnico_id') == tecnico_id
+        }
+
+        ordens_servico_ordenadas = dict(sorted(
+            ordens_servico_tecnico.items(),
+            key=lambda item: datetime.strptime(item[1]['start_datetime'], '%Y-%m-%d %H:%M')
+        ))
+
+        costs_day = User_Wallet.verify_costs(id=tecnico_id, date=date)
+
+    return render_template('view_schedule.html', ordens_servico=ordens_servico_ordenadas, date=date_str, costs_day=costs_day)
 
 @app.route('/consulta_os_atendente', methods=['GET', 'POST'])
 @check_roles(['user', 'admin'])
@@ -1748,6 +1749,25 @@ def relatorio():
    
     return render_template('relatorio.html')
 
+@app.route('/relatorio_tecnico', methods=['GET', 'POST'])
+@check_roles(['tecnico'])
+def relatorio_tecnico():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    tecnico_id = session['user']
+
+    # Buscar dados do técnico no Firebase
+    tecnico_data = db.child('users').child(tecnico_id).get().val()
+
+    tecnico_info = {
+        "nome_relatorio": tecnico_data.get("nome_relatorio", ""),
+        "cpf_cnpj": tecnico_data.get("cpf_cnpj", ""),
+        "assinatura": tecnico_data.get("assinatura", None)  # caso exista imagem salva
+    }
+   
+    return render_template('relatorio_tecnico.html', tecnico=tecnico_info)
+
 @app.route('/orcamento', methods=['GET', 'POST'])
 def orcamento():
    
@@ -2253,6 +2273,63 @@ def user_update_percentage():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/user_update_tipo', methods=['POST'])
+def user_update_tipo():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    user_id = data.get('id')
+    role = data.get('role')
+
+    if not user_id or role is None:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    try:
+        # Atualiza ou cria o campo 'percentage'
+        db.child("users").child(user_id).update({"role": role})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/user_update_cpf_cnpj', methods=['POST'])
+def user_update_cpf_cnpj():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    user_id = data.get('id')
+    cpf_cnpj = data.get('cpfcnpj')
+
+    if not user_id or cpf_cnpj is None:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    try:
+        # Atualiza ou cria o campo 'percentage'
+        db.child("users").child(user_id).update({"cpf_cnpj": cpf_cnpj})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+
+@app.route('/user_update_nome_relatorio', methods=['POST'])
+def user_update_nome_relatorio():
+    if 'user' not in session:
+        return jsonify({'success': False, 'error': 'Usuário não autenticado'}), 401
+
+    data = request.get_json()
+    user_id = data.get('id')
+    nome_relatorio = data.get('nome_relatorio')
+
+    if not user_id or nome_relatorio is None:
+        return jsonify({'success': False, 'error': 'Dados inválidos'}), 400
+
+    try:
+        # Atualiza ou cria o campo 'percentage'
+        db.child("users").child(user_id).update({"nome_relatorio": nome_relatorio})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/orcamentos', methods=['GET', 'POST'])
 def orcamentos():
@@ -2296,7 +2373,8 @@ def confirmar_transacao(pendente_id):
 
     if pendente:
         # Converte timestamp para data
-        date = datetime.datetime.fromtimestamp(pendente['timestamp'])
+        #date = datetime.datetime.fromtimestamp(pendente['timestamp'])
+        date = datetime.fromtimestamp(pendente['timestamp'])
         year = str(date.year)
         month = f"{date.month:02d}"
         day = f"{date.day:02d}"
@@ -2435,11 +2513,83 @@ def buscar_ordens():
                             ordens.append(item)
 
 
-
+        
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+    print(ordens)
     return jsonify({"success": True, "ordens": ordens})
+
+
+@app.route("/upload_pdf", methods=["POST"])
+def upload_pdf():
+
+    # Receber PDF
+    if "pdf" not in request.files:
+        return jsonify({"status": "error", "message": "PDF ausente"}), 400
+
+    pdf_file = request.files["pdf"]
+
+    # Receber dados do cliente
+    cliente = {
+        "nome": request.form.get("nome"),
+        "cpf": request.form.get("cpf"),
+    }
+
+    # Salvar PDF no Storage
+    filename = f"relatorios/{int(time.time())}.pdf"
+    storage.child(filename).put(pdf_file)
+    pdf_url = storage.child(filename).get_url(None)
+
+    # Identificar técnico logado
+    tecnico_id = session.get("name")
+
+    relatorio_data = {
+        "pdf_url": pdf_url,
+        "filename": filename,
+        "tecnico": tecnico_id,
+        "cliente": cliente,
+        "timestamp": int(time.time())
+    }
+
+    # Salvar no Realtime Database
+    relatorio_id = db.child("relatorios").push(relatorio_data)
+
+    return jsonify({"status": "ok", "url": pdf_url})
+@app.template_filter('datetime')
+def datetime_filter(ts):
+    return datetime.fromtimestamp(ts).strftime("%d/%m/%Y %H:%M")
+
+@app.route('/relatorios_lista_pdf')
+def relatorios_lista_pdf():
+    relatorios = db.child("relatorios").get().val()
+
+    lista = []
+    if relatorios:
+        for key, item in relatorios.items():
+
+            # Garante que todos os campos existam
+            cliente = item.get("cliente", {})
+            tecnico = item.get("tecnico", "Não informado")
+            pdf_url = item.get("pdf_url") or item.get("url")  # compatível com versões antigas
+            timestamp = item.get("timestamp", 0)
+
+            lista.append({
+                "id": key,
+                "pdf_url": pdf_url,
+                "tecnico": tecnico,
+                "timestamp": timestamp,
+                "cliente": {
+                    "nome": cliente.get("nome", "Não informado"),
+                    "cpf": cliente.get("cpf", "Não informado"),
+                }
+            })
+
+    # Ordena corretamente do mais recente para o mais antigo
+    lista = sorted(lista, key=lambda x: x["timestamp"], reverse=True)
+
+    return render_template("relatorios_lista_pdf.html", relatorios=lista)
+
 
 
 if __name__ == '__main__':
