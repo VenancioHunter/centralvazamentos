@@ -63,6 +63,7 @@ async function gerarPDF() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ compress: true });
     let nome;
+    let cpf;
     /*try {
         // Definir logo
         const logoURL = "../static/img/logo.png";
@@ -124,7 +125,7 @@ async function gerarPDF() {
 
         // Exemplo de conteúdo da primeira página
         nome = document.getElementById("nome").value;
-        const cpf = document.getElementById("cpf").value;
+        cpf = document.getElementById("cpf").value;
         const endereco = document.getElementById("endereco").value;
         const bairro = document.getElementById("bairro").value;
         const cidade = document.getElementById("cidade").value;
@@ -754,6 +755,28 @@ async function gerarPDF() {
 
     // Salvar PDF
     pdf.save(`Relatorio_Tecnico_${nome}.pdf`);
+
+    
+    const pdfBlob = pdf.output("blob");
+
+    // Enviar para o Flask
+    const formData = new FormData();
+    formData.append("pdf", pdfBlob, `relatorio-${Date.now()}.pdf`);
+
+    formData.append("nome", nome);
+    formData.append("cpf", cpf);
+
+    fetch("/upload_pdf", {
+        method: "POST",
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === "ok") {
+            /*alert("PDF salvo com sucesso!");
+            console.log("Link do PDF:", data.url);*/
+        }
+    });
 }
 
 
@@ -791,3 +814,4 @@ async function comprimirImagem(dataUrl, qualidade = 0.7) {
     };
   });
 }
+
