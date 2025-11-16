@@ -759,24 +759,25 @@ async function gerarPDF() {
     
     const pdfBlob = pdf.output("blob");
 
-    // Enviar para o Flask
-    const formData = new FormData();
-    formData.append("pdf", pdfBlob, `relatorio-${Date.now()}.pdf`);
+// Safari e alguns Androids precisam que seja um File
+const pdfFile = new File([pdfBlob], `relatorio-${Date.now()}.pdf`, { type: "application/pdf" });
 
-    formData.append("nome", nome);
-    formData.append("cpf", cpf);
+const formData = new FormData();
+formData.append("pdf", pdfFile);
+formData.append("nome", nome);
+formData.append("cpf", cpf);
 
-    fetch("/upload_pdf", {
-        method: "POST",
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.status === "ok") {
-            /*alert("PDF salvo com sucesso!");
-            console.log("Link do PDF:", data.url);*/
-        }
-    });
+fetch("/upload_pdf", {
+    method: "POST",
+    body: formData
+})
+.then(res => res.json())
+.then(data => {
+    console.log("Upload OK", data);
+})
+.catch(err => {
+    console.error("Falha no upload:", err);
+});
 }
 
 
