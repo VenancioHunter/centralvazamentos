@@ -14,9 +14,11 @@ from config import db, auth, storage
 from collections import defaultdict
 from core.cities.class_cities import Cities
 from core.financeiro.class_financeiro import Financeiro
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = 'secret'
 
 
