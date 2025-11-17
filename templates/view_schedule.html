@@ -110,30 +110,6 @@ content %}
   }
 </style>
 
-<!-- Título -->
-<div class="text-center my-4">
-  <h1>Consultar Agenda</h1>
-</div>
-
-<!-- Formulário de seleção de data -->
-<div class="form-container">
-  <form action="{{ url_for('view_schedule') }}" method="GET">
-    <label for="date" class="mb-2" style="font-weight: bold"
-      >Selecione uma data:</label
-    >
-    <input class="form-control" type="date" name="date" id="date" required />
-
-    <div class="text-center mt-3">
-      <input
-        class="btn btn-primary"
-        type="submit"
-        value="Consultar"
-        style="width: 80%"
-      />
-    </div>
-  </form>
-</div>
-
 <div class="my-4 text-center">
   <h1>Agenda</h1>
   <h5>{{ date }}</h5>
