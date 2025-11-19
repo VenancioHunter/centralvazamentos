@@ -46,7 +46,7 @@ content %}
               type="text"
               id="nome"
               name="nome"
-              style="text-transform: capitalize"
+              oninput="capitalizarNome(this)"
               required
             />
           </div>
@@ -577,6 +577,7 @@ content %}
       </div>
       <div class="text-center mt-4">
         <button
+          id="btnGerarPDF"
           type="button"
           onclick="gerarPDF()"
           class="btn btn-primary w-100 py-2 fw-semibold"
@@ -1099,6 +1100,62 @@ content %}
     </div>
   </form>
 </div>
+
+<!-- POP-UP DE CARREGAMENTO -->
+<div
+  id="loadingPopup"
+  style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    flex-direction: column;
+  "
+>
+  <div
+    class="spinner"
+    style="
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 0.8s linear infinite;
+    "
+  ></div>
+  <p style="margin-top: 20px">Gerando e salvando relatório...</p>
+</div>
+
+<style>
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+
+<script>
+  function capitalizarNome(input) {
+    let palavras = input.value.toLowerCase().split(" ");
+
+    for (let i = 0; i < palavras.length; i++) {
+      if (palavras[i].length > 0) {
+        palavras[i] = palavras[i][0].toUpperCase() + palavras[i].slice(1);
+      }
+    }
+
+    input.value = palavras.join(" ");
+  }
+</script>
 
 <script src="../static/js/tecnicos.js"></script>
 <script>
