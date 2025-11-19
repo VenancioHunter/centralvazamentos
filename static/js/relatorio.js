@@ -8,7 +8,8 @@ function validarCamposObrigatorios() {
         "cidade",
         "estado",
         "tecnico",
-        "data"
+        "data",
+        "selectTecnico"
     ];
 
     // Lista de mensagens de erro para campos vazios
@@ -55,9 +56,30 @@ function gerarAssinatura(nome) {
 
 async function gerarPDF() {
 
+    // Impede múltiplos cliques
+    const btn = document.getElementById("btnGerarPDF");
+    btn.disabled = true;
+    btn.innerText = "Gerando PDF...";
+
+    document.getElementById("loadingPopup").style.display = "flex";
+
      // Primeiro, valida os campos obrigatórios
     if (!validarCamposObrigatorios()) {
-        return; // Interrompe a geração do PDF se houver campos vazios
+        // Reativa o botão se houver erro
+        btn.disabled = false;
+        btn.innerText = "Baixar como PDF";
+        document.getElementById("loadingPopup").style.display = "none";
+        return;
+    }
+
+    const tecnicoSelect = document.getElementById("tecnico");
+    if (!tecnicoSelect.value || tecnicoSelect.value.trim() === "") {
+        alert("Por favor, selecione um técnico responsável antes de gerar o relatório.");
+        // Reativa o botão
+        btn.disabled = false;
+        btn.innerText = "Baixar como PDF";
+        document.getElementById("loadingPopup").style.display = "none";
+        return;
     }
 
     const { jsPDF } = window.jspdf;
@@ -755,34 +777,54 @@ async function gerarPDF() {
 
     // Salvar PDF
     // Primeiro gera o blob
-    const pdfBlob = pdf.output("blob");
+    // MOSTRA POP-UP
+document.getElementById("loadingPopup").style.display = "flex";
 
-    // Depois transforma em File (necessário para iPhone/Android)
-    const pdfFile = new File([pdfBlob], `relatorio-${Date.now()}.pdf`, {
-        type: "application/pdf"
-    });
+// Primeiro gera o blob antes de salvar
+const pdfBlob = pdf.output("blob");
 
-    // Enviar para o Flask
-    const formData = new FormData();
-    formData.append("pdf", pdfFile);
-    formData.append("nome", nome);
-    formData.append("cpf", cpf);
+// Converte para File (compatível com celulares)
+const pdfFile = new File([pdfBlob], `relatorio-${Date.now()}.pdf`, {
+    type: "application/pdf"
+});
 
-    fetch("/upload_pdf", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log("Upload OK", data);
 
-        // Agora SIM salvar no dispositivo
-        pdf.save(`Relatorio_Tecnico_${nome}.pdf`);
-    })
-    .catch(err => {
-        console.error("Falha no upload:", err);
-        alert("Erro ao enviar PDF. Verifique sua conexão.");
-    });
+
+// Monta o formData
+const formData = new FormData();
+formData.append("pdf", pdfFile);
+formData.append("nome", nome);
+formData.append("cpf", cpf);
+
+// Envia para o servidor
+fetch("/upload_pdf", {
+    method: "POST",
+    body: formData
+})
+.then(res => res.json())
+.then(data => {
+    console.log("Upload OK:", data);
+
+    // Depois do upload → baixa o PDF
+    pdf.save(`Relatorio_Tecnico_${nome}.pdf`);
+
+    // Depois de tudo → fecha popup e ativa botão
+    setTimeout(() => {
+        document.getElementById("loadingPopup").style.display = "none";
+        btn.disabled = false;
+        btn.innerText = "Baixar como PDF";
+    }, 1200);
+})
+.catch(err => {
+    console.error("Falha no upload:", err);
+    alert("Erro ao enviar o relatório. Verifique sua conexão.");
+
+    // Libera botão e popup mesmo se der erro
+    document.getElementById("loadingPopup").style.display = "none";
+    btn.disabled = false;
+    btn.innerText = "Baixar como PDF";
+});
+
 }
 
 
