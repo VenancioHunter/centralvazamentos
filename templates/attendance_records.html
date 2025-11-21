@@ -1,136 +1,256 @@
-<!-- templates/dashboard.html -->
-{% extends "layout.html" %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
+{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
 <script src="../static/js/formatarValor.js"></script>
+
+<style>
+  .form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+    margin-top: 35px;
+    margin-bottom: 40px;
+  }
+
+  h1 {
+    color: #0d5590;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-weight: 600;
+    color: #0d5590;
+  }
+
+  .form-select,
+  .form-control {
+    border-radius: 10px !important;
+    padding: 12px !important;
+    font-size: 16px;
+  }
+
+  .btn-primary {
+    background-color: #0d5590;
+    border-color: #0d5590;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+
+  .btn-primary:hover {
+    background-color: #083a63;
+    border-color: #083a63;
+  }
+
+  /* Popup */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    display: none;
+    z-index: 999;
+  }
+
+  .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 35px;
+    border-radius: 14px;
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25);
+    display: none;
+    z-index: 1000;
+    text-align: center;
+  }
+
+  .popup span {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 12px;
+    display: block;
+  }
+</style>
+
 <div class="my-4">
-    <h1 class="fs-1 text-center">Registrar Atendimento</h1>
+  <h1 class="fs-1 text-center">Registrar Atendimento</h1>
 </div>
-<form method="POST" action="/attendance_records" onsubmit="handleFormSubmit()">
+
+<div class="form-container">
+  <form
+    method="POST"
+    action="/attendance_records"
+    onsubmit="handleFormSubmit()"
+  >
     <div class="mb-3">
-        <select class="form-select" name="city" required>
-            {% for city in cities %}
-            <option value="{{ city }}">{{ city }}</option>
-            {% endfor %}
-        </select>
+      <label>Cidade</label>
+      <select class="form-select" name="city" required>
+        {% for city in cities %}
+        <option value="{{ city }}">{{ city }}</option>
+        {% endfor %}
+      </select>
     </div>
+
     <div class="mb-3">
-        <label>Canal</label>
-        <select class="form-select" name="canal" required>
-            <option value="indicação">Indicação</option>
-            <option value="google">Google</option>
-            <option value="instagram">Instagram</option>
-            <option value="parceria">Parceria</option>
-        </select>
+      <label>Canal</label>
+      <select class="form-select" name="canal" required>
+        <option value="indicação">Indicação</option>
+        <option value="google">Google</option>
+        <option value="instagram">Instagram</option>
+        <option value="parceria">Parceria</option>
+      </select>
     </div>
+
     <div class="mb-3">
-        <label for="FormControlInput1" class="form-label">Nome</label>
-        <input type="text" class="form-control" id="FormControlInput1" name="name" placeholder="Nome">
+      <label for="FormControlInput1" class="form-label">Nome</label>
+      <input
+        type="text"
+        class="form-control"
+        id="FormControlInput1"
+        name="name"
+        oninput="capitalizarNome(this)"
+        placeholder="Nome"
+      />
     </div>
+
     <div class="mb-3">
-        <label>Sexo</label>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="sexo" value="M" id="flexRadioDefault1" checked>
-            <label class="form-check-label" for="flexRadioDefault1">M</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="sexo" value="F" id="flexRadioDefault2">
-            <label class="form-check-label" for="flexRadioDefault2">F</label>
-        </div>
+      <label>Sexo</label>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="sexo"
+          value="M"
+          id="flexRadioDefault1"
+          checked
+        />
+        <label class="form-check-label" for="flexRadioDefault1"
+          >Masculino</label
+        >
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="sexo"
+          value="F"
+          id="flexRadioDefault2"
+        />
+        <label class="form-check-label" for="flexRadioDefault2">Feminino</label>
+      </div>
     </div>
+
     <div class="mb-3">
-        <label for="FormControlInput2" class="form-label">Telefone</label>
-        <input type="tel" class="form-control" id="FormControlInput2" name="phone" placeholder="Telefone" required>
+      <label for="FormControlInput2" class="form-label">Telefone</label>
+      <input
+        type="tel"
+        class="form-control"
+        id="FormControlInput2"
+        name="phone"
+        placeholder="Telefone"
+        required
+      />
     </div>
+
     <div class="mb-3">
-        <select class="form-select" name="service" required>
-            {% for service_id, service_name in services.items() %}
-            <option value="{{ service_name }}">{{ service_name }}</option>
-            {% endfor %}
-        </select>
+      <label>Serviço</label>
+      <select class="form-select" name="service" required>
+        {% for service_id, service_name in services.items() %}
+        <option value="{{ service_name }}">{{ service_name }}</option>
+        {% endfor %}
+      </select>
     </div>
+
     <div class="mb-3">
-        <label for="FormControlInput3" class="form-label">Valor</label>
-        <input type="tel" class="form-control" id="FormControlInput3" name="price" placeholder="Valor" value="0,00"
-            required>
+      <label for="FormControlInput3" class="form-label">Valor</label>
+      <input
+        type="tel"
+        class="form-control"
+        id="FormControlInput3"
+        name="price"
+        placeholder="Valor"
+        value="0,00"
+        required
+      />
     </div>
+
     <div class="mb-3">
-        <label for="FormControlTextarea1" class="form-label">Observação</label>
-        <textarea class="form-control" id="FormControlTextarea1" rows="3" name="details"></textarea>
+      <label for="FormControlTextarea1" class="form-label">Observação</label>
+      <textarea
+        class="form-control"
+        id="FormControlTextarea1"
+        rows="3"
+        name="details"
+      ></textarea>
     </div>
+
     <div align="center">
-        <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 80%;">Registrar</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        id="submit-btn"
+        style="width: 80%"
+      >
+        Registrar
+      </button>
     </div>
-</form>
+  </form>
+</div>
 
-
-<!-- Overlay para bloquear a tela de fundo -->
+<!-- Overlay -->
 <div class="overlay" id="overlay"></div>
 
 <!-- Pop-up -->
-<div class="popup" id="popup" align="center">
-    <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-    <div>
-        <span>Salvando...</span>
-    </div>
+<div class="popup" id="popup">
+  <div class="spinner-border" role="status"></div>
+  <span>Salvando...</span>
 </div>
 
 <script>
+  function mostrarPopup() {
+    document.getElementById("overlay").style.display = "block";
+    document.getElementById("popup").style.display = "block";
+  }
 
-    function mostrarPopup() {
-            var overlay = document.getElementById('overlay');
-            var popup = document.getElementById('popup');
-
-            overlay.style.display = 'block';
-            popup.style.display = 'block';
-
-            // Bloqueia a interação com a tela de fundo
-            overlay.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        }
-    // Função para formatar o telefone
-    var phoneInput = document.getElementById('FormControlInput2');
-    phoneInput.addEventListener('input', function (e) {
-        var phone = e.target.value;
-        phone = phone.replace(/\D/g, '');  // Remove tudo que não for número
-        if (phone.length == 11) {
-            phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-        } else if (phone.length == 10) {
-            phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
-        }
-        e.target.value = phone;
-    });
-
-    // Função para formatar o valor
-    /*const inputValor = document.getElementById('FormControlInput3');
-    inputValor.addEventListener('input', formatarValor);
-
-    function formatarValor() {
-        let valor = inputValor.value.replace(/\D/g, '');  // Remove tudo que não for dígito
-        const parteInteira = valor.slice(0, -2);
-        const parteDecimal = valor.slice(-2);
-        const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        inputValor.value = `${parteInteiraFormatada},${parteDecimal}`;
-    }*/
-
-    // Função para tratar o envio do formulário e desativar o botão
-    function handleFormSubmit() {
-        mostrarPopup();
-        const submitButton = document.getElementById('submit-btn');
-        submitButton.disabled = true;  // Desativa o botão
-        submitButton.innerText = 'Registrando...';  // Altera o texto do botão
-        
+  var phoneInput = document.getElementById("FormControlInput2");
+  phoneInput.addEventListener("input", function (e) {
+    var phone = e.target.value.replace(/\D/g, "");
+    if (phone.length == 11) {
+      phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+    } else if (phone.length == 10) {
+      phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
     }
+    e.target.value = phone;
+  });
+
+  function handleFormSubmit() {
+    mostrarPopup();
+    const submitButton = document.getElementById("submit-btn");
+    submitButton.disabled = true;
+    submitButton.innerText = "Registrando...";
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    configurarFormatacaoValor("FormControlInput3");
+  });
+
+  function capitalizarNome(input) {
+    let palavras = input.value.toLowerCase().split(" ");
+
+    for (let i = 0; i < palavras.length; i++) {
+      if (palavras[i].length > 0) {
+        palavras[i] = palavras[i][0].toUpperCase() + palavras[i].slice(1);
+      }
+    }
+
+    input.value = palavras.join(" ");
+  }
 </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            configurarFormatacaoValor("FormControlInput3");
-        });
-    </script>
+
 {% endblock %}
