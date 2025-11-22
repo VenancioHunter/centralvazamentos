@@ -324,15 +324,26 @@ async function gerarPDF() {
 
   if (typeof itensOrcamento !== "undefined" && itensOrcamento.length > 0) {
     itensOrcamento.forEach((item) => {
-      const valorFormatado = item.valor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      pdf.text(item.nome, 15, posY);
-      pdf.text(valorFormatado, 195, posY, { align: "right" });
-      posY += 7;
-      totalOrcamento += item.valor;
-    });
+  const unitario = item.valorUnit.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const totalItem = item.totalItem.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // Nome do item
+  pdf.text(`${item.nome} (${item.qtd} un × R$ ${unitario})`, 15, posY);
+
+  // Total do item
+  pdf.text(`R$ ${totalItem}`, 195, posY, { align: "right" });
+
+  posY += 7;
+  totalOrcamento += item.totalItem;
+});
+
   } else {
     pdf.text("Nenhum item adicionado ao orçamento.", 15, posY);
     posY += 7;
