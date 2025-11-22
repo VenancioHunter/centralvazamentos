@@ -213,18 +213,29 @@ block content %}
           </select>
         </div>
 
-        <div class="col-md-4 col-8">
+        <div class="col-md-3 col-4">
           <input
             type="number"
             class="form-control"
             id="item-valor"
-            placeholder="Valor (R$)"
+            placeholder="Valor (R$) Unitário"
           />
         </div>
 
-        <div class="col-md-3 col-4 text-md-end">
+        <div class="col-md-2 col-4">
+          <input
+            type="number"
+            class="form-control"
+            id="item-qtd"
+            placeholder="Qtd"
+            min="1"
+            value="1"
+          />
+        </div>
+
+        <div class="col-md-2 col-4 text-md-end">
           <button class="btn-main w-100" onclick="adicionarItem(event)">
-            <i class="bi bi-plus-circle"></i> Adicionar
+            <i class="bi bi-plus-circle"></i> Add
           </button>
         </div>
       </div>
@@ -256,7 +267,7 @@ block content %}
     <!-- SERVIÇO EXECUTADO -->
     <hr class="my-4" />
     <div class="section-box my-4">
-      <h3 class="mb-3">Serviço Executado</h3>
+      <h3 class="mb-3">Serviço a ser Executado</h3>
       <div class="row">
         <div class="col-md-4">
           <div class="form-check mb-2">
@@ -329,13 +340,13 @@ block content %}
         <label
           for="descricaoPersonalizada"
           style="font-size: small; font-weight: bold"
-          >Descrição do Serviço Executado</label
+          >Descrição do Serviço a ser Executado</label
         >
         <textarea
           class="form-control"
           id="descricaoPersonalizada"
           rows="3"
-          placeholder="Descreva o serviço executado"
+          placeholder="Descreva o serviço a ser executado"
         ></textarea>
       </div>
     </div>
@@ -720,28 +731,33 @@ block content %}
     event.preventDefault();
 
     const select = document.getElementById("item-select");
-    const valor = parseFloat(
+    const itemSelecionado = select.value;
+    const valorUnit = parseFloat(
       document.getElementById("item-valor").value.trim()
     );
-    const lista = document.getElementById("lista-itens");
-    const itemSelecionado = select.value;
+    const qtd = parseInt(document.getElementById("item-qtd").value.trim());
 
-    if (!itemSelecionado || isNaN(valor)) {
-      alert("Selecione um item e informe um valor válido.");
+    if (!itemSelecionado || isNaN(valorUnit) || isNaN(qtd) || qtd <= 0) {
+      alert("Selecione um item, informe valor e quantidade corretamente.");
       return;
     }
 
-    // Adiciona ao array
-    itensOrcamento.push({ nome: itemSelecionado, valor });
+    const totalItem = valorUnit * qtd;
 
-    // Atualiza a lista de exibição
-    atualizarListaItens(lista);
+    itensOrcamento.push({
+      nome: itemSelecionado,
+      valorUnit,
+      qtd,
+      totalItem,
+    });
+
+    atualizarListaItens(document.getElementById("lista-itens"));
+    atualizarTotal();
 
     // Limpa campos
     select.selectedIndex = 0;
     document.getElementById("item-valor").value = "";
-
-    atualizarTotal();
+    document.getElementById("item-qtd").value = "1";
   }
 
   function atualizarListaItens(lista) {
@@ -750,8 +766,9 @@ block content %}
       const row = document.createElement("div");
       row.className = "item-row";
       row.innerHTML = `
-      <span><strong>${item.nome}</strong></span>
-      <span>R$ ${item.valor.toFixed(2)}</span>
+      <span><strong>${item.nome}</strong> — ${item.qtd} un</span>
+      <span>R$ ${item.valorUnit.toFixed(2)} (unit.)</span>
+      <span>Total: R$ ${item.totalItem.toFixed(2)}</span>
       <button type="button" onclick="removerItem(${index})">Remover</button>
     `;
       lista.appendChild(row);
@@ -765,7 +782,7 @@ block content %}
   }
 
   function atualizarTotal() {
-    const total = itensOrcamento.reduce((acc, item) => acc + item.valor, 0);
+    const total = itensOrcamento.reduce((acc, item) => acc + item.totalItem, 0);
     document.getElementById("valor-total").textContent = total.toFixed(2);
   }
 
