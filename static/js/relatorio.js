@@ -248,6 +248,7 @@ async function gerarPDF() {
             "Palmeiras": "(62) 93300-6961",
 
             "São Paulo": "(11) 93300-3231",
+            "Santos": "(11) 93300-3231",
             "Osasco": "(11) 93300-3231",
             "Barueri": "(11) 93300-3231",
             "Campinas": "(19) 92001-6371",
