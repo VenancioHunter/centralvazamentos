@@ -1458,6 +1458,7 @@ content %}
       { value: "Capivari", text: "Capivari" },
       { value: "Limeira", text: "Limeira" },
       { value: "Sorocaba", text: "Sorocaba" },
+      { value: "Santos", text: "Santos" },
     ],
     SC: [
       { value: "Florianópolis", text: "Florianópolis" },
@@ -1533,6 +1534,34 @@ content %}
         newOption.text = option.text;
         selectCidade.appendChild(newOption);
       });
+    }
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+
+    function limpar(str) {
+      return (str || "").replace(/\s+/g, " ").trim();
+    }
+
+    if (params.has("nome")) {
+      document.getElementById("nome").value = params.get("nome");
+    }
+
+    const rua = params.get("rua");
+    const numero = params.get("numero");
+    const complemento = params.get("complemento");
+
+    if (rua || numero || complemento) {
+      const enderecoFormatado = `${limpar(rua)} Nº ${limpar(numero)} ${limpar(
+        complemento
+      )}`;
+      document.getElementById("endereco").value = enderecoFormatado;
+    }
+
+    if (params.has("bairro")) {
+      document.getElementById("bairro").value = params.get("bairro");
     }
   });
 </script>
