@@ -320,6 +320,7 @@ async function gerarPDF() {
             "Santa Luzia": "(31) 93300-6395",
             "Ibirité": "(31) 93300-6395",
             "Itabirito": "(31) 93300-6395",
+            "Lagoa Santa": "(31) 93300-6395",
         };
 
         const telefone = telefonesMap[cidade] || "Telefone não disponível";
