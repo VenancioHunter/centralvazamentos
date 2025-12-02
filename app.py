@@ -159,18 +159,54 @@ def attendance():
 @app.route('/add_city', methods=['GET', 'POST'])
 @check_roles(['admin'])
 def add_city():
-    if request.method == 'POST':
+    '''if request.method == 'POST':
         uf_name = request.form['uf']
+        city_name = request.form['city']
+        phone_number = request.form['phone']
+
+        # Verifique se a cidade já existe
+        cities = db.child("cities").get().val() or {}
+        if city_name not in cities.values():
+            db.child("cities").push(city_name)
+
+            db.child("uf").child(uf_name).child(city_name).set(phone_number)
+            return redirect(url_for('add_city'))
+        else:
+            return "Cidade já existe"
+        db.child("uf").child(uf_name).child(city_name).set(phone_number)
+        return redirect(url_for('add_city'))'''
+
+    return render_template('add_city.html')
+
+@app.route('/add_city_sistema', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def add_city_sistema():
+    if request.method == 'POST':
         city_name = request.form['city']
 
         # Verifique se a cidade já existe
         cities = db.child("cities").get().val() or {}
         if city_name not in cities.values():
             db.child("cities").push(city_name)
-            db.child("uf").child(uf_name).push(city_name)
+
+            
             return redirect(url_for('add_city'))
         else:
             return "Cidade já existe"
+       
+    return render_template('add_city.html')
+
+@app.route('/add_city_relatorio', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def add_city_relatorio():
+    if request.method == 'POST':
+        uf_name = request.form['uf']
+        city_name = request.form['city']
+        phone_number = request.form['phone']
+
+        
+        db.child("uf").child(uf_name).child(city_name).set(phone_number)
+        return redirect(url_for('add_city'))
 
     return render_template('add_city.html')
 
@@ -574,6 +610,7 @@ def gerar_os():
         "numero_os": novo_numero_os,
         "city": request.form.get('city'),
         "name": request.form.get('name'),
+        "cpfcnpj": request.form.get('cpfcnpj'),
         "phone": request.form.get('phone'),
         "service": request.form.get('service'),
         "oldprice": request.form.get('price'),
@@ -2596,6 +2633,29 @@ def relatorios_lista_pdf():
 
     return render_template("relatorios_lista_pdf.html", relatorios=lista)
 
+@app.route('/api/ufs')
+def api_ufs():
+    data = db.child("uf").get().val() or {}
+    return jsonify({"ufs": list(data.keys())})
+
+@app.route('/api/cidades/<uf>')
+def api_cidades(uf):
+    data = db.child("uf").child(uf).get().val() or {}
+    cidades = list(data.keys())
+    return jsonify({"cidades": cidades})
+
+@app.route('/api/telefone_cidade')
+def api_telefone_cidade():
+    uf = request.args.get("uf")
+    cidade = request.args.get("cidade")
+
+    if not uf or not cidade:
+        return jsonify({"telefone": None})
+
+    ref = db.child("uf").child(uf).child(cidade)
+    telefone = ref.get().val()
+
+    return jsonify({"telefone": telefone})
 
 
 if __name__ == '__main__':
