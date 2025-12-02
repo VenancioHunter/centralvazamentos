@@ -1,49 +1,373 @@
-<!-- templates/dashboard.html -->
-{% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
-content %}
-<h1>Adicionar Cidade</h1>
-<form method="POST" action="/add_city">
-  <div class="mb-3">
-    <label class="form-label" for="uf">UF</label>
+{% extends "layout.html" %} {% block title %}Adicionar Cidade{% endblock %} {%
+block content %}
 
-    <select class="form-select" id="uf" name="uf" required>
-      <option value="AC">Acre</option>
-      <option value="AL">Alagoas</option>
-      <option value="AP">Amapá</option>
-      <option value="AM">Amazonas</option>
-      <option value="BA">Bahia</option>
-      <option value="CE">Ceará</option>
-      <option value="DF">Distrito Federal</option>
-      <option value="ES">Espírito Santo</option>
-      <option value="GO">Goiás</option>
-      <option value="MA">Maranhão</option>
-      <option value="MT">Mato Grosso</option>
-      <option value="MS">Mato Grosso do Sul</option>
-      <option value="MG">Minas Gerais</option>
-      <option value="PA">Pará</option>
-      <option value="PB">Paraíba</option>
-      <option value="PR">Paraná</option>
-      <option value="PE">Pernambuco</option>
-      <option value="PI">Piauí</option>
-      <option value="RJ">Rio de Janeiro</option>
-      <option value="RN">Rio Grande do Norte</option>
-      <option value="RS">Rio Grande do Sul</option>
-      <option value="RO">Rondônia</option>
-      <option value="RR">Roraima</option>
-      <option value="SC">Santa Catarina</option>
-      <option value="SP">São Paulo</option>
-      <option value="SE">Sergipe</option>
-      <option value="TO">Tocantins</option>
-    </select>
-  </div>
-  <div class="mb-3">
-    <label class="form-label" for="city">Nome da Cidade:</label>
-    <input class="form-control" type="text" id="city" name="city" required />
-  </div>
-  <div align="center">
-    <button class="btn btn-primary" type="submit" style="width: 80%">
-      Adicionar
-    </button>
-  </div>
-</form>
+<style>
+  .page-title {
+    color: #0d5590;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    font-size: 2.2rem;
+  }
+
+  .section-card {
+    background: #ffffff;
+    padding: 35px 30px;
+    border-radius: 18px;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.07);
+    max-width: 800px;
+    margin: 25px auto;
+    transition: 0.2s ease;
+  }
+
+  .section-card:hover {
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.09);
+    transform: translateY(-2px);
+  }
+
+  .section-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #0d5590;
+    text-align: center;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #0d5590;
+    margin-bottom: 6px;
+  }
+
+  .form-control,
+  .form-select {
+    border-radius: 14px !important;
+    padding: 14px;
+    border: 1px solid #cfd6dd;
+    transition: 0.25s;
+    font-size: 0.95rem;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #0d5590 !important;
+    box-shadow: 0 0 0 0.15rem rgba(13, 85, 144, 0.25) !important;
+  }
+
+  .btn-submit {
+    width: 60%;
+    padding: 13px;
+    background-color: #0d5590;
+    font-weight: bold;
+    border-radius: 14px;
+    font-size: 1.15rem;
+    border: none;
+    margin-top: 20px;
+    transition: 0.25s;
+  }
+
+  .btn-submit:hover {
+    background-color: #083a63;
+    transform: translateY(-2px);
+  }
+
+  small.form-text {
+    font-size: 0.8rem;
+    color: #777;
+  }
+
+  .line-divider {
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(to right, #0d5590, #2d8acb, #0d5590);
+    margin: 40px 0;
+    border-radius: 5px;
+    opacity: 0.4;
+  }
+</style>
+
+<h1 class="page-title">Gerenciamento de Cidades</h1>
+
+<!-- SEÇÃO 1 -->
+<div class="section-card">
+  <h2 class="section-title">Adicionar Cidade ao Sistema</h2>
+
+  <form method="POST" action="/add_city_sistema">
+    <!-- UF -->
+    <div class="mb-4">
+      <label class="form-label" for="uf">Estado (UF)</label>
+      <input
+        class="form-control"
+        id="uf"
+        name="uf"
+        list="listaUFs"
+        placeholder="Digite o Estado ou a sigla (ex: GO ou Goiás)"
+        required
+        autocomplete="off"
+      />
+      <datalist id="listaUFs">
+        <option value="AC">Acre</option>
+        <option value="AL">Alagoas</option>
+        <option value="AP">Amapá</option>
+        <option value="AM">Amazonas</option>
+        <option value="BA">Bahia</option>
+        <option value="CE">Ceará</option>
+        <option value="DF">Distrito Federal</option>
+        <option value="ES">Espírito Santo</option>
+        <option value="GO">Goiás</option>
+        <option value="MA">Maranhão</option>
+        <option value="MT">Mato Grosso</option>
+        <option value="MS">Mato Grosso do Sul</option>
+        <option value="MG">Minas Gerais</option>
+        <option value="PA">Pará</option>
+        <option value="PB">Paraíba</option>
+        <option value="PR">Paraná</option>
+        <option value="PE">Pernambuco</option>
+        <option value="PI">Piauí</option>
+        <option value="RJ">Rio de Janeiro</option>
+        <option value="RN">Rio Grande do Norte</option>
+        <option value="RS">Rio Grande do Sul</option>
+        <option value="RO">Rondônia</option>
+        <option value="RR">Roraima</option>
+        <option value="SC">Santa Catarina</option>
+        <option value="SP">São Paulo</option>
+        <option value="SE">Sergipe</option>
+        <option value="TO">Tocantins</option>
+      </datalist>
+
+      <small class="form-text">
+        Você pode digitar <b>GO</b>, <b>Goiás</b>, <b>SP</b>, <b>São Paulo</b>,
+        etc.
+      </small>
+    </div>
+
+    <!-- Cidade -->
+    <div class="mb-4">
+      <label class="form-label" for="city">Cidade</label>
+      <input
+        class="form-control"
+        list="listaCidades"
+        type="text"
+        id="city"
+        name="city"
+        placeholder="Digite a cidade..."
+        required
+      />
+      <datalist id="listaCidades"></datalist>
+    </div>
+
+    <div class="text-center">
+      <button class="btn-submit btn btn-primary" type="submit">
+        Adicionar Cidade
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="line-divider"></div>
+
+<!-- SEÇÃO 2 -->
+<div class="section-card">
+  <h2 class="section-title">Adicionar Cidade ao Relatório</h2>
+
+  <form method="POST" action="/add_city_relatorio">
+    <!-- UF -->
+    <div class="mb-4">
+      <label class="form-label" for="uf">Estado (UF)</label>
+      <input
+        class="form-control"
+        id="uf"
+        name="uf"
+        list="listaUFs"
+        placeholder="Digite o Estado ou a sigla (ex: GO ou Goiás)"
+        required
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Cidade -->
+    <div class="mb-4">
+      <label class="form-label" for="city">Cidade</label>
+      <input
+        class="form-control"
+        list="listaCidades"
+        type="text"
+        id="city"
+        name="city"
+        placeholder="Digite a cidade..."
+        required
+      />
+    </div>
+
+    <!-- Telefone -->
+    <div class="mb-4">
+      <label class="form-label" for="FormControlInput2">Telefone</label>
+      <input
+        type="tel"
+        class="form-control"
+        id="FormControlInput2"
+        name="phone"
+        placeholder="(00) 00000-0000"
+        required
+      />
+    </div>
+
+    <div class="text-center">
+      <button class="btn-submit btn btn-primary" type="submit">
+        Adicionar Cidade
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Máscara telefone
+  var phoneInput = document.getElementById("FormControlInput2");
+  if (phoneInput) {
+    phoneInput.addEventListener("input", function (e) {
+      var phone = e.target.value.replace(/\D/g, "");
+      if (phone.length == 11) {
+        phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+      } else if (phone.length == 10) {
+        phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+      }
+      e.target.value = phone;
+    });
+  }
+
+  // Mapa nome/sigla de estados
+  const UF_MAP = {
+    ac: "AC",
+    acre: "AC",
+    al: "AL",
+    alagoas: "AL",
+    ap: "AP",
+    amapá: "AP",
+    amapa: "AP",
+    am: "AM",
+    amazonas: "AM",
+    ba: "BA",
+    bahia: "BA",
+    ce: "CE",
+    ceará: "CE",
+    ceara: "CE",
+    df: "DF",
+    "distrito federal": "DF",
+    es: "ES",
+    "espírito santo": "ES",
+    "espirito santo": "ES",
+    go: "GO",
+    goiás: "GO",
+    goias: "GO",
+    ma: "MA",
+    maranhão: "MA",
+    maranhao: "MA",
+    mt: "MT",
+    "mato grosso": "MT",
+    ms: "MS",
+    "mato grosso do sul": "MS",
+    mg: "MG",
+    "minas gerais": "MG",
+    pa: "PA",
+    pará: "PA",
+    para: "PA",
+    pb: "PB",
+    paraíba: "PB",
+    paraiba: "PB",
+    pr: "PR",
+    paraná: "PR",
+    parana: "PR",
+    pe: "PE",
+    pernambuco: "PE",
+    pi: "PI",
+    piauí: "PI",
+    piaui: "PI",
+    rj: "RJ",
+    "rio de janeiro": "RJ",
+    rn: "RN",
+    "rio grande do norte": "RN",
+    rs: "RS",
+    "rio grande do sul": "RS",
+    ro: "RO",
+    rondônia: "RO",
+    rondonia: "RO",
+    rr: "RR",
+    roraima: "RR",
+    sc: "SC",
+    "santa catarina": "SC",
+    sp: "SP",
+    "são paulo": "SP",
+    "sao paulo": "SP",
+    se: "SE",
+    sergipe: "SE",
+    to: "TO",
+    tocantins: "TO",
+  };
+
+  function resolverUF(valor) {
+    if (!valor) return "";
+    const v = valor.trim().toLowerCase();
+    if (UF_MAP[v]) return UF_MAP[v];
+    if (v.length === 2) return v.toUpperCase();
+    return "";
+  }
+
+  async function carregarCidadesIBGE(ufCode, cityList) {
+    if (!cityList || !ufCode) return;
+
+    cityList.innerHTML = "";
+
+    const url = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufCode}/municipios`;
+
+    try {
+      const response = await fetch(url);
+      const cidades = await response.json();
+
+      cidades.forEach((c) => {
+        const option = document.createElement("option");
+        option.value = c.nome;
+        cityList.appendChild(option);
+      });
+    } catch (error) {
+      console.log("Erro ao buscar cidades do IBGE:", error);
+    }
+  }
+
+  function iniciarForm(container) {
+    const ufInput = container.querySelector("#uf");
+    if (!ufInput) return;
+
+    // Usa o datalist global de cidades
+    const cityList =
+      container.querySelector("#listaCidades") ||
+      document.getElementById("listaCidades");
+
+    if (!cityList) return;
+
+    function atualizarCidades() {
+      const ufCode = resolverUF(ufInput.value);
+      if (ufInput.value.trim().length >= 2 && ufCode) {
+        ufInput.value = ufCode;
+        carregarCidadesIBGE(ufCode, cityList);
+      }
+    }
+
+    ufInput.addEventListener("input", atualizarCidades);
+
+    ufInput.addEventListener("blur", function () {
+      const ufCode = resolverUF(ufInput.value);
+      if (ufCode) {
+        ufInput.value = ufCode;
+        carregarCidadesIBGE(ufCode, cityList);
+      }
+    });
+  }
+
+  // Inicializa cada formulário (Sistema e Relatório)
+  document.querySelectorAll(".section-card").forEach((section) => {
+    iniciarForm(section);
+  });
+</script>
+
 {% endblock %}
