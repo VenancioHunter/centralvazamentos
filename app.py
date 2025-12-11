@@ -2687,7 +2687,7 @@ def post_transacao_pendente():
 
     agora = datetime.now()
     
-    #Financeiro.post_transaction_credito_tecnico(date=agora, type=type, amount=amount, category=category, description=description, especie=especie, destinatario=destinatario, user=user, origem=origem, id_origem=id_origem)
+    Financeiro.post_transaction_credito_tecnico(date=agora, type=type, amount=amount, category=category, description=description, especie=especie, destinatario=destinatario, user=user, origem=origem, id_origem=id_origem)
 
     id_transaction = itens[0]['id_transaction']
     
