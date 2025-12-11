@@ -29,6 +29,26 @@ function validarCamposObrigatorios() {
     return true; // Todos os campos estão preenchidos
 }
 
+// =============================
+// FUNÇÃO PARA GERAR ASSINATURA MANUSCRITA
+// =============================
+function gerarAssinatura(nome) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 400;
+  canvas.height = 100;
+  const ctx = canvas.getContext("2d");
+
+  // Fundo branco
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Fonte cursiva em azul Bic
+  ctx.font = "italic 38px 'Great Vibes', cursive";
+  ctx.fillStyle = "#0d47a1"; // azul de caneta Bic
+  ctx.fillText(nome, 10, 60);
+
+  return canvas.toDataURL("image/png");
+}
 
 async function gerarReparoPDF() {
 
@@ -221,7 +241,7 @@ async function gerarReparoPDF() {
         const tecnicoCNPJ = tecnicoSelecionado.getAttribute('data-cnpj'); // CNPJ do técnico
         const imagemAssinatura = tecnicoSelecionado.getAttribute('data-imagem');
 
-        if (imagemAssinatura) {
+        /*if (imagemAssinatura) {
             const imagemAssinaturaURL = `../static/img/${imagemAssinatura}`;
             const imgAssinatura = new Image();
             imgAssinatura.src = imagemAssinaturaURL;
@@ -234,11 +254,14 @@ async function gerarReparoPDF() {
 
             // Adicionar a assinatura no PDF
             pdf.addImage(imgAssinatura, "PNG", 15, 262, 45, 20); // Ajuste as dimensões conforme necessário
-        }
+        }*/
         // Adicionar informações do técnico
-        pdf.text(`-----------------------------------`, 15, 280);    
-        pdf.text(`${tecnicoNome}`, 15, 285);
-        pdf.text(`CNPJ ${tecnicoCNPJ}`, 15, 290);
+        const assinaturaImagem = gerarAssinatura(tecnicoNome);
+        pdf.addImage(assinaturaImagem, "PNG", 24, 266, 45, 20);
+        // Adicionar informações do técnico
+        pdf.text(`-----------------------------------`, 24, 280);    
+        pdf.text(`${tecnicoNome}`, 24, 285);
+        pdf.text(`CNPJ ${tecnicoCNPJ}`, 24, 290);
 
 
 
