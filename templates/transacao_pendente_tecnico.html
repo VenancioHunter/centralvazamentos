@@ -79,6 +79,29 @@
       font-size: 16px;
     }
   }
+
+  .tag-corrigir {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc3545;
+    color: white;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+  }
+
+  .tag-corrigir:active {
+    transform: scale(0.96);
+  }
+
+  .os-card-mobile {
+    position: relative; /* IMPORTANTE para etiqueta ficar colada no card */
+  }
 </style>
 
 <div class="container mt-3">
@@ -91,6 +114,14 @@
   {% if pendentes %} {% for id, p in pendentes.items() %}
   <div class="os-card-mobile">
     <div class="checkmark">✔</div>
+    <!-- Etiqueta externa -->
+    <div
+      class="tag-corrigir"
+      data-id-transaction="{{ id }}"
+      data-date-payment="{{ p.date_payment }}"
+    >
+      Corrigir
+    </div>
 
     <div class="os-title">OS Nº {{ p.numero_os }}</div>
 
@@ -156,14 +187,14 @@
     </div>
 
     <!-- Botão DEVOLVER -->
-    <button
+    <!--<button
       class="btn btn-danger btn-devolver mt-2"
       data-id-transaction="{{ id }}"
       data-date-payment="{{ p.date_payment }}"
       style="width: 100%; font-weight: bold"
     >
       Corrigir
-    </button>
+    </button>-->
   </div>
   {% endfor %} {% else %}
   <p class="text-center">Nenhuma OS pendente encontrada.</p>
@@ -265,9 +296,9 @@
   });
 
   // Botão DEVOLVER
-  document.querySelectorAll(".btn-devolver").forEach((btn) => {
-    btn.addEventListener("click", function (event) {
-      event.stopPropagation();
+  document.querySelectorAll(".tag-corrigir").forEach((tag) => {
+    tag.addEventListener("click", function (event) {
+      event.stopPropagation(); // não seleciona o card ao clicar no botão
 
       const id = this.getAttribute("data-id-transaction");
       const datePayment = this.getAttribute("data-date-payment");
@@ -282,16 +313,10 @@
           date_payment: datePayment,
         }),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Success:", data);
-        })
-        .catch((error) => {
-          console.error("Erro:", error);
-        })
-        .finally(() => {
-          window.location.reload();
-        });
+        .then((resp) => resp.json())
+        .then((data) => console.log("Success:", data))
+        .catch((err) => console.error("Erro:", err))
+        .finally(() => window.location.reload());
     });
   });
 
