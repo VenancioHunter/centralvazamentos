@@ -163,6 +163,7 @@ async function gerarPDF() {
             "Capivari": "(19) 92001-6371",
             "Limeira": "(19) 92001-6371",
             "Sorocaba": "(11) 92015-4693",
+            "Santos": "13 92003-6210",
 
             "Florianópolis": "(48) 93300-4291",
             "São José": "(48) 93300-4291",
