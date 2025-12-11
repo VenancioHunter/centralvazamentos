@@ -2707,8 +2707,8 @@ def post_transacao_pendente():
             
         get_service_pedente = db.child("financeiro").child("transactions_pendentes").child(year).child(month).child(day).child(item['id_transaction']).get().val()
         print(get_service_pedente)
-        #db.child("financeiro").child("transactions_confirmadas").child(year).child(month).child(day).push(get_service_pedente)
-        #db.child("financeiro").child("transactions_pendentes").child(year).child(month).child(day).child(item['id_transaction']).remove()
+        db.child("financeiro").child("transactions_confirmadas").child(year).child(month).child(day).push(get_service_pedente)
+        db.child("financeiro").child("transactions_pendentes").child(year).child(month).child(day).child(item['id_transaction']).remove()
 
         
     return True
