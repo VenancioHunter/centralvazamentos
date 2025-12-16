@@ -1,6 +1,7 @@
 <!-- templates/dashboard.html -->
 {% extends "layout.html" %} {% block title %}Dashboard{% endblock %} {% block
 content %}
+
 <style>
   body {
     background-color: #f5f7fa;
@@ -82,9 +83,15 @@ content %}
     }
   }
 </style>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <div class="dashboard-container">
-  <h2>Bem-vindo ao Dashboard</h2>
+  <h2>Bem-vindo(a)</h2>
+  <p style="text-align: center"><strong>{{ user_email }}</strong></p>
 
   <div class="dashboard-grid text-center">
     <a class="card-presentation" href="{{ url_for('attendance_records') }}">
@@ -99,8 +106,11 @@ content %}
       <h5>Ordens de Serviço</h5>
     </a>
 
-    <a class="card-presentation" href="{{ url_for('orcamentos') }}">
-      <h5>Modelos de Orçamento</h5>
+    <a
+      class="card-presentation"
+      href="{{ url_for('orcamento_client_reparo') }}"
+    >
+      <h5>Fazer Orçamento</h5>
     </a>
 
     <a class="card-presentation" href="{{ url_for('attendance_desempenho') }}">
@@ -112,6 +122,78 @@ content %}
     </a>
   </div>
 
+  <!--
+  <button
+    id="btnRotas"
+    class="btn btn-primary"
+    style="
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      border-radius: 50px;
+      padding: 15px 20px;
+    "
+    data-toggle="modal"
+    data-target="#rotaModal"
+  >
+    🚗 Rota
+  </button>
+  <div
+    class="modal fade"
+    id="rotaModal"
+    tabindex="-1"
+    role="dialog"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Calcular Tempo de Deslocamento</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>CEP Origem</label>
+            <input
+              type="text"
+              class="form-control"
+              id="cepOrigem"
+              maxlength="9"
+              oninput="mascaraCep(this)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>CEP Destino</label>
+            <input
+              type="text"
+              class="form-control"
+              id="cepDestino"
+              maxlength="9"
+              oninput="mascaraCep(this)"
+            />
+          </div>
+
+          <button class="btn btn-success w-100" onclick="calcularRota()">
+            Calcular Rota
+          </button>
+
+          <hr />
+
+          <div
+            id="resultadoRota"
+            style="font-size: 18px; font-weight: bold"
+          ></div>
+        </div>
+      </div>
+    </div>
+    
+  </div>-->
+
   {% with messages = get_flashed_messages() %} {% if messages %}
   <ul class="flashes">
     {% for message in messages %}
@@ -120,4 +202,113 @@ content %}
   </ul>
   {% endif %} {% endwith %}
 </div>
+<!---
+<script>
+  async function calcularRota() {
+    const apiKey =
+      "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjM1YmE1ZGFiNTUxNTQyNzE4ZTA5MTQxZDIxZjJjYjNmIiwiaCI6Im11cm11cjY0In0=";
+
+    const origemCEP = document
+      .getElementById("cepOrigem")
+      .value.replace(/\D/g, "");
+    const destinoCEP = document
+      .getElementById("cepDestino")
+      .value.replace(/\D/g, "");
+    const resultadoDiv = document.getElementById("resultadoRota");
+
+    if (origemCEP.length !== 8 || destinoCEP.length !== 8) {
+      resultadoDiv.innerHTML = "Digite dois CEPs válidos!";
+      return;
+    }
+
+    resultadoDiv.innerHTML = "Calculando rota... ⏳";
+
+    // 1. Converter CEP → Coordenadas + salvar dados do endereço (rua/bairro)
+    async function cepToCoord(cep) {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+
+      if (data.erro) return null;
+
+      // Salva informações para exibir no resultado:
+      const enderecoInfo = {
+        rua: data.logradouro || "Não informado",
+        bairro: data.bairro || "Não informado",
+        cidade: data.localidade || "Não informado",
+        uf: data.uf || "UF",
+      };
+
+      const enderecoCompleto = encodeURIComponent(
+        `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`
+      );
+
+      // Geocodificação pela OpenRouteService
+      const geoRes = await fetch(
+        `https://api.openrouteservice.org/geocode/search?api_key=${apiKey}&text=${enderecoCompleto}`
+      );
+      const geoData = await geoRes.json();
+
+      if (!geoData.features || geoData.features.length === 0) return null;
+
+      return {
+        coord: geoData.features[0].geometry.coordinates,
+        info: enderecoInfo,
+      };
+    }
+
+    const origemData = await cepToCoord(origemCEP);
+    const destinoData = await cepToCoord(destinoCEP);
+
+    if (!origemData || !destinoData) {
+      resultadoDiv.innerHTML = "Não foi possível encontrar as coordenadas.";
+      return;
+    }
+
+    // 2. Calcular rota pela OpenRouteService
+    const body = {
+      coordinates: [origemData.coord, destinoData.coord],
+    };
+
+    const rotaRes = await fetch(
+      "https://api.openrouteservice.org/v2/directions/driving-car",
+      {
+        method: "POST",
+        headers: {
+          Authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const rota = await rotaRes.json();
+
+    if (!rota.routes) {
+      resultadoDiv.innerHTML = "Erro ao calcular rota.";
+      return;
+    }
+
+    const distancia = rota.routes[0].summary.distance / 1000; // km
+    const tempo = rota.routes[0].summary.duration / 60; // minutos
+
+    // 3. Resultado final + Rua/Bairro origem e destino
+    resultadoDiv.innerHTML = `
+    <div style="font-size: 16px; margin-bottom: 10px;">
+      <b>Origem:</b><br>
+      Rua: ${origemData.info.rua}<br>
+      Bairro: ${origemData.info.bairro}<br>
+      Cidade: ${origemData.info.cidade} - ${origemData.info.uf}
+      <hr>
+      <b>Destino:</b><br>
+      Rua: ${destinoData.info.rua}<br>
+      Bairro: ${destinoData.info.bairro}<br>
+      Cidade: ${destinoData.info.cidade} - ${destinoData.info.uf}
+      <hr>
+    </div>
+    🚗 <b>Distância:</b> ${distancia.toFixed(1)} km<br>
+    ⏱ <b>Tempo estimado:</b> ${tempo.toFixed(0)} minutos
+  `;
+  }
+</script>-->
+
 {% endblock %}
