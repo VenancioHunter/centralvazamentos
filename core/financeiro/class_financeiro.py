@@ -20,7 +20,16 @@ class Financeiro:
         month = f"{now_in_sao_paulo.month:02d}"
         day = f"{now_in_sao_paulo.day:02d}"
 
+        contador = db.child("financeiro").child("contador_transactions").get().val()
+        if contador is None:
+            contador = 0
+
+        # Incrementa
+        novo_numero_transaction = contador + 1
+        db.child("financeiro").child("contador_transactions").set(novo_numero_transaction)
+
         transation = {
+                    'numero_transaction': novo_numero_transaction,
                     'origem': origem,
                     'id_origem': id_origem,
                     'user': user,
