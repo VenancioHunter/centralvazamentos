@@ -49,18 +49,22 @@ content %}
     </div>
     <div align="end">
       <h5>Valor R$ <span id="valor-os-{{ os_id }}">{{ os.newprice }}</span></h5>
-
-      <button
-        class="btn btn-sm btn-outline-primary mt-2"
-        data-toggle="modal"
-        data-target="#editarValorModal"
-        onclick="abrirModalEditarValor('{{ os_id }}', '{{ os.city }}', '{{ os.newprice }}')"
-      >
-        Editar Valor
-      </button>
     </div>
   </div>
   <div class="card-footer">
+    <div class="row mb-4">
+      <div class="col"></div>
+      <div class="col" align="end">
+        <button
+          class="btn btn-sm btn-outline-primary mt-2"
+          data-toggle="modal"
+          data-target="#editarValorModal"
+          onclick="abrirModalEditarValor('{{ os_id }}', '{{ os.city }}', '{{ os.newprice }}')"
+        >
+          Editar Valor
+        </button>
+      </div>
+    </div>
     <div class="row">
       <div class="col">
         {% if os.status_paymment == "recebido" or os.status_paymment ==
