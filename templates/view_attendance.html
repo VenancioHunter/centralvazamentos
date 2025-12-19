@@ -297,10 +297,20 @@ content %}
               class="form-control"
               id="osName"
               name="name"
-              readonly
+              oninput="capitalizarNome(this)"
             />
           </div>
-
+          <!-- CPF ou CNPJ -->
+          <div class="form-group mb-3">
+            <label for="osCPFCNPJ">CPF/CNPJ</label>
+            <input
+              type="text"
+              class="form-control"
+              id="osCPFCNPJ"
+              name="cpfcnpj"
+              oninput="formatarCpfCnpj(this)"
+            />
+          </div>
           <!-- Telefone -->
           <div class="form-group mb-3">
             <label for="osPhone">Telefone</label>
@@ -634,6 +644,32 @@ content %}
     }
   }
 </script>
+<script>
+  function formatarCpfCnpj(input) {
+    let valor = input.value.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+
+    if (valor.length <= 11) {
+      // Formatar como CPF: 123.456.789-09
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    } else if (valor.length > 11 && valor.length <= 14) {
+      // Formatar como CNPJ: 112.345.678/0001-23 ou 12.345.678/0001-23
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2"); // Exemplo: 112.345
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2"); // Exemplo: 112.345.678
+      valor = valor.replace(/(\d{3})(\d)/, "$1/$2"); // Exemplo: 112.345.678/0001
+      valor = valor.replace(/(\d{4})(\d{1,2})$/, "$1-$2"); // Exemplo: 112.345.678/0001-23
+    } else if (valor.length > 14) {
+      // Adaptar CNPJs maiores que 14 dígitos
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2"); // Exemplo: 123.456
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2"); // Exemplo: 123.456.789
+      valor = valor.replace(/(\d{3})(\d)/, "$1/$2"); // Exemplo: 123.456.789/0012
+      valor = valor.replace(/(\d{4})(\d{2})$/, "$1-$2"); // Exemplo: 123.456.789/0012-34
+    }
+
+    input.value = valor; // Atualiza o valor do campo
+  }
+</script>
 
 <script>
   function buscarCep(cep) {
@@ -659,5 +695,17 @@ content %}
       });
   }
 </script>
+<script>
+  function capitalizarNome(input) {
+    let palavras = input.value.toLowerCase().split(" ");
 
+    for (let i = 0; i < palavras.length; i++) {
+      if (palavras[i].length > 0) {
+        palavras[i] = palavras[i][0].toUpperCase() + palavras[i].slice(1);
+      }
+    }
+
+    input.value = palavras.join(" ");
+  }
+</script>
 {% endblock %}
