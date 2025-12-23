@@ -2863,7 +2863,7 @@ def buscar_comissoes():
                 item["dia"] = dia_numero
                 item["status"] = "recebido"   # seu filtro espera isso
                 item["city"] = item.get("city_os")  # ⚠️ FRONT USA os.city
-                item["tecnico_nome"] = item.get("tecnico")
+                item["tecnico_nome"] = item.get("atendente")
 
                 ordens.append(item)
 
