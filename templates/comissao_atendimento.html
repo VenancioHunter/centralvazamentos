@@ -263,7 +263,7 @@
       function preencherFiltros(ordens) {
         const cidades = [...new Set(ordens.map((os) => os.city))];
         const tecnicos = [
-          ...new Set(ordens.map((os) => os.tecnico_nome || "Sem Técnico")),
+          ...new Set(ordens.map((os) => os.atendente || "Sem Técnico")),
         ];
 
         const filtroCidade = document.getElementById("filtroCidade");
@@ -326,7 +326,7 @@
         <td>${os.client_phone}</td>
         <td>${os.city_os}</td>
         <td>${os.service}</td>
-        <td>${os.tecnico_nome || "Sem Técnico"}</td>
+        <td>${os.atendente || "Sem Técnico"}</td>
         <td>${os.valor_liquido}</td>
         
         <td>
