@@ -159,7 +159,29 @@ def attendance():
 @app.route('/add_city', methods=['GET', 'POST'])
 @check_roles(['admin'])
 def add_city():
-    '''if request.method == 'POST':
+    if request.method == 'POST':
+        uf_name = request.form['uf']
+        city_name = request.form['city']
+        phone_number = request.form['phone']
+
+        # Verifique se a cidade já existe
+        cities = db.child("cities").get().val() or {}
+        if city_name not in cities.values():
+            db.child("cities").push(city_name)
+
+            db.child("uf").child(uf_name).child(city_name).set(phone_number)
+            return redirect(url_for('add_city'))
+        else:
+            return "Cidade já existe"
+        
+
+    return render_template('add_city.html')
+
+'''
+@app.route('/add_city', methods=['GET', 'POST'])
+@check_roles(['admin'])
+def add_city():
+    if request.method == 'POST':
         uf_name = request.form['uf']
         city_name = request.form['city']
         phone_number = request.form['phone']
@@ -174,9 +196,9 @@ def add_city():
         else:
             return "Cidade já existe"
         db.child("uf").child(uf_name).child(city_name).set(phone_number)
-        return redirect(url_for('add_city'))'''
+        return redirect(url_for('add_city'))
 
-    return render_template('add_city.html')
+    return render_template('add_city.html')'''
 
 @app.route('/add_city_sistema', methods=['GET', 'POST'])
 @check_roles(['admin'])
@@ -2992,6 +3014,31 @@ def comentar_task():
 def obter_task(task_id):
     task = db.child("kanban").child("tasks").child(task_id).get().val()
     return jsonify(task)
+
+@app.route("/kanban/excluir", methods=["POST"])
+def excluir_task():
+    data = request.get_json() or {}
+    task_id = data.get("id")
+
+    if not task_id:
+        return jsonify(success=False, error="ID inválido"), 400
+
+    role = session.get("role")
+    user_id = session.get("user")
+
+    task_ref = db.child("kanban").child("tasks").child(task_id)
+    task = task_ref.get().val()
+
+    if not task:
+        return jsonify(success=False, error="Tarefa não encontrada"), 404
+
+    # Permissões: admin pode excluir tudo; não-admin só exclui se foi o criador
+    if role != "admin" and task.get("criado_por_id") != user_id:
+        return jsonify(success=False, error="Sem permissão"), 403
+
+    db.child("kanban").child("tasks").child(task_id).remove()
+    return jsonify(success=True)
+
 
 
 if __name__ == '__main__':
