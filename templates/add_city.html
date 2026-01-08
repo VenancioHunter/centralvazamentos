@@ -89,11 +89,11 @@ block content %}
 
 <h1 class="page-title">Gerenciamento de Cidades</h1>
 
-<!-- SEÇÃO 1 -->
+<!-- SEÇÃO ÚNICA: Adicionar Cidade ao Relatório -->
 <div class="section-card">
-  <h2 class="section-title">Adicionar Cidade ao Sistema</h2>
+  <h2 class="section-title">Adicionar Cidade ao Relatório</h2>
 
-  <form method="POST" action="/add_city_sistema">
+  <form method="POST" action="/add_city">
     <!-- UF -->
     <div class="mb-4">
       <label class="form-label" for="uf">Estado (UF)</label>
@@ -106,6 +106,7 @@ block content %}
         required
         autocomplete="off"
       />
+      <!-- datalist de ESTADOS -->
       <datalist id="listaUFs">
         <option value="AC">Acre</option>
         <option value="AL">Alagoas</option>
@@ -135,11 +136,6 @@ block content %}
         <option value="SE">Sergipe</option>
         <option value="TO">Tocantins</option>
       </datalist>
-
-      <small class="form-text">
-        Você pode digitar <b>GO</b>, <b>Goiás</b>, <b>SP</b>, <b>São Paulo</b>,
-        etc.
-      </small>
     </div>
 
     <!-- Cidade -->
@@ -154,50 +150,8 @@ block content %}
         placeholder="Digite a cidade..."
         required
       />
+      <!-- datalist de CIDADES, preenchido dinamicamente -->
       <datalist id="listaCidades"></datalist>
-    </div>
-
-    <div class="text-center">
-      <button class="btn-submit btn btn-primary" type="submit">
-        Adicionar Cidade
-      </button>
-    </div>
-  </form>
-</div>
-
-<div class="line-divider"></div>
-
-<!-- SEÇÃO 2 -->
-<div class="section-card">
-  <h2 class="section-title">Adicionar Cidade ao Relatório</h2>
-
-  <form method="POST" action="/add_city_relatorio">
-    <!-- UF -->
-    <div class="mb-4">
-      <label class="form-label" for="uf">Estado (UF)</label>
-      <input
-        class="form-control"
-        id="uf"
-        name="uf"
-        list="listaUFs"
-        placeholder="Digite o Estado ou a sigla (ex: GO ou Goiás)"
-        required
-        autocomplete="off"
-      />
-    </div>
-
-    <!-- Cidade -->
-    <div class="mb-4">
-      <label class="form-label" for="city">Cidade</label>
-      <input
-        class="form-control"
-        list="listaCidades"
-        type="text"
-        id="city"
-        name="city"
-        placeholder="Digite a cidade..."
-        required
-      />
     </div>
 
     <!-- Telefone -->
@@ -224,17 +178,15 @@ block content %}
 <script>
   // Máscara telefone
   var phoneInput = document.getElementById("FormControlInput2");
-  if (phoneInput) {
-    phoneInput.addEventListener("input", function (e) {
-      var phone = e.target.value.replace(/\D/g, "");
-      if (phone.length == 11) {
-        phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-      } else if (phone.length == 10) {
-        phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
-      }
-      e.target.value = phone;
-    });
-  }
+  phoneInput.addEventListener("input", function (e) {
+    var phone = e.target.value.replace(/\D/g, "");
+    if (phone.length == 11) {
+      phone = phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+    } else if (phone.length == 10) {
+      phone = phone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+    }
+    e.target.value = phone;
+  });
 
   // Mapa nome/sigla de estados
   const UF_MAP = {
@@ -309,14 +261,26 @@ block content %}
     if (!valor) return "";
     const v = valor.trim().toLowerCase();
     if (UF_MAP[v]) return UF_MAP[v];
-    if (v.length === 2) return v.toUpperCase();
+    if (v.length === 2) return v.toUpperCase(); // fallback se já for sigla
     return "";
   }
 
-  async function carregarCidadesIBGE(ufCode, cityList) {
-    if (!cityList || !ufCode) return;
+  // Quando sair do campo UF (blur), normaliza e carrega cidades
+  document.getElementById("uf").addEventListener("blur", function () {
+    const ufInput = document.getElementById("uf");
+    const ufCode = resolverUF(ufInput.value);
 
-    cityList.innerHTML = "";
+    if (ufCode) {
+      ufInput.value = ufCode; // coloca só a sigla (GO, SP, etc.)
+      carregarCidadesIBGE(ufCode); // carrega listaCidades
+    }
+  });
+
+  async function carregarCidadesIBGE(ufCode) {
+    const datalist = document.getElementById("listaCidades");
+    datalist.innerHTML = "";
+
+    if (!ufCode) return;
 
     const url = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufCode}/municipios`;
 
@@ -327,47 +291,12 @@ block content %}
       cidades.forEach((c) => {
         const option = document.createElement("option");
         option.value = c.nome;
-        cityList.appendChild(option);
+        datalist.appendChild(option);
       });
     } catch (error) {
       console.log("Erro ao buscar cidades do IBGE:", error);
     }
   }
-
-  function iniciarForm(container) {
-    const ufInput = container.querySelector("#uf");
-    if (!ufInput) return;
-
-    // Usa o datalist global de cidades
-    const cityList =
-      container.querySelector("#listaCidades") ||
-      document.getElementById("listaCidades");
-
-    if (!cityList) return;
-
-    function atualizarCidades() {
-      const ufCode = resolverUF(ufInput.value);
-      if (ufInput.value.trim().length >= 2 && ufCode) {
-        ufInput.value = ufCode;
-        carregarCidadesIBGE(ufCode, cityList);
-      }
-    }
-
-    ufInput.addEventListener("input", atualizarCidades);
-
-    ufInput.addEventListener("blur", function () {
-      const ufCode = resolverUF(ufInput.value);
-      if (ufCode) {
-        ufInput.value = ufCode;
-        carregarCidadesIBGE(ufCode, cityList);
-      }
-    });
-  }
-
-  // Inicializa cada formulário (Sistema e Relatório)
-  document.querySelectorAll(".section-card").forEach((section) => {
-    iniciarForm(section);
-  });
 </script>
 
 {% endblock %}

@@ -176,6 +176,14 @@ content %}
             >
               💬 Novo comentário
             </button>
+            {% if role == 'admin' or t.criado_por_id == user_id %}
+<button
+  class="btn btn-sm btn-outline-danger mt-1"
+  onclick="excluirTask('{{ t.id }}')"
+>
+  🗑 Excluir
+</button>
+{% endif %}
 
             <div class="text-muted small mt-1">
               ⏱ Atualizado em {{ t.ultimo_status_em }}
@@ -245,6 +253,14 @@ content %}
             >
               💬 Novo comentário
             </button>
+            {% if role == 'admin' or t.criado_por_id == user_id %}
+<button
+  class="btn btn-sm btn-outline-danger mt-1"
+  onclick="excluirTask('{{ t.id }}')"
+>
+  🗑 Excluir
+</button>
+{% endif %}
 
             <div class="text-muted small mt-1">
               ⏱ Atualizado em {{ t.ultimo_status_em }}
@@ -314,6 +330,14 @@ content %}
             >
               💬 Novo comentário
             </button>
+            {% if role == 'admin' or t.criado_por_id == user_id %}
+              <button
+                class="btn btn-sm btn-outline-danger mt-1"
+                onclick="excluirTask('{{ t.id }}')"
+              >
+                🗑 Excluir
+              </button>
+              {% endif %}
 
             <div class="text-muted small mt-1">
               ⏱ Atualizado em {{ t.ultimo_status_em }}
@@ -351,6 +375,7 @@ content %}
         <button class="btn btn-primary mt-2" onclick="enviarComentario()">
           Comentar
         </button>
+
       </div>
     </div>
   </div>
@@ -564,5 +589,30 @@ content %}
     await atualizarComentarios(taskAtual);
   }
 </script>
+<script>
+  async function excluirTask(id) {
+    if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+
+    try {
+      const resp = await fetch("/kanban/excluir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        alert("Não foi possível excluir. " + txt);
+        return;
+      }
+
+      location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao excluir a tarefa.");
+    }
+  }
+</script>
+
 
 {% endblock %}
