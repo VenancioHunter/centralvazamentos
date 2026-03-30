@@ -10,7 +10,12 @@ content %}
 {% if ordens_servico %} {% for os_id, os in ordens_servico.items() %}
 <div class="card mb-3">
   <div class="card-body" id="os-card-{{ os_id }}">
-    <h5 class="card-title">{{ os.city }}</h5>
+    <div>
+        <span class="badge bg-danger mb-2">
+          OS Nº {{ os.get('numero_os', 'N/A') }}
+        </span>
+        <h5 class="card-title mb-0">{{ os.city }}</h5>
+      </div>
     <div class="my-3" align="end" style="font-weight: bold">
       <div>
         <span
