@@ -102,6 +102,10 @@ content %}
       <h5>Atendimentos</h5>
     </a>
 
+    <a class="card-presentation" href="{{ url_for('buscar_os') }}">
+      <h5>Buscar OS</h5>
+    </a>
+
     <a class="card-presentation" href="{{ url_for('consulta_os_atendente') }}">
       <h5>Ordens de Serviço</h5>
     </a>
@@ -111,13 +115,6 @@ content %}
       href="{{ url_for('orcamento_client_reparo') }}"
     >
       <h5>Fazer Orçamento</h5>
-    </a>
-
-    <a
-      class="card-presentation"
-      href="{{ url_for('attendance_comissao') }}"
-    >
-      <h5>Comissão</h5>
     </a>
 
     <a class="card-presentation" href="{{ url_for('attendance_desempenho') }}">
