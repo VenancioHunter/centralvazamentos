@@ -50,6 +50,9 @@ content %}
       <li class="list-group-item px-0">
         <strong>Cliente:</strong> {{ os.name }}
       </li>
+      <li class="list-group-item px-0">
+        <strong>CPF/CNPJ:</strong> {{ os.cpfcnpj }}
+      </li>
 
       <li class="list-group-item px-0">
         <strong>Telefone:</strong>
@@ -95,6 +98,7 @@ content %}
         class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
         onclick="gerarRelatorioTecnico(
           '{{ os.name }}',
+          '{{ os.cpfcnpj }}',
           '{{ os.address.rua }}',
           '{{ os.address.bairro }}',
           '{{ os.address.numero }}',
@@ -503,8 +507,9 @@ content %}
 {% endif %}
 
 <script>
-  function gerarRelatorioTecnico(nome, rua, bairro, numero, complemento) {
+  function gerarRelatorioTecnico(nome, cpfcnpj, rua, bairro, numero, complemento) {
     const url = `/relatorio_tecnico?nome=${encodeURIComponent(nome)}
+        &cpfcnpj=${encodeURIComponent(cpfcnpj)}
         &rua=${encodeURIComponent(rua)}
         &bairro=${encodeURIComponent(bairro)}
         &numero=${encodeURIComponent(numero)}
@@ -588,7 +593,7 @@ content %}
 
   function getSelectedPaymentStatus() {
     var selectedOption = document.querySelector(
-      'input[name="paymentStatus"]:checked'
+      'input[name="paymentStatus"]:checked',
     );
     if (selectedOption) {
       return selectedOption.value;
@@ -604,7 +609,7 @@ content %}
     valueService,
     typeService,
     tecnicoId,
-    numeroOs
+    numeroOs,
   ) {
     currentOsId = osId; // Armazena o ID do serviço atual
     currentOsCity = city;
@@ -645,7 +650,7 @@ content %}
     var boletoValor = document.getElementById("boleto-valor").value;
     var boletoDate = document.getElementById("boleto-date").value;
     var outrosCustosService = document.getElementById(
-      "outros-custos-service"
+      "outros-custos-service",
     ).value;
     var observacaoService = document.getElementById("observacao-service").value;
     var status = getSelectedPaymentStatus();
@@ -683,7 +688,7 @@ content %}
 
     if (toNum(outrosCustosService) > toNum(currentOsValueService)) {
       alert(
-        "O valor dos custos do serviço não pode ser maior que o valor da OS."
+        "O valor dos custos do serviço não pode ser maior que o valor da OS.",
       );
       return;
     }

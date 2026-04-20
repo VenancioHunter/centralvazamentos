@@ -11,11 +11,11 @@ content %}
 <div class="card mb-3">
   <div class="card-body" id="os-card-{{ os_id }}">
     <div>
-        <span class="badge bg-danger mb-2">
-          OS Nº {{ os.get('numero_os', 'N/A') }}
-        </span>
-        <h5 class="card-title mb-0">{{ os.city }}</h5>
-      </div>
+      <span class="badge bg-danger mb-2">
+        OS Nº {{ os.get('numero_os', 'N/A') }}
+      </span>
+      <h5 class="card-title mb-0">{{ os.city }}</h5>
+    </div>
     <div class="my-3" align="end" style="font-weight: bold">
       <div>
         <span
@@ -31,7 +31,51 @@ content %}
       </div>
     </div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item">Nome: {{ os.name }}</li>
+      <li
+        class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2"
+      >
+        <span>
+          Nome:
+          <span id="nome-os-{{ os_id }}"
+            >{{ os.name if os.name else 'Não informado' }}</span
+          >
+        </span>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary"
+          data-toggle="modal"
+          data-target="#editarNomeModal"
+          data-os-id="{{ os_id }}"
+          data-city="{{ os.city }}"
+          data-name="{{ os.name|default('', true) }}"
+          onclick="abrirModalEditarNome(this)"
+        >
+          Editar Nome
+        </button>
+      </li>
+
+      <li
+        class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2"
+      >
+        <span>
+          CPF/CNPJ:
+          <span id="cpfcnpj-os-{{ os_id }}"
+            >{{ os.cpfcnpj if os.cpfcnpj else 'Não informado' }}</span
+          >
+        </span>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary"
+          data-toggle="modal"
+          data-target="#editarCpfCnpjModal"
+          data-os-id="{{ os_id }}"
+          data-city="{{ os.city }}"
+          data-cpfcnpj="{{ os.cpfcnpj|default('', true) }}"
+          onclick="abrirModalEditarCpfCnpj(this)"
+        >
+          Editar CPF/CNPJ
+        </button>
+      </li>
       <li class="list-group-item">Telefone: {{ os.phone }}</li>
       <li class="list-group-item">Serviço: {{ os.service }}</li>
     </ul>
@@ -331,6 +375,106 @@ content %}
   </div>
 </div>
 
+<div
+  class="modal fade"
+  id="editarNomeModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="editarNomeModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar / Adicionar Nome</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="editNomeOsId" />
+        <input type="hidden" id="editNomeOsCity" />
+        <input type="text" value="{{ date }}" id="editNomeOsDate" hidden />
+
+        <div class="form-group">
+          <label for="editOsNome">Nome</label>
+          <input
+            type="text"
+            class="form-control"
+            id="editOsNome"
+            placeholder="Digite o nome"
+            oninput="formatarNome(this)"
+          />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="salvarNovoNomeOs()"
+        >
+          Salvar Nome
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="editarCpfCnpjModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="editarCpfCnpjModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar / Adicionar CPF/CNPJ</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="editCpfCnpjOsId" />
+        <input type="hidden" id="editCpfCnpjOsCity" />
+        <input type="text" value="{{ date }}" id="editCpfCnpjOsDate" hidden />
+
+        <div class="form-group">
+          <label for="editOsCpfCnpj">CPF/CNPJ</label>
+          <input
+            type="text"
+            class="form-control"
+            id="editOsCpfCnpj"
+            oninput="formatarCpfCnpj(this)"
+            placeholder="Digite o CPF ou CNPJ"
+          />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="salvarNovoCpfCnpjOs()"
+        >
+          Salvar CPF/CNPJ
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Overlay para bloquear a tela de fundo -->
 <div class="overlay" id="overlay"></div>
 
@@ -426,7 +570,7 @@ content %}
     endTime1,
     technician1,
     city1,
-    oldDate1
+    oldDate1,
   ) {
     const oldDate = oldDate1;
     const date = date1;
@@ -443,8 +587,6 @@ content %}
       city: city,
       oldDate: oldDate,
     };
-
-    console.log(data);
 
     fetch("/verifica_agenda", {
       method: "POST",
@@ -570,6 +712,153 @@ content %}
         console.error(err);
         alert("Erro de comunicação com o servidor.");
       });
+  }
+</script>
+<script>
+  function abrirModalEditarNome(button) {
+    const osId = button.getAttribute("data-os-id") || "";
+    const city = button.getAttribute("data-city") || "";
+    const nomeAtual = button.getAttribute("data-name") || "";
+
+    document.getElementById("editNomeOsId").value = osId;
+    document.getElementById("editNomeOsCity").value = city;
+    document.getElementById("editOsNome").value = nomeAtual;
+  }
+
+  function salvarNovoNomeOs() {
+    const osId = document.getElementById("editNomeOsId").value;
+    const city = document.getElementById("editNomeOsCity").value;
+    const name = document.getElementById("editOsNome").value.trim();
+    const date = document.getElementById("editNomeOsDate").value;
+
+    mostrarPopup();
+
+    fetch("/atualizar_nome_os", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        os_id: osId,
+        city: city,
+        name: name,
+        date: date,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("popup").style.display = "none";
+
+        if (data.success) {
+          document.getElementById(`nome-os-${osId}`).innerText =
+            data.name || "Não informado";
+          $("#editarNomeModal").modal("hide");
+          window.location.reload();
+        } else {
+          alert(data.message || "Erro ao atualizar nome.");
+        }
+      })
+      .catch((err) => {
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("popup").style.display = "none";
+        console.error(err);
+        alert("Erro de comunicação com o servidor.");
+      });
+  }
+</script>
+
+<script>
+  function abrirModalEditarCpfCnpj(button) {
+    const osId = button.getAttribute("data-os-id") || "";
+    const city = button.getAttribute("data-city") || "";
+    const cpfcnpjAtual = button.getAttribute("data-cpfcnpj") || "";
+
+    document.getElementById("editCpfCnpjOsId").value = osId;
+    document.getElementById("editCpfCnpjOsCity").value = city;
+    document.getElementById("editOsCpfCnpj").value = cpfcnpjAtual;
+  }
+
+  function salvarNovoCpfCnpjOs() {
+    const osId = document.getElementById("editCpfCnpjOsId").value;
+    const city = document.getElementById("editCpfCnpjOsCity").value;
+    const cpfcnpj = document.getElementById("editOsCpfCnpj").value.trim();
+    const date = document.getElementById("editCpfCnpjOsDate").value;
+    console.log({ osId, city, cpfcnpj, date });
+
+    mostrarPopup();
+
+    fetch("/atualizar_cpfcnpj_os", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        os_id: osId,
+        city: city,
+        cpfcnpj: cpfcnpj,
+        date: date,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("popup").style.display = "none";
+
+        if (data.success) {
+          document.getElementById(`cpfcnpj-os-${osId}`).innerText =
+            data.cpfcnpj || "Não informado";
+          $("#editarCpfCnpjModal").modal("hide");
+          window.location.reload();
+        } else {
+          alert(data.message || "Erro ao atualizar CPF/CNPJ.");
+        }
+      })
+      .catch((err) => {
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("popup").style.display = "none";
+        console.error(err);
+        alert("Erro de comunicação com o servidor.");
+      });
+  }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script>
+  function formatarCpfCnpj(input) {
+    let valor = input.value.replace(/\D/g, "");
+
+    if (valor.length <= 11) {
+      valor = valor.replace(/^(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
+      valor = valor.replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+    } else {
+      valor = valor.slice(0, 14); // limita ao tamanho padrão do CNPJ
+      valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
+      valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+      valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2");
+      valor = valor.replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    }
+
+    input.value = valor;
+  }
+
+  function formatarNome(input) {
+    let valor = input.value.toLowerCase();
+
+    const excecoes = ["da", "de", "do", "dos", "das", "e"];
+
+    valor = valor
+      .split(" ")
+      .map((palavra, index) => {
+        if (!palavra) return "";
+
+        // Mantém exceções em minúsculo (exceto se for a primeira palavra)
+        if (excecoes.includes(palavra) && index !== 0) {
+          return palavra;
+        }
+
+        return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+      })
+      .join(" ");
+
+    input.value = valor;
   }
 </script>
 

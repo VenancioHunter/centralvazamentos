@@ -828,7 +828,9 @@ content %}
                     type="checkbox"
                     name="localizacao_reparo"
                     value="rededeincendio"
-                    onchange="toggleInput(this, 'detalhes_rededeincendio_reparo')"
+                    onchange="
+                      toggleInput(this, 'detalhes_rededeincendio_reparo')
+                    "
                   />
                   Rede de Incêndio:
                   <input
@@ -1238,8 +1240,8 @@ content %}
     try {
       const resp = await fetch(
         `/api/telefone_cidade?uf=${encodeURIComponent(
-          uf
-        )}&cidade=${encodeURIComponent(cidade)}`
+          uf,
+        )}&cidade=${encodeURIComponent(cidade)}`,
       );
       const data = await resp.json();
 
@@ -1301,7 +1303,7 @@ content %}
 <script>
   function exibirRevisaoDeConta() {
     const tipoRelatorio = document.getElementById(
-      "tipodeservicoVistoria"
+      "tipodeservicoVistoria",
     ).value;
 
     // Oculta todas as divs
@@ -1642,13 +1644,17 @@ content %}
       document.getElementById("nome").value = params.get("nome");
     }
 
+    if (params.has("cpfcnpj")) {
+      document.getElementById("cpf").value = params.get("cpfcnpj");
+    }
+
     const rua = params.get("rua");
     const numero = params.get("numero");
     const complemento = params.get("complemento");
 
     if (rua || numero || complemento) {
       const enderecoFormatado = `${limpar(rua)} Nº ${limpar(numero)} ${limpar(
-        complemento
+        complemento,
       )}`;
       document.getElementById("endereco").value = enderecoFormatado;
     }
