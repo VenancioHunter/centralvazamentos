@@ -2938,6 +2938,53 @@ def buscar_comissoes():
     except Exception as e:
         return jsonify({"erro": str(e)}), 500
 
+@app.route('/attendance_comissao', methods=['GET', 'POST'])
+def attendance_comissao():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('attendance_comissao.html')
+
+
+@app.route("/attendance_buscar_comissoes", methods=["POST"])
+def attendance_buscar_comissoes():
+    data = request.get_json()
+
+    ano = str(data.get("ano"))
+    mes = f"{int(data.get('mes')):02d}"
+
+    ordens = []
+
+    try:
+        dias = (
+            db.child("financeiro")
+              .child("transactions_confirmadas")
+              .child(ano)
+              .child(mes)
+              .get()
+        )
+
+        if not dias.each():
+            return jsonify({"ordens": []})
+
+        for dia in dias.each():
+            dia_numero = dia.key()
+
+            for transacao_id, item in dia.val().items():
+                if session.get('user') == item['atendente_id']:
+                    # 🔹 Padronização TOTAL para o front
+                    item["id_transaction"] = transacao_id
+                    item["dia"] = dia_numero
+                    item["status"] = "recebido"   # seu filtro espera isso
+                    item["city"] = item.get("city_os")  # ⚠️ FRONT USA os.city
+                    item["tecnico_nome"] = item.get("atendente")
+
+                    ordens.append(item)
+
+        return jsonify({"ordens": ordens})
+
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
+
 
 @app.route("/kanban")
 def kanban():
