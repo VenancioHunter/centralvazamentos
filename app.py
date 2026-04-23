@@ -2975,7 +2975,7 @@ def attendance_buscar_comissoes():
                     item["id_transaction"] = transacao_id
                     item["dia"] = dia_numero
                     item["status"] = "recebido"   # seu filtro espera isso
-                    item["city"] = item.get("city_os")  # ⚠️ FRONT USA os.city
+                    item["city"] = item.get("city_os")
                     item["tecnico_nome"] = item.get("atendente")
 
                     ordens.append(item)
