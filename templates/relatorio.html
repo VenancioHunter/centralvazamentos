@@ -821,7 +821,9 @@ content %}
                     type="checkbox"
                     name="localizacao_reparo"
                     value="rededeincendio"
-                    onchange="toggleInput(this, 'detalhes_rededeincendio_reparo')"
+                    onchange="
+                      toggleInput(this, 'detalhes_rededeincendio_reparo')
+                    "
                   />
                   Rede de Incêndio:
                   <input
@@ -1217,8 +1219,8 @@ content %}
     try {
       const resp = await fetch(
         `/api/telefone_cidade?uf=${encodeURIComponent(
-          uf
-        )}&cidade=${encodeURIComponent(cidade)}`
+          uf,
+        )}&cidade=${encodeURIComponent(cidade)}`,
       );
       const data = await resp.json();
 
@@ -1279,7 +1281,7 @@ content %}
 <script>
   function exibirRevisaoDeConta() {
     const tipoRelatorio = document.getElementById(
-      "tipodeservicoVistoria"
+      "tipodeservicoVistoria",
     ).value;
 
     // Oculta todas as divs
