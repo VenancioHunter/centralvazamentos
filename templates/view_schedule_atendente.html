@@ -76,7 +76,9 @@ content %}
           Editar CPF/CNPJ
         </button>
       </li>
-      <li class="list-group-item">Telefone: {{ os.phone }}</li>
+      <li class="list-group-item" id="telefone-os-{{ os_id }}">
+        Telefone: {{ os.phone }}
+      </li>
       <li class="list-group-item">Serviço: {{ os.service }}</li>
     </ul>
     <div class="p-4 my-4" style="background-color: rgb(219, 219, 219)">
@@ -512,14 +514,64 @@ content %}
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
+  // Formata 'YYYY-MM-DD' para 'DD/MM Dia-da-semana' (ex.: 23/07 Quinta-feira)
+  function formatarDataCopia(dateStr) {
+    var partes = String(dateStr).split("-");
+    if (partes.length !== 3) return "";
+
+    var ano = parseInt(partes[0], 10);
+    var mes = parseInt(partes[1], 10);
+    var dia = parseInt(partes[2], 10);
+
+    // Cria a data no fuso local para evitar erro de dia por conta do UTC
+    var d = new Date(ano, mes - 1, dia);
+    var diasSemana = [
+      "Domingo",
+      "Segunda-feira",
+      "Terça-feira",
+      "Quarta-feira",
+      "Quinta-feira",
+      "Sexta-feira",
+      "Sábado",
+    ];
+
+    var dd = String(dia).padStart(2, "0");
+    var mm = String(mes).padStart(2, "0");
+
+    return dd + "/" + mm + " " + diasSemana[d.getDay()];
+  }
+
   function copyCardContent(os_id) {
     // Selecionar o elemento do card com o ID correspondente
     var card = document.getElementById("os-card-" + os_id);
 
     // Verificar se o card existe
     if (card) {
-      // Capturar o texto do card
-      var cardText = card.innerText;
+      // Clona o card para poder remover elementos sem afetar a tela
+      var clone = card.cloneNode(true);
+
+      // Remove os botões (Editar Nome, Editar CPF/CNPJ, etc.)
+      clone.querySelectorAll("button").forEach(function (btn) {
+        btn.remove();
+      });
+
+      // Remove a linha do telefone
+      var telefone = clone.querySelector("#telefone-os-" + os_id);
+      if (telefone) telefone.remove();
+
+      // Monta o texto final com a data na primeira linha
+      var dataFormatada = formatarDataCopia("{{ date }}");
+      var corpo = clone.innerText
+        .split("\n")
+        .map(function (linha) {
+          return linha.trim();
+        })
+        .filter(function (linha) {
+          return linha !== "";
+        })
+        .join("\n");
+
+      var cardText = (dataFormatada ? dataFormatada + "\n" : "") + corpo;
 
       // Usar o clipboard API para copiar o texto para a área de transferência
       navigator.clipboard
@@ -686,7 +738,7 @@ content %}
       alert("Informe um valor válido.");
       return;
     }
-
+    
     mostrarPopup();
     fetch("/atualizar_valor_os", {
       method: "POST",

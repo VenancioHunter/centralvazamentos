@@ -176,7 +176,7 @@ block content %}
           </button>
         </li>
 
-        <li class="list-group-item">
+        <li class="list-group-item" id="telefone-os-{{ os_id }}">
           Telefone: {{ os.phone if os.phone else 'Não informado' }}
         </li>
         <li class="list-group-item">
@@ -666,11 +666,79 @@ block content %}
 </script>
 
 <script>
+  // Formata 'YYYY-MM-DD' para 'DD/MM Dia-da-semana' (ex.: 23/07 Quinta-feira)
+  function formatarDataCopia(dateStr) {
+    var partes = String(dateStr).split("-");
+    if (partes.length !== 3) return "";
+
+    var ano = parseInt(partes[0], 10);
+    var mes = parseInt(partes[1], 10);
+    var dia = parseInt(partes[2], 10);
+
+    // Cria a data no fuso local para evitar erro de dia por conta do UTC
+    var d = new Date(ano, mes - 1, dia);
+    var diasSemana = [
+      "Domingo",
+      "Segunda-feira",
+      "Terça-feira",
+      "Quarta-feira",
+      "Quinta-feira",
+      "Sexta-feira",
+      "Sábado",
+    ];
+
+    var dd = String(dia).padStart(2, "0");
+    var mm = String(mes).padStart(2, "0");
+
+    return dd + "/" + mm + " " + diasSemana[d.getDay()];
+  }
+
   function copyCardContent(os_id) {
     var card = document.getElementById("os-card-" + os_id);
 
     if (card) {
-      var cardText = card.innerText;
+      // Clona o corpo do card para poder remover elementos sem afetar a tela
+      var clone = card.cloneNode(true);
+
+      // Remove os botões (Editar Nome, Editar CPF/CNPJ, Editar Valor)
+      clone.querySelectorAll("button").forEach(function (btn) {
+        btn.remove();
+      });
+
+      // Remove a linha do telefone
+      var telefone = clone.querySelector("#telefone-os-" + os_id);
+      if (telefone) telefone.remove();
+
+      // Cabeçalho: número da OS e cidade ficam no topo (fora do corpo do card)
+      var mainCard = card.closest(".os-main-card");
+      var numeroOs = "";
+      var cidade = "";
+      if (mainCard) {
+        var badge = mainCard.querySelector(".os-number-badge");
+        var cityEl = mainCard.querySelector(".os-city");
+        if (badge) numeroOs = badge.innerText.trim();
+        if (cityEl) cidade = cityEl.innerText.trim();
+      }
+
+      var corpo = clone.innerText
+        .split("\n")
+        .map(function (linha) {
+          return linha.trim();
+        })
+        .filter(function (linha) {
+          return linha !== "";
+        })
+        .join("\n");
+
+      // Monta o texto final: data + OS + cidade + corpo
+      var linhas = [];
+      var dataFormatada = formatarDataCopia("{{ date }}");
+      if (dataFormatada) linhas.push(dataFormatada);
+      if (numeroOs) linhas.push(numeroOs);
+      if (cidade) linhas.push(cidade);
+      linhas.push(corpo);
+
+      var cardText = linhas.join("\n");
 
       navigator.clipboard
         .writeText(cardText)
